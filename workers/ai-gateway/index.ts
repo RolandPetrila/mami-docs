@@ -2,9 +2,12 @@
 // CRITIC SECURITATE: GROQ_API_KEY trăiește exclusiv în Cloudflare Secrets,
 // NICIODATĂ în bundle client (VITE_* prefix).
 //
-// Endpoint: POST /chat  { messages: ChatMessage[], systemPrompt?: string }
+// Endpoint: POST /chat        { messages: ChatMessage[], systemPrompt?: string }
+// Endpoint: POST /transcribe  multipart/form-data { file: Blob }
+// Endpoint: GET  /health      → { ok: true }
+//
 // Fallback chain (Categoria 1 — Conversațional Text):
-//   1. Groq llama-3.1-8b-instant  (primar, rapid)
+//   1. Groq llama-3.1-8b-instant   (primar, rapid)
 //   2. Groq llama-3.3-70b-versatile (fallback, mai puternic)
 // Circuit breaker: 3 eșecuri → skip provider 5 min
 
@@ -28,6 +31,10 @@ interface GroqResponseBody {
   usage?: { prompt_tokens: number; completion_tokens: number };
 }
 
+interface GroqAudioResponse {
+  text: string;
+}
+
 interface CircuitState {
   failures: number;
   openUntil: number; // epoch ms; 0 = closed
@@ -36,9 +43,12 @@ interface CircuitState {
 const CIRCUIT_THRESHOLD = 3;
 const CIRCUIT_TIMEOUT_MS = 5 * 60 * 1_000;
 const REQUEST_TIMEOUT_MS = 10_000;
+const AUDIO_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 2;
 const GROQ_API = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_AUDIO_API = "https://api.groq.com/openai/v1/audio/transcriptions";
 const MAX_TOKENS = 1_024;
+const WHISPER_MODEL = "whisper-large-v3";
 
 const PROVIDERS: ReadonlyArray<{
   readonly id: string;
@@ -105,6 +115,37 @@ async function callGroq(
   return resp.json() as Promise<GroqResponseBody>;
 }
 
+async function callGroqAudio(
+  formData: FormData,
+  apiKey: string,
+): Promise<GroqAudioResponse> {
+  // Groq audio API expects: file (Blob), model, language (optional), response_format
+  const file = formData.get("file");
+  if (!(file instanceof Blob)) {
+    throw new Error("Missing 'file' in form-data");
+  }
+
+  const upstream = new FormData();
+  upstream.append("file", file, "audio.webm");
+  upstream.append("model", WHISPER_MODEL);
+  upstream.append("language", "ro");
+  upstream.append("response_format", "json");
+
+  const resp = await withTimeout(
+    fetch(GROQ_AUDIO_API, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: upstream,
+    }),
+    AUDIO_TIMEOUT_MS,
+  );
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => "");
+    throw new Error(`HTTP ${resp.status}: ${body.slice(0, 200)}`);
+  }
+  return resp.json() as Promise<GroqAudioResponse>;
+}
+
 function jsonResp(
   payload: unknown,
   status: number,
@@ -123,7 +164,7 @@ export default {
 
     const cors: Record<string, string> = {
       "Access-Control-Allow-Origin": allowed || origin || "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",
     };
@@ -133,17 +174,29 @@ export default {
       return new Response(null, { status: 204, headers: cors });
     }
 
-    // Origin check (skip if ALLOWED_ORIGIN not configured — dev mode)
+    const { pathname } = new URL(request.url);
+
+    // Health check — public, no Origin restriction (smoke test din terminal)
+    if (pathname === "/health" && request.method === "GET") {
+      return jsonResp({ ok: true }, 200, cors);
+    }
+
+    // Origin check pentru rute care consumă quota (skip dacă ALLOWED_ORIGIN gol — dev mode)
     if (allowed && origin !== allowed) {
       console.warn(`[forbidden] origin="${origin}" expected="${allowed}"`);
       return jsonResp({ error: "Forbidden" }, 403, cors);
     }
 
-    const { pathname } = new URL(request.url);
-
-    // Health check
-    if (pathname === "/health" && request.method === "GET") {
-      return jsonResp({ ok: true }, 200, cors);
+    if (pathname === "/transcribe" && request.method === "POST") {
+      try {
+        const formData = await request.formData();
+        const data = await callGroqAudio(formData, env.GROQ_API_KEY);
+        return jsonResp(data, 200, cors);
+      } catch (err) {
+        const lastError = err instanceof Error ? err.message : String(err);
+        console.error(`[transcribe-failed] ${lastError}`);
+        return jsonResp({ error: "Transcription failed" }, 500, cors);
+      }
     }
 
     if (pathname !== "/chat") {
