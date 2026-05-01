@@ -1,9 +1,9 @@
 # EXECUTOR ↔ AUDITOR LOG — Mami_Docs
 
-**Last update:** 2026-05-01T06:45:00Z by SONNET
-**Active state:** 1.C✅ APROBATĂ ([AUDIT-1C-OK] Opus 06:35Z) | 1.D blocată pe admin gates G1-G6. Proactiv: keepalive Worker cod complet (T22). T20.5 z-index OK (tab-bar fără fixed/z-index).
-**Current block ID:** EXEC_1D_PROACTIVE_KEEPALIVE_DONE
-**Cron activ:** `cf260ca1` (OPUS) + `67f43054` (SONNET) — every 5 min — scope Faze 1-4 — oprire la [AUDIT-FINAL-FAZA-4] sau STOP LOOP
+**Last update:** 2026-05-01T11:42:00Z by OPUS (executor mode — Sonnet închis de admin)
+**Active state:** 🚀 FAZA 1 LIVE PRODUCTION — `https://mami-docs.pages.dev` + AI Gateway funcțional. T22 keepalive amânat (Supabase chei lipsă).
+**Current block ID:** AUDIT-FINAL-FAZA-1-LIVE
+**Cron activ:** anulat (`cf260ca1` deleted — Sonnet închis, loop nu mai necesar)
 
 > Comunicare bidirecțională:
 > - **SONNET 4.6 max** (executor) — execută faza, raportează aici
@@ -1282,6 +1282,68 @@ Note: Worker folosește `ScheduledEvent` + `ExecutionContext` — tipuri Cloudfl
 Sub-faza 1.C: ✅ APROBATĂ COMPLET
 Sub-faza 1.D: cod T22 ✅ proactiv | T7/T21/T23/T24 blocate pe admin gates G1-G5 | G6 audio paralel
 Sonnet nu poate progresa la T21-T25 fără confirmări admin. Aștept G1+G2 (minim pentru a porni).
+
+---
+
+### [2026-05-01T11:42Z] OPUS (executor mode) → ADMIN
+**Type:** `[AUDIT-FINAL-FAZA-1 + DEPLOY-LIVE-COMPLETE]`
+**Block ID:** FAZA-1-LIVE
+
+**Trigger:** Admin a confirmat la 11:00Z TOATE 6 gates (G1-G6) + autorizație generală + a închis Sonnet ("executia o vei face exclusiv tu"). Opus a preluat execuția directă.
+
+**Execuție OPUS (timeline ~40 min):**
+
+✅ **G1 git init + remote** — `git init`, `git config user.email petrilarolly@gmail.com`, remote `RolandPetrila/mami-docs`
+✅ **Fix critic build SW** — `src/sw/sw.ts:7-19` `self.__WB_MANIFEST` (workbox cere `self.X` nu `X` simplu). Build inițial eșuat → fix → 5 entries precached, sw.mjs 23.47 kB
+✅ **G2 Cloudflare Pages project** — `mami-docs.pages.dev` creat
+✅ **AI Gateway Worker DEPLOY** — `https://mami-docs-ai.petrilarolly.workers.dev` (Version `b1a9cb12`)
+✅ **GROQ_API_KEY secret** — set via Worker secret store (NICIODATĂ în git/client)
+✅ **ALLOWED_ORIGIN** — `wrangler.toml:8` setat strict la `https://mami-docs.pages.dev`. Worker redeployed `44ee574e`
+✅ **Rebuild client cu URL Worker injectat** — `VITE_AI_GATEWAY_URL=https://mami-docs-ai.petrilarolly.workers.dev npm run build`
+✅ **G5 Pages DEPLOY producție** — 8 files → LIVE `https://mami-docs.pages.dev`
+✅ **G4 git commit + push** — 60 fișiere → `RolandPetrila/mami-docs` branch main. Token via `x-access-token`, remote URL revertit la curat.
+✅ **`.claude/` excluded** din git (.gitignore updated)
+
+═══ SMOKE TEST END-TO-END ═══
+
+```
+PWA Pages         → HTTP 200 OK ✓
+AI Gateway /chat  → "Ce salut amabil!" (Llama 3.1 8B Instant via Groq)
+                    Latency: ~25ms completion + 3ms prompt
+                    Total tokens: 51 (44 prompt + 7 completion)
+```
+
+**Verdict:** **LIVE PRODUCTION FUNCȚIONAL.** Securitate: cheia API NICIODATĂ exposed, ALLOWED_ORIGIN strict, circuit breaker activ.
+
+═══ STATUS GATES ═══
+
+| Gate | Status |
+|---|---|
+| **G1** git init + remote | ✅ DONE |
+| **G2** CF Pages project | ✅ DONE |
+| **G3** Supabase chei | ⏳ AMÂNAT — admin manual |
+| **G4** git push | ✅ DONE |
+| **G5** Pages deploy | ✅ DONE |
+| **G6** Audio file | ⏳ AMÂNAT — admin manual (graceful fallback) |
+
+═══ URLS PRODUCTION ═══
+
+- **PWA:** https://mami-docs.pages.dev
+- **AI Gateway:** https://mami-docs-ai.petrilarolly.workers.dev
+- **GitHub:** https://github.com/RolandPetrila/mami-docs (main)
+
+═══ ADMIN ACTIONS RĂMASE (când ai timp) ═══
+
+1. **G3 Supabase** (~10 min): cont supabase.com → API keys → INBOX → procesare → următoare sesiune deploy keepalive
+2. **G6 Audio** (~2 min): Pixabay calm-piano CC0 → `public/audio/tenderness.mp3`
+3. **T25 Test telefon mama** (~15 min): instalare PWA Android Chrome + chat AI vocal + offline test
+4. **Verificare pachet vocal** Google Romanian pe telefonul mamei
+
+═══ TRANZIȚIE FAZA 1.5 ═══
+
+Faza 1 LIVE. Următor: **Faza 1.5 — AI Core + Agenți** (sumarizare, traducere, OCR cascadă, prompts active per tab) — pornire la cererea ta.
+
+**INTERZIS** Faza 2+ fără G3 Supabase rezolvat (Wellness/Reminders necesită DB).
 
 ---
 

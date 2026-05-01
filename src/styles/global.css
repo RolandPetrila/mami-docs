@@ -20,6 +20,20 @@
   --radius: 8px;
 }
 
+html.dark {
+  --color-primary: #4a7eb5; /* albastru calm mai luminos pentru dark */
+  --color-bg: #161b22; /* fundal foarte închis dar nu negru pur */
+  --color-surface: #21272f; /* card surface */
+  --color-text: #e8ecef; /* text aproape alb dar moale */
+  --color-text-muted: #9aa3ab;
+  --color-accent: #d4a373; /* accent cald cu contrast bun pe dark */
+  --color-accent-light: #3d2f23;
+}
+html.dark body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
 html {
   font-size: var(--font-base);
   line-height: 1.6;

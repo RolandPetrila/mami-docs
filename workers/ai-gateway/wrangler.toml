@@ -5,7 +5,7 @@ compatibility_date = "2024-09-02"
 [vars]
 # Set to your Cloudflare Pages domain, e.g. "https://mami-docs.pages.dev"
 # Empty string = accept any origin (dev mode)
-ALLOWED_ORIGIN = ""
+ALLOWED_ORIGIN = "https://mami-docs.pages.dev"
 
 # GROQ_API_KEY must be set via:  wrangler secret put GROQ_API_KEY
 # DO NOT add secret values to this file

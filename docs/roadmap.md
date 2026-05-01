@@ -34,7 +34,9 @@
 
 ### Navigare & Interfață
 
-- [ ] Tab-uri principale: **Rețete** | **Livadă** | **Sănătate** | **Concedii** | **Chat AI**
+- [x] **Hamburger sticky în header** (per spec §6.2 + RUNDA 3 admin) cu drawer slide-out + buton ⚙️ Setări
+- [x] **Tab-uri DINAMICE** din `src/data/tabs.ts` (NU hardcode "Rețete/Livadă/etc."). Inițial doar `Chat AI`; admin adaugă tab-uri pe măsură ce inserează documente via Claude Code laptop
+- [x] Tab-uri preferate inline în header pe ecrane ≥640px (max 3); restul în drawer hamburger
 - [ ] Design simplu, text mare, contrast ridicat (WCAG AA)
 - [ ] Tap targets ≥44×44px pe toate butoanele
 - [ ] Navigare cu gesturi swipe între tab-uri
@@ -88,7 +90,7 @@
 
 ### Context & Personalizare
 
-- [ ] System prompt per tab (rețete, sănătate, livadă, concedii)
+- [ ] System prompt per tab (default fallback la generic; admin configurează când creează tab nou via Claude Code)
 - [ ] AI știe că răspunde mamei (ton cald, explicații simple, fără jargon medical)
 - [ ] Istoricul conversației în sesiune (uitat la închiderea tab-ului, privacy first)
 
