@@ -1,5 +1,10 @@
-// Mami Settings modal — volum, mute, dark mode, viteză voce TTS
+// Mami Settings modal — volum, mute, dark mode, viteză voce TTS, reminder hidratare
 // Persistă în localStorage. Aplică temă imediat (CSS vars).
+
+import {
+  isHydrationReminderEnabled,
+  setHydrationReminderEnabled,
+} from "../services/notifications";
 
 const STORAGE_VOLUME = "mami-volume";
 const STORAGE_MUTE = "mami-mute";
@@ -183,6 +188,16 @@ tmpl.innerHTML = `
       </select>
       <span class="help">Cum vorbește aplicația când citește documente cu voce</span>
     </div>
+    <div class="row inline">
+      <div>
+        <label class="field-label" for="hydration">Reminder apă (la 2h)</label>
+        <div class="help">Notificare locală cât timp aplicația e deschisă</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="hydration" />
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
   <div class="footer">
     <button class="btn-primary" type="button" id="done-btn">Gata</button>
@@ -230,10 +245,14 @@ export class MamiSettings extends HTMLElement {
     const mute = this._sr.querySelector("#mute") as HTMLInputElement | null;
     const dark = this._sr.querySelector("#dark") as HTMLInputElement | null;
     const rate = this._sr.querySelector("#rate") as HTMLSelectElement | null;
+    const hydration = this._sr.querySelector(
+      "#hydration",
+    ) as HTMLInputElement | null;
     if (vol) vol.value = String(this._readNumber(STORAGE_VOLUME, 0.3));
     if (mute) mute.checked = this._readBool(STORAGE_MUTE, false);
     if (dark) dark.checked = this._readBool(STORAGE_DARK, false);
     if (rate) rate.value = String(this._readNumber(STORAGE_VOICE_RATE, 0.9));
+    if (hydration) hydration.checked = isHydrationReminderEnabled();
   }
 
   private _wire(): void {
@@ -258,6 +277,14 @@ export class MamiSettings extends HTMLElement {
     rate?.addEventListener("change", () => {
       localStorage.setItem(STORAGE_VOICE_RATE, rate.value);
       this._dispatch("mami-settings-rate", { value: Number(rate.value) });
+    });
+
+    const hydration = this._sr.querySelector(
+      "#hydration",
+    ) as HTMLInputElement | null;
+    hydration?.addEventListener("change", () => {
+      setHydrationReminderEnabled(hydration.checked);
+      this._dispatch("mami-settings-hydration", { value: hydration.checked });
     });
 
     this._sr.querySelector("#close-btn")?.addEventListener("click", () => {

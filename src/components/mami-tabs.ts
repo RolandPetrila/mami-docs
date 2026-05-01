@@ -172,8 +172,9 @@ tmpl.innerHTML = `
     line-height: 1.5;
   }
 
-  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
-  .panel { padding: 1.25rem 1rem; }
+  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+  .panel { display: flex; flex-direction: column; flex: 1; padding: 0; min-height: 0; }
+  .panel > * { flex: 1; }
 </style>
 
 <header class="app-header">
@@ -278,7 +279,16 @@ export class MamiTabs extends HTMLElement {
       div.id = `panel-${id}`;
       div.setAttribute("role", "tabpanel");
       div.setAttribute("aria-labelledby", `dtab-${id}`);
-      div.textContent = `${label} — în pregătire…`;
+
+      if (id === "chat") {
+        div.innerHTML = `<mami-chat tab="chat"></mami-chat>`;
+      } else if (id === "wellness") {
+        div.innerHTML = `<mami-wellness></mami-wellness>`;
+      } else if (id === "gallery") {
+        div.innerHTML = `<mami-gallery></mami-gallery>`;
+      } else {
+        div.textContent = `${label} — în pregătire…`;
+      }
       content.appendChild(div);
     }
   }
