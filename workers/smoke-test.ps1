@@ -20,7 +20,7 @@ Write-Host ""
 Write-Host "=== Test 2: Tabele wellness (GET cu select=*) ===" -ForegroundColor Cyan
 foreach ($table in @('hydration', 'vitals', 'emotion', 'sleep', 'photos_meta')) {
     try {
-        $resp = Invoke-WebRequest -Uri "$url/rest/v1/$table?select=*&limit=1" -Headers $headers -UseBasicParsing -TimeoutSec 5
+        $resp = Invoke-WebRequest -Uri "$url/rest/v1/${table}?select=*&limit=1" -Headers $headers -UseBasicParsing -TimeoutSec 5
         Write-Host "[OK] ${table}: HTTP $($resp.StatusCode), Body: $($resp.Content)" -ForegroundColor Green
     } catch {
         $statusCode = $_.Exception.Response.StatusCode.value__
