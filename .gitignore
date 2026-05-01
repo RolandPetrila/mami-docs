@@ -1,0 +1,62 @@
+# Dependențe
+node_modules/
+
+# Variabile de mediu — NICIODATĂ committed
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.*
+
+# Build output
+dist/
+build/
+.vite/
+.cache/
+
+# Cloudflare Wrangler
+.wrangler/
+
+# Vercel (dacă se experimentează)
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Teste
+coverage/
+
+# IDE
+.idea/
+.vscode/
+# Excepție: setări comune partajate
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Fișiere temporare
+*.tmp
+*.temp
+*.swp
+
+# Chei și certificate
+*.pem
+*.key
+*.p12
+*.pfx
+.claude/

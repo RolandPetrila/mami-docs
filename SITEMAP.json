@@ -1,0 +1,376 @@
+{
+  "_meta": {
+    "project": "Mami_Docs PWA",
+    "generated": "2026-05-01T05:25:00Z",
+    "audit_tag": "AUDIT-1C-OK",
+    "version": "0.1.18",
+    "phase": "1 — MVP PWA (1.A✅ | 1.B✅ | 1.C✅ | 1.D: T21-T25 blocate pe admin gates G1-G6 | keepalive proactiv scris)",
+    "note": "Auto-update obligatoriu la orice modificare structurală (Regula R6 + CLAUDE.md proiect)"
+  },
+  "root": {
+    "path": "C:/Proiecte/Mami_Docs",
+    "type": "project-root",
+    "files": [
+      {
+        "name": "PROIECT_MAMI_DOCS_SPEC.md",
+        "type": "spec",
+        "role": "Specificație funcțională originală (~800 linii) — sursa de adevăr #1",
+        "status": "stable"
+      },
+      {
+        "name": "PROIECT_MAMI_DOCS_RESEARCH.md",
+        "type": "research",
+        "role": "Raport cercetare cu corecții/extinderi — sursa de adevăr #2",
+        "status": "stable",
+        "note": "Redenumit din compass_artifact_wf-*.md în Faza 0 T3"
+      },
+      {
+        "name": "PROIECT_MAMI_DOCS_SPEC.docx",
+        "type": "source-doc",
+        "role": "Document Word original spec — arhivă",
+        "status": "archived"
+      },
+      {
+        "name": "CLAUDE.md",
+        "type": "protocol",
+        "role": "Reguli specifice proiect Mami_Docs (override peste global)",
+        "status": "active"
+      },
+      {
+        "name": "README.md",
+        "type": "protocol",
+        "role": "Documentație publică repo GitHub",
+        "status": "active"
+      },
+      {
+        "name": ".gitignore",
+        "type": "config",
+        "role": "Excluderi Git (node_modules, .env*, dist, etc.)",
+        "status": "active"
+      },
+      {
+        "name": "SITEMAP.json",
+        "type": "protocol",
+        "role": "Harta structurii proiectului — auto-update la modificări structurale",
+        "status": "active"
+      },
+      {
+        "name": "Executor_Auditor",
+        "type": "protocol",
+        "role": "Log bidirecțional SONNET↔OPUS↔ADMIN — jurnal execuție + audit (append-only §Jurnal)",
+        "status": "active"
+      },
+      {
+        "name": "version.json",
+        "type": "config",
+        "role": "Versiune curentă app — actualizat la fiecare release",
+        "status": "active",
+        "phase": "1"
+      },
+      {
+        "name": "package.json",
+        "type": "config",
+        "role": "Dependențe Node.js (deps + devDeps): mammoth, pdfjs-dist, marked, xlsx, dompurify, workbox, vite-plugin-pwa",
+        "status": "active",
+        "phase": "1"
+      },
+      {
+        "name": "vite.config.ts",
+        "type": "config",
+        "role": "Configurare Vite + vite-plugin-pwa (injectManifest strategy, manifest:false, glob cache patterns)",
+        "status": "active",
+        "phase": "1"
+      },
+      {
+        "name": "tsconfig.json",
+        "type": "config",
+        "role": "TypeScript strict (strict:true, noUncheckedIndexedAccess, noUnusedLocals) + exclude src/sw (compilat de Vite)",
+        "status": "active",
+        "phase": "1"
+      },
+      {
+        "name": "index.html",
+        "type": "source",
+        "role": "App shell HTML: meta PWA, offline-banner, #app mount point, script entry",
+        "status": "active",
+        "phase": "1"
+      }
+    ],
+    "directories": {
+      "src": {
+        "path": "src/",
+        "type": "source",
+        "role": "Cod sursă PWA (Vanilla JS + Web Components + TypeScript strict)",
+        "files": [
+          {
+            "name": "main.ts",
+            "role": "Entry point: offline indicator + SW registration (virtual:pwa-register) + app shell placeholder",
+            "phase": "1"
+          },
+          {
+            "name": "vite-env.d.ts",
+            "role": "Type references: vite/client + vite-plugin-pwa/client (virtual:pwa-register types)",
+            "phase": "1"
+          }
+        ],
+        "directories": {
+          "styles": {
+            "path": "src/styles/",
+            "files": [
+              {
+                "name": "global.css",
+                "role": "CSS global: CSS vars (#2E5C8A, #EEF4FA, 18px base), offline banner, update banner, tap targets ≥44px",
+                "phase": "1"
+              }
+            ]
+          },
+          "sw": {
+            "path": "src/sw/",
+            "note": "Exclus din tsconfig — compilat de Vite cu injectManifest",
+            "files": [
+              {
+                "name": "sw.ts",
+                "role": "Workbox SW: precacheAndRoute + CacheFirst docs (100 entries, 30 zile) + skipWaiting on message",
+                "phase": "1"
+              }
+            ]
+          },
+          "components": {
+            "path": "src/components/",
+            "phase": "1.B",
+            "files": [
+              {
+                "name": "mami-tabs.ts",
+                "role": "Web Component <mami-tabs>: 5 tab-uri, shadow DOM, swipe gestures, localStorage state, ARIA completă",
+                "phase": "1.B"
+              },
+              {
+                "name": "mami-doc-viewer.ts",
+                "role": "Web Component <mami-doc-viewer>: DOCX(mammoth)+PDF.js+MD(marked)+XLSX(SheetJS), DOMPurify, lazy IntersectionObserver, drag&drop",
+                "phase": "1.B"
+              },
+              {
+                "name": "mami-image-viewer.ts",
+                "role": "Web Component <mami-image-viewer>: Pointer Events pinch-zoom [1–4x], double-tap toggle, pan, file upload + src attr",
+                "phase": "1.B"
+              },
+              {
+                "name": "mami-audio-player.ts",
+                "role": "Web Component <mami-audio-player>: native <audio> + custom UI (play/progress/time/volume), file upload + src attr",
+                "phase": "1.B"
+              },
+              {
+                "name": "mami-chat.ts",
+                "role": "Web Component <mami-chat>: bule mesaje user/ai, timestamp ro-RO, bounce thinking indicator, sendChat integrat, sendText public (T17), mami-chat-mic event, clear()",
+                "phase": "1.C"
+              },
+              {
+                "name": "mami-ambient-player.ts",
+                "role": "Web Component <mami-ambient-player>: toggle on/off localStorage, slider volum, deferred autoplay (user gesture), onerror silent disable",
+                "phase": "1.C"
+              }
+            ]
+          },
+          "tabs": {
+            "path": "src/tabs/",
+            "status": "empty-placeholder",
+            "subdirs": ["retete", "livada", "sanatate", "concedii", "chat"],
+            "phase": "1.B"
+          },
+          "ai": {
+            "path": "src/ai/",
+            "phase": "1.C",
+            "files": [
+              {
+                "name": "client.ts",
+                "role": "AI Gateway client wrapper: sendChat(messages,systemPrompt,signal) + AiGatewayError; URL din VITE_AI_GATEWAY_URL",
+                "phase": "1.C"
+              },
+              {
+                "name": "speech.ts",
+                "role": "Web Speech API ro-RO: STT startStt()/isSttSupported() + TTS speak()/stopSpeaking()/loadVoices(); declare global SpeechRecognition types (TS 5.x workaround)",
+                "phase": "1.C"
+              },
+              {
+                "name": "system-prompts.ts",
+                "role": "System prompts per tab: TabId type + getSystemPrompt(tab); sănătate cu disclaimer medical obligatoriu; fallback chat",
+                "phase": "1.C"
+              }
+            ]
+          },
+          "data": {
+            "path": "src/data/",
+            "phase": "1.B",
+            "files": [
+              {
+                "name": "doc-index.ts",
+                "role": "Document index: DocEntry CRUD în localStorage (indexDoc/searchDocs/removeDoc/clearIndex/getAllDocs)",
+                "phase": "1.B"
+              },
+              {
+                "name": "greetings.ts",
+                "role": "120 mesaje rotative ro-RO: DIMINEATA×30/ZI×30/SEARA×30/MOTIVARE×30; getGreeting() cu seed zilnic + selecție după oră",
+                "phase": "1.C"
+              }
+            ]
+          }
+        }
+      },
+      "public": {
+        "path": "public/",
+        "type": "static-assets",
+        "role": "Assets statice servite direct de Vite/Cloudflare Pages",
+        "files": [
+          {
+            "name": "manifest.json",
+            "role": "Web App Manifest: name/short_name/icons/theme_color #2E5C8A/background_color #EEF4FA/display:standalone",
+            "phase": "1"
+          }
+        ],
+        "directories": {
+          "icons": {
+            "path": "public/icons/",
+            "status": "empty-placeholder",
+            "note": "PWA icons: 192px, 512px, maskable (T4 viitor)",
+            "phase": "1"
+          },
+          "audio": {
+            "path": "public/audio/",
+            "status": "empty-placeholder",
+            "note": "tenderness.mp3 + alarm (T20)",
+            "phase": "1.C"
+          }
+        }
+      },
+      "workers": {
+        "path": "workers/",
+        "type": "cloudflare-workers",
+        "role": "Cloudflare Workers (proxy AI, keepalive, backup, notificări)",
+        "directories": {
+          "ai-gateway": {
+            "path": "workers/ai-gateway/",
+            "phase": "1.C",
+            "files": [
+              {
+                "name": "index.ts",
+                "role": "Cloudflare Worker AI proxy: Groq 8b→70b fallback, circuit breaker (3 err/5min), retry ×2, CORS, origin check",
+                "phase": "1.C"
+              },
+              {
+                "name": "wrangler.toml",
+                "role": "Cloudflare Worker config: name=mami-docs-ai, ALLOWED_ORIGIN var, GROQ_API_KEY via secret",
+                "phase": "1.C"
+              }
+            ]
+          },
+          "keepalive": {
+            "path": "workers/keepalive/",
+            "phase": "1.D",
+            "files": [
+              {
+                "name": "index.ts",
+                "role": "Cloudflare Worker cron: SELECT ping Supabase la fiecare 4 zile (cron 0 2 */4 * *), previne hibernare free tier",
+                "phase": "1.D"
+              },
+              {
+                "name": "wrangler.toml",
+                "role": "Cloudflare Worker config: name=mami-docs-keepalive, cron trigger, SUPABASE_URL + SUPABASE_ANON_KEY via secret",
+                "phase": "1.D"
+              }
+            ]
+          }
+        }
+      },
+      "docs": {
+        "path": "docs/",
+        "type": "documentation",
+        "role": "Documentație tehnică proiect",
+        "files": [
+          {
+            "name": "stack.md",
+            "role": "Stack tehnic consolidat",
+            "phase": "0"
+          },
+          {
+            "name": "ai-fallback-chain.md",
+            "role": "Lanț AI fallback per use-case (8 categorii)",
+            "phase": "0"
+          },
+          {
+            "name": "notification-stack.md",
+            "role": "Strategie notificări FCM→ntfy→Telegram→CallMeBot",
+            "phase": "0"
+          },
+          {
+            "name": "service-limits.md",
+            "role": "Tabel limite free tier + strategii la depășire",
+            "phase": "0"
+          },
+          {
+            "name": "medical-disclaimers.md",
+            "role": "Texte oficiale RO disclaimere medicale (5 tipuri)",
+            "phase": "0"
+          },
+          {
+            "name": "api-keys-map.md",
+            "role": "Mapare env var → use case → fallback → status (54 chei)",
+            "phase": "0"
+          },
+          {
+            "name": "roadmap.md",
+            "role": "Features bifabile per fază (Faza 0-4)",
+            "phase": "0"
+          },
+          {
+            "name": "AGENT_PROTOCOL.md",
+            "role": "Protocol strict execuție: self-verification, citation, scope discipline",
+            "phase": "0"
+          }
+        ],
+        "directories": {
+          "decisions": {
+            "path": "docs/decisions/",
+            "type": "adr",
+            "files": [
+              {
+                "name": "0001-anexa-c-decisions.md",
+                "role": "ADR 17 decizii Anexa C v2 (confirmate admin 2026-05-01)",
+                "phase": "0"
+              }
+            ]
+          }
+        }
+      },
+      "plans": {
+        "path": "plans/",
+        "type": "planning",
+        "role": "Planuri de execuție cu checklist + jurnal",
+        "files": [
+          {
+            "name": "PLAN_initiere_proiect_2026-05-01.md",
+            "role": "Plan Faza 0: 16 task-uri + checklist + jurnal execuție",
+            "phase": "0",
+            "status": "completed"
+          },
+          {
+            "name": "PLAN_faza_1_mvp_pwa_2026-05-01.md",
+            "role": "Plan Faza 1 MVP PWA: 25 task-uri (1.A–1.D) + checklist + jurnal",
+            "phase": "1",
+            "status": "in-progress"
+          }
+        ]
+      },
+      ".claude": {
+        "path": ".claude/",
+        "type": "tooling",
+        "files": [
+          {
+            "name": "settings.local.json",
+            "role": "Setări locale Claude Code (permissions, hooks)",
+            "status": "active"
+          }
+        ]
+      }
+    }
+  }
+}

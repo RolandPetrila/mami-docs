@@ -1,0 +1,11 @@
+name = "mami-docs-keepalive"
+main = "index.ts"
+compatibility_date = "2024-09-02"
+
+[triggers]
+crons = ["0 2 */4 * *"]
+
+# SUPABASE_URL și SUPABASE_ANON_KEY se setează via:
+#   wrangler secret put SUPABASE_URL
+#   wrangler secret put SUPABASE_ANON_KEY
+# DO NOT add secret values to this file
