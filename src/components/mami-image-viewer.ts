@@ -1,3 +1,6 @@
+import Tesseract from "tesseract.js";
+import { speak, stopSpeaking } from "../ai/speech";
+
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
 const DOUBLE_TAP_MS = 300;
@@ -161,6 +164,20 @@ export class MamiImageViewer extends HTMLElement {
       this._resetTransform();
     });
 
+    this._sr.querySelector("#ocr-btn")?.addEventListener("click", () => {
+      void this._runOcr();
+    });
+
+    const dialog = this._sr.querySelector("#ai-dialog") as HTMLDialogElement;
+    this._sr.querySelector("#ai-dialog-close")?.addEventListener("click", () => {
+      dialog.close();
+      stopSpeaking();
+    });
+    this._sr.querySelector("#ai-dialog-speak")?.addEventListener("click", () => {
+      const text = this._sr.querySelector("#ai-dialog-body")?.textContent || "";
+      if (text) speak(text);
+    });
+
     const area = this._sr.querySelector("#canvas-area") as HTMLElement | null;
     area?.addEventListener("pointerdown", (e) => {
       this._onDown(e);
@@ -177,6 +194,36 @@ export class MamiImageViewer extends HTMLElement {
 
     const srcAttr = this.getAttribute("src");
     if (srcAttr) this._loadSrc(srcAttr);
+  }
+
+  private async _runOcr(): Promise<void> {
+    const img = this._sr.querySelector("#img") as HTMLImageElement | null;
+    if (!img || !img.src) return;
+
+    const dialog = this._sr.querySelector("#ai-dialog") as HTMLDialogElement;
+    const bodyEl = this._sr.querySelector("#ai-dialog-body");
+    if (!dialog || !bodyEl) return;
+
+    bodyEl.innerHTML = `<p style="text-align: center; color: var(--color-text-muted);">Analizez imaginea... te rog așteaptă.</p>`;
+    dialog.showModal();
+
+    try {
+      const result = await Tesseract.recognize(img.src, "ron", {
+        logger: (m: any) => {
+          if (m.status === "recognizing text") {
+            bodyEl.innerHTML = `<p style="text-align: center; color: var(--color-text-muted);">Citesc textul... ${Math.round(m.progress * 100)}%</p>`;
+          }
+        },
+      });
+
+      if (result.data.confidence < 60) {
+        bodyEl.innerHTML = `<p style="color: #a05c2a; font-weight: bold;">⚠️ Textul citit ar putea fi inexact (calitate scăzută a pozei).</p><p style="white-space: pre-wrap;">${result.data.text}</p>`;
+      } else {
+        bodyEl.innerHTML = `<p style="white-space: pre-wrap;">${result.data.text}</p>`;
+      }
+    } catch (err) {
+      bodyEl.innerHTML = `<p style="color: #c0392b;">A apărut o eroare la citirea imaginii.</p>`;
+    }
   }
 
   private _loadFile(file: File): void {

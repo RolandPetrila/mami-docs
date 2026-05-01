@@ -77,3 +77,36 @@ export async function sendChat(
   }
   return content;
 }
+
+export async function transcribeAudio(
+  audioBlob: Blob,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (!GATEWAY_URL) {
+    throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
+  }
+
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio.webm");
+
+  let resp: Response;
+  try {
+    resp = await fetch(`${GATEWAY_URL}/transcribe`, {
+      method: "POST",
+      body: formData,
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new AiGatewayError(
+      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+
+  if (!resp.ok) {
+    throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
+  }
+
+  const data = (await resp.json()) as { text: string };
+  return data.text;
+}

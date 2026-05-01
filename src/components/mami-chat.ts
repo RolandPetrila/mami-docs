@@ -478,7 +478,7 @@ export class MamiChat extends HTMLElement {
     }
     if (!isSttSupported()) {
       this._showSttToast(
-        "Recunoașterea vocală nu e suportată. Folosește tastatura.",
+        "Recunoașterea vocală și microfonul nu sunt suportate.",
       );
       const input = this._sr.querySelector(
         "#text-input",

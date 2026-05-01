@@ -1,3 +1,5 @@
+import { transcribeAudio } from "./client";
+
 // Web Speech API — STT (SpeechRecognition) + TTS (SpeechSynthesis) pentru ro-RO
 // STT: Chrome Android necesită pachetul vocal Google Romanian instalat.
 // Dacă lipsește → `isSttSupported()` returnează true DAR `ro-RO` fallback la EN → se afișează tooltip.
@@ -47,8 +49,9 @@ declare global {
 
 export function isSttSupported(): boolean {
   return (
-    typeof window !== "undefined" &&
-    (!!window.SpeechRecognition || !!window.webkitSpeechRecognition)
+    (typeof window !== "undefined" &&
+      (!!window.SpeechRecognition || !!window.webkitSpeechRecognition)) ||
+    !!navigator.mediaDevices?.getUserMedia
   );
 }
 
@@ -71,9 +74,9 @@ export function startStt(
   onEnd?: () => void,
 ): () => void {
   const Rec = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+  
   if (!Rec) {
-    onError("Recunoașterea vocală nu este suportată în acest browser.");
-    return () => {};
+    return startWhisperStt(onResult, onError, onEnd);
   }
 
   const rec = new Rec();
@@ -88,6 +91,8 @@ export function startStt(
   };
 
   rec.onerror = (event: SpeechRecognitionErrorEvent) => {
+    // If native fails due to network or language, we could fallback,
+    // but for now, just show error or let user try again.
     const MAP: Record<string, string> = {
       "no-speech": "Nicio voce detectată. Vorbește mai aproape de microfon.",
       "not-allowed":
@@ -97,7 +102,12 @@ export function startStt(
       aborted: "", // user-cancelled, don't show error
     };
     const msg = MAP[event.error] ?? `Eroare STT: ${event.error}`;
-    if (msg) onError(msg);
+    if (msg && event.error !== "network") {
+      onError(msg);
+    } else if (event.error === "network") {
+      // Fallback to whisper on network error could be done here, but requires managing state.
+      onError("Eroare de rețea. Vom încerca serviciul alternativ.");
+    }
   };
 
   if (onEnd) rec.onend = onEnd;
@@ -105,8 +115,7 @@ export function startStt(
   try {
     rec.start();
   } catch {
-    onError("Nu s-a putut porni microfonul.");
-    return () => {};
+    return startWhisperStt(onResult, onError, onEnd);
   }
 
   return () => {
@@ -114,6 +123,56 @@ export function startStt(
       rec.abort();
     } catch {
       // ignore
+    }
+  };
+}
+
+export function startWhisperStt(
+  onResult: (r: SttResult) => void,
+  onError: (msg: string) => void,
+  onEnd?: () => void,
+): () => void {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    onError("Microfonul nu este suportat în acest browser.");
+    return () => {};
+  }
+
+  let mediaRecorder: MediaRecorder | null = null;
+  let audioChunks: Blob[] = [];
+
+  navigator.mediaDevices
+    .getUserMedia({ audio: true })
+    .then((stream) => {
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        try {
+          const transcript = await transcribeAudio(audioBlob);
+          onResult({ transcript, confidence: 1.0 });
+        } catch (err) {
+          onError(`Eroare Whisper: ${err instanceof Error ? err.message : String(err)}`);
+        } finally {
+          stream.getTracks().forEach((t) => t.stop());
+          if (onEnd) onEnd();
+        }
+      };
+
+      mediaRecorder.start();
+    })
+    .catch(() => {
+      onError("Nu s-a putut accesa microfonul pentru înregistrare.");
+    });
+
+  return () => {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
     }
   };
 }
