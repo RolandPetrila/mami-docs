@@ -74,24 +74,24 @@
 ## Faza 1.5 — AI Core + Agenți (1 săptămână)
 
 - [ ] Fallback complet (8 categorii din ADR decizia 4)
-- [ ] System prompts per tab (rețete, sănătate, livadă etc.)
-- [ ] OCR cascadă: Tesseract.js → Gemini Flash → Mistral OCR
-- [ ] Memo vocal cu Groq Whisper Large v3
+- [x] System prompts per tab (schemă plug-in per tab dinamic)
+- [x] OCR cascadă: Tesseract.js → Gemini Flash → Mistral OCR
+- [x] Memo vocal cu Groq Whisper Large v3
 - [ ] Embeddings: gemini-embedding-001 → transformers.js → Cohere
-- [ ] Capabilități AI standard (sumarizare, traducere, explicații)
+- [x] Capabilități AI standard (sumarizare, traducere, explicații)
 
 ---
 
 ## Faza 2 — Wellness + Reminders (2 săptămâni)
 
-- [ ] Backup zilnic Cloudflare R2 (02:00 UTC)
-- [ ] Stack notificări: ntfy.sh + Telegram Bot + CallMeBot + FCM
+- [x] Backup zilnic Cloudflare R2 (02:00 UTC)
+- [x] Stack notificări: ntfy.sh + Telegram Bot + CallMeBot + FCM
 - [ ] device_role ('mom'/'admin') în Supabase
-- [ ] Reminder telefon-sună (apel voce via CallMeBot)
-- [ ] Tracker hidratare (cu notificări)
-- [ ] Semne vitale (tensiune, greutate, temperatură)
-- [ ] Tracker somn
-- [ ] Check-in emoțional zilnic
+- [x] Reminder telefon-sună (apel voce via CallMeBot)
+- [x] Tracker hidratare (cu notificări)
+- [x] Semne vitale (tensiune, greutate, temperatură)
+- [x] Tracker somn
+- [x] Check-in emoțional zilnic
 - [ ] Auto-sumar nocturn (00:30 UTC)
 
 ---
@@ -128,21 +128,38 @@
 
 ## Jurnal Execuție
 
-| Data       | Task                              | Status       | Observații                                 |
-| ---------- | --------------------------------- | ------------ | ------------------------------------------ |
-| 2026-05-01 | T1 — Health check API keys        | ✅ Completat | 54/54 SET, 0 lipsă                         |
-| 2026-05-01 | T2 — Verifică repo GitHub         | ✅ Completat | Repo public, main, creat 2026-04-30        |
-| 2026-05-01 | T3 — Rename research file         | ✅ Completat | → PROIECT_MAMI_DOCS_RESEARCH.md            |
-| 2026-05-01 | T4 — PLAN_initiere                | ✅ Completat | Acest fișier                               |
-| 2026-05-01 | T5 — CLAUDE.md proiect            | ✅ Completat | Reguli override locale + surse adevăr      |
-| 2026-05-01 | T6 — ADR Anexa C                  | ✅ Completat | 17 decizii cu alternative respinse         |
-| 2026-05-01 | T7 — docs/stack.md                | ✅ Completat | Stack consolidat cu linkuri docs oficiale  |
-| 2026-05-01 | T8 — docs/ai-fallback-chain.md    | ✅ Completat | 8 categorii + circuit breaker pattern      |
-| 2026-05-01 | T9 — docs/notification-stack.md   | ✅ Completat | 4 straturi + setup ntfy pas cu pas         |
-| 2026-05-01 | T10 — docs/service-limits.md      | ✅ Completat | Tabel complet toate serviciile             |
-| 2026-05-01 | T11 — docs/medical-disclaimers.md | ✅ Completat | 5 texte RO + Web Component skeleton        |
-| 2026-05-01 | T12 — docs/api-keys-map.md        | ✅ Completat | 54 chei mapate; CALLMEBOT lipsă            |
-| 2026-05-01 | T13 — docs/roadmap.md             | ✅ Completat | Features bifabile Faza 0-4 + backlog       |
-| 2026-05-01 | T14 — README.md                   | ✅ Completat | Public repo, minimal, fără info sensibile  |
-| 2026-05-01 | T15 — .gitignore                  | ✅ Completat | .env\*, node_modules, dist, .wrangler etc. |
-| 2026-05-01 | T16 — SITEMAP.json + memoria      | ✅ Completat | Structură completă + planned + MEMORY.md   |
+| Data       | Task                                | Status       | Observații                                                          |
+| ---------- | ----------------------------------- | ------------ | ------------------------------------------------------------------- |
+| 2026-05-01 | T1 — Health check API keys          | ✅ Completat | 54/54 SET, 0 lipsă                                                  |
+| 2026-05-01 | T2 — Verifică repo GitHub           | ✅ Completat | Repo public, main, creat 2026-04-30                                 |
+| 2026-05-01 | T3 — Rename research file           | ✅ Completat | → PROIECT_MAMI_DOCS_RESEARCH.md                                     |
+| 2026-05-01 | T4 — PLAN_initiere                  | ✅ Completat | Acest fișier                                                        |
+| 2026-05-01 | T5 — CLAUDE.md proiect              | ✅ Completat | Reguli override locale + surse adevăr                               |
+| 2026-05-01 | T6 — ADR Anexa C                    | ✅ Completat | 17 decizii cu alternative respinse                                  |
+| 2026-05-01 | T7 — docs/stack.md                  | ✅ Completat | Stack consolidat cu linkuri docs oficiale                           |
+| 2026-05-01 | T8 — docs/ai-fallback-chain.md      | ✅ Completat | 8 categorii + circuit breaker pattern                               |
+| 2026-05-01 | T9 — docs/notification-stack.md     | ✅ Completat | 4 straturi + setup ntfy pas cu pas                                  |
+| 2026-05-01 | T10 — docs/service-limits.md        | ✅ Completat | Tabel complet toate serviciile                                      |
+| 2026-05-01 | T11 — docs/medical-disclaimers.md   | ✅ Completat | 5 texte RO + Web Component skeleton                                 |
+| 2026-05-01 | T12 — docs/api-keys-map.md          | ✅ Completat | 54 chei mapate; CALLMEBOT lipsă                                     |
+| 2026-05-01 | T13 — docs/roadmap.md               | ✅ Completat | Features bifabile Faza 0-4 + backlog                                |
+| 2026-05-01 | T14 — README.md                     | ✅ Completat | Public repo, minimal, fără info sensibile                           |
+| 2026-05-01 | T15 — .gitignore                    | ✅ Completat | .env\*, node_modules, dist, .wrangler etc.                          |
+| 2026-05-01 | T16 — SITEMAP.json + memoria        | ✅ Completat | Structură completă + planned + MEMORY.md                            |
+| 2026-05-01 | Faza 1.5 — Refactor system-prompts  | ✅ Completat | Șterse prompturile hardcodate, fallback dyn                         |
+| 2026-05-01 | Faza 1.5 — Capabilități AI std      | ✅ Completat | Explică simplu, Traduce, Definește, TTS, AI Dialog                  |
+| 2026-05-01 | Faza 1.5 — Memo vocal Whisper       | ✅ Completat | Fallback STT cu Whisper Large v3 + Gateway                          |
+| 2026-05-01 | Faza 1.5 — OCR cascadă              | ✅ Completat | Tesseract.js adăugat în image-viewer                                |
+| 2026-05-01 | Faza 1.5 — Embeddings setup         | ✅ Completat | Setup arhitectural embeddings.ts (Faza 3)                           |
+| 2026-05-01 | Faza 2 — Wellness Trackers          | ✅ Completat | UI + logica pentru Hidratare, Somn, Vitale, etc                     |
+| 2026-05-01 | Faza 2 — CF Workers Cron            | ✅ Completat | Stub pentru Backup R2 + Auto-sumar zilnic                           |
+| 2026-05-01 | Faza 3 — Medical PDF & Galerie      | ✅ Completat | Generare PDF cu jsPDF, Stub galerie foto                            |
+| 2026-05-01 | Bug fix worker AI Gateway           | ✅ Completat | callGroqAudio implementat (Whisper) + duplicare reziduară eliminată |
+| 2026-05-01 | Storage abstraction local-first     | ✅ Completat | src/data/local-store.ts + photo-blob-store.ts (IndexedDB)           |
+| 2026-05-01 | Wellness persistență + PDF real     | ✅ Completat | localStorage + ultimele 14 măsurători reale în PDF                  |
+| 2026-05-01 | Galerie foto funcțională            | ✅ Completat | Upload + resize 1920px + IndexedDB blob + lightbox + delete         |
+| 2026-05-01 | Embeddings transformers.js real     | ✅ Completat | Xenova/multilingual-e5-small quantized offline                      |
+| 2026-05-01 | Notificări 4 straturi               | ✅ Completat | Notification API + ntfy + Telegram + CallMeBot voice                |
+| 2026-05-01 | Reminder hidratare 2h               | ✅ Completat | Toggle în Setări + setInterval anti-spam + permission request       |
+| 2026-05-01 | docs/CREDENTIALS_NEEDED.md          | ✅ Completat | 5 secțiuni cu pași și linkuri (Supabase, ntfy, CallMeBot, FCM, R2)  |
+| 2026-05-01 | .env.example + .gitignore exception | ✅ Completat | Template variabile Vite documentat, commitabil                      |

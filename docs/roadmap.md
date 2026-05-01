@@ -81,16 +81,16 @@
 ### AI Avansat
 
 - [ ] Fallback complet implementat (toate cele 8 categorii)
-- [ ] OCR pe poze: "Fotografiează rețeta" → text extrass automat
-- [ ] Transcriere memo vocal: "Dictează o notă" → text salvat
-- [ ] Sumarizare document: "Explică-mi pe scurt" → 3-5 rânduri
-- [ ] Traducere rapidă: "Traduce asta în română"
+- [x] OCR pe poze: "Fotografiează rețeta" → text extrass automat
+- [x] Transcriere memo vocal: "Dictează o notă" → text salvat
+- [x] Sumarizare document: "Explică-mi pe scurt" → 3-5 rânduri
+- [x] Traducere rapidă: "Traduce asta în română"
 - [ ] Căutare web: "Ce vreme e mâine?"
 - [ ] GitHub Models GPT-5/GPT-4.1 ca fallback excepțional (50-150 RPD, via GITHUB_TOKEN)
 
 ### Context & Personalizare
 
-- [ ] System prompt per tab (default fallback la generic; admin configurează când creează tab nou via Claude Code)
+- [x] System prompt per tab (default fallback la generic; admin configurează când creează tab nou via Claude Code)
 - [ ] AI știe că răspunde mamei (ton cald, explicații simple, fără jargon medical)
 - [ ] Istoricul conversației în sesiune (uitat la închiderea tab-ului, privacy first)
 

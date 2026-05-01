@@ -11,6 +11,8 @@ node_modules/
 .env.production
 .env.production.local
 .env.*
+# Excepție: template documentație fără valori
+!.env.example
 
 # Build output
 dist/

@@ -1,7 +1,9 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-01T11:55Z by Opus 4.7 (executor mode)
-**Status:** FAZA 1 LIVE PRODUCTION + FIX A+B+C aplicate
+**Ultimul update:** 2026-05-01T18:00Z by Opus 4.7 (executor mode)
+**Status:** Frontend complet local-first (fără credentiale) — așteaptă Setup Supabase + ntfy + (opțional) CallMeBot/FCM/R2
+
+> 📋 **Pentru obținere credentiale:** vezi `docs/CREDENTIALS_NEEDED.md` cu pași + linkuri surse.
 
 ---
 
@@ -14,36 +16,53 @@
 
 ---
 
-## Ce funcționează LIVE acum
+## Ce funcționează LIVE acum (deployat) + LOCAL (necomis)
+
+### Deployat (commit `6adab9b`):
 
 - ✅ PWA instalabilă pe Android Chrome (manifest + Workbox SW + 5 entries precached)
 - ✅ Header sticky cu hamburger (☰) + titlu + tab-uri preferate (≥640px) + ⚙️ Setări
 - ✅ Drawer slide-out cu lista tab-urilor (focus, ESC, backdrop click închide)
-- ✅ Tab-uri DINAMICE din `src/data/tabs.ts` — inițial doar `Chat AI` (admin adaugă altele)
-- ✅ Pagină Setări modal (volum, mute, dark mode, viteză voce TTS) — persistă în localStorage
+- ✅ Tab-uri DINAMICE din `src/data/tabs.ts`
+- ✅ Pagină Setări modal (volum, mute, dark mode, viteză voce TTS)
 - ✅ Dark mode CSS variables (`html.dark` switch fără flash)
-- ✅ AI Gateway Cloudflare Worker (Groq Llama 8B/70B + circuit breaker + ALLOWED_ORIGIN strict)
+- ✅ AI Gateway Cloudflare Worker `/chat` Groq Llama 8B/70B + circuit breaker
 - ✅ Web Speech API ro-RO (STT + TTS cu rate=0.9)
-- ✅ 120 mesaje rotative greetings.ts (4 categorii × 30, seed zilnic)
-- ✅ system-prompts.ts cu fallback la generic pentru tab-uri necunoscute
-- ✅ mami-doc-viewer (DOCX/PDF/MD/XLSX) + mami-image-viewer (pinch zoom) + mami-audio-player + mami-search
-- ✅ mami-ambient-player (graceful onerror dacă MP3 lipsește)
-- ✅ Offline indicator + service worker update banner
+- ✅ 120 mesaje rotative greetings.ts
+- ✅ mami-doc-viewer + mami-image-viewer + mami-audio-player + mami-search
+- ✅ Offline indicator + SW update banner
+
+### NOU local (necomis — gata de commit):
+
+- ✅ **Bug fix critic** worker AI Gateway: `callGroqAudio` complet implementat (Whisper Large v3 ro-RO) + endpoint `/transcribe` funcțional + duplicare reziduară eliminată
+- ✅ **Wellness funcțional cu persistență localStorage** (hidratare, vitale, somn, emoții) + buton "Descarcă raport PDF" cu date reale din ultimele 14 măsurători
+- ✅ **Galerie Foto** completă: upload (capture mama Android), resize automat la 1920px JPEG, IndexedDB pentru blob-uri, lightbox + ștergere
+- ✅ **Tab Galerie** adăugat în `src/data/tabs.ts` (al treilea după Chat și Sănătate)
+- ✅ **Embeddings transformers.js** offline real (`Xenova/multilingual-e5-small` quantized) cu fallback la AI Gateway `/embed` când va exista
+- ✅ **Notificări 4 straturi**: Notification API local + ntfy.sh push + Telegram (worker) + CallMeBot voice — toate cu graceful skip dacă lipsesc credentiale
+- ✅ **Toggle "Reminder apă (la 2h)"** în Setări — activează `Notification.requestPermission()` + setInterval cu anti-spam
+- ✅ **Storage abstraction** `src/data/local-store.ts` — local-first cu auto-mirror Supabase când conectat (`mirrorAllToSupabase()`)
+- ✅ **`.env.example`** (commitabil) cu documentație completă variabile Vite necesare
+- ✅ **Build TypeScript + Vite** trece curat (923 modules, 1.7MB JS bundle, 7 entries precache)
 
 ---
 
-## Ce LIPSEȘTE (admin manual sau Faza 2+)
+## Ce LIPSEȘTE (admin manual)
 
-| Item                                                | Status             | Acțiune                                                                                       |
-| --------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------- |
-| `public/audio/tenderness.mp3`                       | LIPSEȘTE           | Admin descarcă manual de pe Pixabay (FASSounds CC0)                                           |
-| Supabase chei (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) | LIPSEȘTE           | Admin: cont supabase.com → API → copy → adaugă în `~/.api-keys/INBOX.md` → "proceseaza inbox" |
-| Keepalive Worker deploy                             | BLOCAT pe Supabase | După chei: `cd workers/keepalive && npx wrangler deploy`                                      |
-| Buton `?` contextual per pagină                     | NU implementat     | Faza 1.5                                                                                      |
-| Badge verde tab cu modificări noi                   | NU implementat     | Faza 2 (necesită Supabase pentru detectare)                                                   |
-| Mod admin PIN                                       | NU implementat     | Faza 4                                                                                        |
-| Camera + upload foto + upload doc cu limită 10      | NU implementat     | Faza 2 (necesită Supabase)                                                                    |
-| Reminder telefon mama (ntfy + CallMeBot)            | Cod parțial        | Faza 2                                                                                        |
+> 📋 **Pași complete cu linkuri sursă:** `docs/CREDENTIALS_NEEDED.md`
+
+| Item                                 | Status                        | Cum se obține                                                 |
+| ------------------------------------ | ----------------------------- | ------------------------------------------------------------- |
+| `public/audio/tenderness.mp3`        | LIPSEȘTE                      | Admin descarcă manual de pe Pixabay (FASSounds CC0)           |
+| Supabase (URL + anon + service_role) | LIPSEȘTE → vezi §1            | supabase.com cont nou + proiect Frankfurt + SQL schema        |
+| ntfy.sh topic                        | LIPSEȘTE → vezi §2            | Topic random + app Android pe telefonul mamei                 |
+| CallMeBot WhatsApp                   | LIPSEȘTE → vezi §3            | Setup cu mama lângă tine (WhatsApp +34 644 51 95 23)          |
+| Firebase FCM                         | LIPSEȘTE → vezi §4 (opțional) | console.firebase.google.com (alternativ ntfy)                 |
+| Cloudflare R2 bucket                 | LIPSEȘTE → vezi §5 (opțional) | dash.cloudflare.com R2 → bucket `mami-docs-backup`            |
+| Keepalive Worker deploy              | BLOCAT pe Supabase            | După chei §1: `cd workers/keepalive && npx wrangler deploy`   |
+| Cloudflare Pages env vars            | Doar `VITE_AI_GATEWAY_URL` ✅ | După chei: dashboard Pages → Settings → Environment Variables |
+| Buton `?` contextual per pagină      | NU implementat                | Faza 1.5                                                      |
+| Mod admin PIN                        | NU implementat                | Faza 4                                                        |
 
 ---
 
@@ -107,7 +126,7 @@ Toate cerințele admin sunt în `info_chat.txt` (16 runde Q&A). Spec-ul `PROIECT
 1. **Faza 1.5 — AI Core extins** (sumarizare, traducere, OCR cascadă Tesseract+Gemini, "explică simplu", "rezumat 3 puncte", definire cuvânt) ~1 săpt.
 2. **G3 Supabase + G6 Audio** — admin manual, deblochează Faza 2
 3. **Test pe telefon real mama** — deschide `mami-docs.pages.dev` în Chrome Android, "Add to home screen", testează tot
-4. **Refactor system-prompts.ts** — eliminare prompts hardcoded specifice (retete/livada/sanatate/concedii) → schemă plug-in unde admin definește prompt când creează tab nou
+4. ~~**Refactor system-prompts.ts** — eliminare prompts hardcoded specifice~~ (Completat)
 
 ---
 
