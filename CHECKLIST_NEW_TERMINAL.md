@@ -37,6 +37,7 @@ powershell -ExecutionPolicy Bypass -File "workers\smoke-test.ps1"
 ```
 
 **Așteptat:**
+
 - ✅ Test 4 AI Gateway `/chat` → reply "OK"
 - ❌ Test 1-3 încă eșuează cu 404 până când SQL schema rulează în Supabase
 
@@ -44,9 +45,9 @@ powershell -ExecutionPolicy Bypass -File "workers\smoke-test.ps1"
 
 ## ⚠ Pas 4 — Ce e blocant ACUM
 
-| Item | Status | Acțiune |
-|---|---|---|
-| Tabele Supabase wellness | ❌ NU există | **Rulează SQL în Supabase SQL Editor** ← blocant Faza 2 |
+| Item                           | Status        | Acțiune                                                       |
+| ------------------------------ | ------------- | ------------------------------------------------------------- |
+| Tabele Supabase wellness       | ❌ NU există  | **Rulează SQL în Supabase SQL Editor** ← blocant Faza 2       |
 | App live `mami-docs.pages.dev` | ✅ Funcțional | Wellness scrie local; mirror Supabase după ce tabelele există |
 
 **👉 [SQL Editor Supabase](https://supabase.com/dashboard/project/zfeaoiafzeygwwjskevt/sql/new)**
@@ -74,6 +75,7 @@ CREATE POLICY "anon_all_photos_meta" ON photos_meta FOR ALL TO anon USING (true)
 ```
 
 **Pași:**
+
 1. Tap link → Login Supabase
 2. Lipește SQL → **Run**
 3. Verifică: 👉 [Table Editor](https://supabase.com/dashboard/project/zfeaoiafzeygwwjskevt/editor) — trebuie 5 tabele
@@ -85,12 +87,12 @@ CREATE POLICY "anon_all_photos_meta" ON photos_meta FOR ALL TO anon USING (true)
 
 În ordine de prioritate (din `docs/CREDENTIALS_NEEDED.md`):
 
-| Pas | Serviciu | Timp | Link tap-direct |
-|---|---|---|---|
-| §2 | ntfy.sh | 3 min | [Play Store ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy) |
-| §3 | CallMeBot WhatsApp | 10 min (cu mama) | [Trimite mesaj activare](https://wa.me/34644519523?text=I%20allow%20callmebot%20to%20send%20me%20messages) |
-| §4 | Firebase FCM (opțional) | 15 min | [Firebase Console](https://console.firebase.google.com/) |
-| §5 | Cloudflare R2 backup | 5 min | [R2 Buckets](https://dash.cloudflare.com/?to=/:account/r2/overview/buckets) |
+| Pas | Serviciu                | Timp             | Link tap-direct                                                                                            |
+| --- | ----------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| §2  | ntfy.sh                 | 3 min            | [Play Store ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy)                            |
+| §3  | CallMeBot WhatsApp      | 10 min (cu mama) | [Trimite mesaj activare](https://wa.me/34644519523?text=I%20allow%20callmebot%20to%20send%20me%20messages) |
+| §4  | Firebase FCM (opțional) | 15 min           | [Firebase Console](https://console.firebase.google.com/)                                                   |
+| §5  | Cloudflare R2 backup    | 5 min            | [R2 Buckets](https://dash.cloudflare.com/?to=/:account/r2/overview/buckets)                                |
 
 Workflow procesare: lipește valori în `C:\Users\ALIENWARE\.api-keys\INBOX.md` → în acel folder, sesiune Claude → `proceseaza inbox`.
 
@@ -139,15 +141,15 @@ powershell -ExecutionPolicy Bypass -File "workers\set-pages-vars.ps1"
 
 ## 📋 Status componente deployed
 
-| Componentă | URL / Identifier | Status |
-|---|---|---|
-| Frontend PWA | https://mami-docs.pages.dev | ✅ LIVE |
-| AI Gateway Worker | https://mami-docs-ai.petrilarolly.workers.dev | ✅ LIVE (cu fix `/transcribe`) |
-| Keepalive Worker | https://mami-docs-keepalive.petrilarolly.workers.dev | ✅ Deployed (cron `0 2 */4 * *`) |
-| Supabase Project | `zfeaoiafzeygwwjskevt` (Frankfurt) | ⚠ Tabele nerulate încă |
-| Pages env vars | `VITE_AI_GATEWAY_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | ✅ SET |
-| Worker secrets keepalive | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | ✅ SET |
-| GitHub remote | `https://github.com/RolandPetrila/mami-docs` (main) | ✅ Sincronizat (commit `dca70ef`) |
+| Componentă               | URL / Identifier                                                     | Status                            |
+| ------------------------ | -------------------------------------------------------------------- | --------------------------------- |
+| Frontend PWA             | https://mami-docs.pages.dev                                          | ✅ LIVE                           |
+| AI Gateway Worker        | https://mami-docs-ai.petrilarolly.workers.dev                        | ✅ LIVE (cu fix `/transcribe`)    |
+| Keepalive Worker         | https://mami-docs-keepalive.petrilarolly.workers.dev                 | ✅ Deployed (cron `0 2 */4 * *`)  |
+| Supabase Project         | `zfeaoiafzeygwwjskevt` (Frankfurt)                                   | ⚠ Tabele nerulate încă            |
+| Pages env vars           | `VITE_AI_GATEWAY_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | ✅ SET                            |
+| Worker secrets keepalive | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`     | ✅ SET                            |
+| GitHub remote            | `https://github.com/RolandPetrila/mami-docs` (main)                  | ✅ Sincronizat (commit `dca70ef`) |
 
 ---
 
