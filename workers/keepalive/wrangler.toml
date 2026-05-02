@@ -3,9 +3,17 @@ main = "index.ts"
 compatibility_date = "2024-09-02"
 
 [triggers]
-crons = ["0 2 */4 * *"]
+crons = [
+  "0 2 */4 * *",   # keepalive Supabase (la 4 zile)
+  "0 2 * * *",     # backup zilnic Supabase → R2
+  "30 0 * * *"     # auto-sumar nocturn (00:30 UTC = ~03:30 EET)
+]
 
-# SUPABASE_URL și SUPABASE_ANON_KEY se setează via:
-#   wrangler secret put SUPABASE_URL
-#   wrangler secret put SUPABASE_ANON_KEY
-# DO NOT add secret values to this file
+[[r2_buckets]]
+binding = "MAMI_DOCS_BACKUP"
+bucket_name = "mami-docs-backup"
+
+# Secrete (nu se scriu aici — se seteaza via wrangler secret put):
+#   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+#   GROQ_API_KEY, NTFY_TOPIC, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+#   AI_GATEWAY_URL (optional)
