@@ -1,9 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-02T00:00Z by Sonnet 4.6 (executor mode, sesiune autonomă)
-**Status:** Faza 1.5+2+3+4 parțial complete local-first — **build TS 0 erori** — așteaptă credențiale Supabase/R2/ntfy/FCM pentru funcționalitate completă
-
-> 📋 **Pentru obținere credentiale:** vezi `docs/CREDENTIALS_NEEDED.md` cu pași + linkuri surse.
+**Ultimul update:** 2026-05-02 by Sonnet 4.6 (sesiune Track A completă)
+**Status:** Infrastructură completă ✅ — Supabase + ntfy + CallMeBot + R2 + keepalive Worker deployat
 
 ---
 
