@@ -78,6 +78,88 @@ export async function sendChat(
   return content;
 }
 
+export async function translateText(
+  text: string,
+  to: string,
+  from?: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
+  let resp: Response;
+  try {
+    resp = await fetch(`${GATEWAY_URL}/translate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, to, from }),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new AiGatewayError(
+      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
+  const data = (await resp.json()) as { text: string };
+  return data.text;
+}
+
+export async function analyzeImage(
+  imageBase64: string,
+  mimeType: string,
+  prompt?: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
+  let resp: Response;
+  try {
+    resp = await fetch(`${GATEWAY_URL}/vision`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64, mimeType, prompt }),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new AiGatewayError(
+      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
+  const data = (await resp.json()) as { text: string };
+  return data.text;
+}
+
+export interface SearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+}
+
+export async function searchWeb(
+  query: string,
+  signal?: AbortSignal,
+): Promise<SearchResult[]> {
+  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
+  let resp: Response;
+  try {
+    resp = await fetch(`${GATEWAY_URL}/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new AiGatewayError(
+      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
+  const data = (await resp.json()) as { results: SearchResult[] };
+  return data.results ?? [];
+}
+
 export async function transcribeAudio(
   audioBlob: Blob,
   signal?: AbortSignal,

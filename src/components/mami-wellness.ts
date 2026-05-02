@@ -159,6 +159,15 @@ tmpl.innerHTML = `
   <button class="btn" style="width: 100%;" id="btn-generate-pdf" type="button">Descarcă raport PDF</button>
 </div>
 
+<!-- Pattern Analysis -->
+<div class="card" id="pattern-card" style="display:none">
+  <h2>🔍 Analiză Pattern (7 zile)</h2>
+  <div id="pattern-alerts"></div>
+  <p style="margin: 0.5rem 0 0; font-size: 0.82rem; color: var(--color-text-muted, #666);">
+    Bazat pe datele ultimelor 7 zile. Consultați medicul pentru orice îngrijorare.
+  </p>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 `;
 
@@ -224,6 +233,39 @@ export class MamiWellness extends HTMLElement {
     this._refreshHydration();
     this._refreshVitalsHistory();
     this._refreshSleepStatus();
+    this._refreshPatterns();
+  }
+
+  private _refreshPatterns(): void {
+    const card = this._sr.querySelector("#pattern-card") as HTMLElement | null;
+    const alertsEl = this._sr.querySelector("#pattern-alerts");
+    if (!card || !alertsEl) return;
+
+    const alerts = detectPatterns(
+      listHydration(),
+      listVitals(30),
+      listEmotion(30),
+      listSleep(14),
+    );
+
+    if (alerts.length === 0) {
+      card.style.display = "none";
+      return;
+    }
+
+    card.style.display = "block";
+    alertsEl.innerHTML = alerts
+      .map(
+        (a) => `<div style="
+        padding: 0.6rem 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        background: ${a.type === "warning" ? "#fff3e0" : "#e8f5e9"};
+        border-left: 4px solid ${a.type === "warning" ? "#e67e22" : "#27ae60"};
+        font-size: 0.9rem;
+      ">${a.message}</div>`,
+      )
+      .join("");
   }
 
   private _toast(msg: string): void {
@@ -460,6 +502,80 @@ export class MamiWellness extends HTMLElement {
     }
     return y + 4;
   }
+}
+
+function detectPatterns(
+  hydration: HydrationEntry[],
+  vitals: VitalsEntry[],
+  emotions: EmotionEntry[],
+  sleep: SleepEntry[],
+): Array<{ type: "warning" | "info"; message: string }> {
+  const alerts: Array<{ type: "warning" | "info"; message: string }> = [];
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 7);
+  const since = cutoff.toISOString();
+
+  // Hydration: < 1500ml for 3+ of last 7 days
+  const hydByDay = new Map<string, number>();
+  for (const h of hydration.filter((h) => h.ts >= since)) {
+    const day = h.ts.slice(0, 10);
+    hydByDay.set(day, (hydByDay.get(day) ?? 0) + h.amount_ml);
+  }
+  const lowHydDays = [...hydByDay.values()].filter((v) => v < 1500).length;
+  if (lowHydDays >= 3) {
+    alerts.push({
+      type: "warning",
+      message: `💧 Hidratare scăzută în ${lowHydDays} din ultimele 7 zile (sub 1500ml). Încearcă să bei mai multă apă!`,
+    });
+  }
+
+  // Blood pressure: systolic > 140 or diastolic > 90 in 3+ readings
+  const recentVitals = vitals.filter((v) => v.ts >= since);
+  const highBPReadings = recentVitals.filter(
+    (v) => v.systolic > 140 || v.diastolic > 90,
+  ).length;
+  if (highBPReadings >= 3) {
+    alerts.push({
+      type: "warning",
+      message: `❤️ Tensiune ridicată în ${highBPReadings} măsurători recente. Consultați medicul.`,
+    });
+  }
+
+  // Sleep: < 6 hours for 3+ nights
+  const recentSleep = sleep.filter((s) => s.start_ts >= since);
+  const poorSleepNights = recentSleep.filter((s) => s.hours < 6).length;
+  if (poorSleepNights >= 3) {
+    alerts.push({
+      type: "warning",
+      message: `🌙 Somn insuficient (sub 6h) în ${poorSleepNights} nopți recente. Încercați să vă odihniți mai mult.`,
+    });
+  }
+
+  // Emotion: level <= 2 for 3+ days
+  const emotByDay = new Map<string, number>();
+  for (const e of emotions.filter((em) => em.ts >= since)) {
+    const day = e.ts.slice(0, 10);
+    const existing = emotByDay.get(day);
+    if (!existing || e.level < existing) emotByDay.set(day, e.level);
+  }
+  const lowEmotDays = [...emotByDay.values()].filter((v) => v <= 2).length;
+  if (lowEmotDays >= 3) {
+    alerts.push({
+      type: "warning",
+      message: `😔 Stare emoțională scăzută în ${lowEmotDays} zile recente. Vorbiți cu cineva drag sau contactați medicul.`,
+    });
+  }
+
+  // Positive: consistent good hydration
+  const goodHydDays = [...hydByDay.values()].filter((v) => v >= 2000).length;
+  if (goodHydDays >= 5) {
+    alerts.push({
+      type: "info",
+      message: `💧 Excelent! ${goodHydDays} zile cu hidratare optimă (≥2L) săptămâna aceasta!`,
+    });
+  }
+
+  return alerts;
 }
 
 function aggregateByDay(

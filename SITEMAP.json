@@ -1,10 +1,10 @@
 {
   "_meta": {
     "project": "Mami_Docs PWA",
-    "generated": "2026-05-01T05:25:00Z",
-    "audit_tag": "AUDIT-1C-OK",
-    "version": "0.1.18",
-    "phase": "1 — MVP PWA (1.A✅ | 1.B✅ | 1.C✅ | 1.D: T21-T25 blocate pe admin gates G1-G6 | keepalive proactiv scris)",
+    "generated": "2026-05-02T00:00:00Z",
+    "audit_tag": "AUDIT-2-OK",
+    "version": "0.2.0",
+    "phase": "Faza 1.5+2+3+4 parțial ✅ | Blocate pe credențiale: Supabase pgvector, R2 deploy, device_role backend, Go-live",
     "note": "Auto-update obligatoriu la orice modificare structurală (Regula R6 + CLAUDE.md proiect)"
   },
   "root": {
@@ -168,6 +168,31 @@
                 "name": "mami-ambient-player.ts",
                 "role": "Web Component <mami-ambient-player>: toggle on/off localStorage, slider volum, deferred autoplay (user gesture), onerror silent disable",
                 "phase": "1.C"
+              },
+              {
+                "name": "mami-wellness.ts",
+                "role": "Web Component <mami-wellness>: Hidratare+Vitale+Somn+Emoții trackers, localStorage, PDF export jsPDF, pattern detection (7 zile: hidratare/tensiune/somn/emoții)",
+                "phase": "2"
+              },
+              {
+                "name": "mami-settings.ts",
+                "role": "Web Component <mami-settings>: dark mode, font size, reminder toggle, admin PIN (SHA-256 hash), device_role mom/admin",
+                "phase": "2"
+              },
+              {
+                "name": "mami-gallery.ts",
+                "role": "Web Component <mami-gallery>: upload foto, resize 1920px, IndexedDB blob store, lightbox, soft-delete",
+                "phase": "3"
+              },
+              {
+                "name": "mami-menu.ts",
+                "role": "Web Component <mami-menu>: generator meniu săptămânal AI, navigare săptămâni, printare, istoric 4 săptămâni, quote zilnic",
+                "phase": "4"
+              },
+              {
+                "name": "mami-drug-checker.ts",
+                "role": "Web Component <mami-drug-checker>: RxNorm typeahead, interacțiuni medicamente (openFDA), severitate, disclaimer medical WCAG",
+                "phase": "4"
               }
             ]
           },
@@ -183,7 +208,7 @@
             "files": [
               {
                 "name": "client.ts",
-                "role": "AI Gateway client wrapper: sendChat(messages,systemPrompt,signal) + AiGatewayError; URL din VITE_AI_GATEWAY_URL",
+                "role": "AI Gateway client: sendChat + translateText + analyzeImage + searchWeb; AiGatewayError; URL din VITE_AI_GATEWAY_URL",
                 "phase": "1.C"
               },
               {
@@ -195,6 +220,16 @@
                 "name": "system-prompts.ts",
                 "role": "System prompts per tab: TabId type + getSystemPrompt(tab); sănătate cu disclaimer medical obligatoriu; fallback chat",
                 "phase": "1.C"
+              },
+              {
+                "name": "embeddings.ts",
+                "role": "Embeddings: Xenova/multilingual-e5-small (transformers.js offline), cosineSimilarity, getEmbedding(text)",
+                "phase": "3"
+              },
+              {
+                "name": "rag.ts",
+                "role": "RAG client-side: indexDocument(chunking 400ch/80ch overlap) + semanticSearch(top-K cosine) + buildRagContext()",
+                "phase": "3"
               }
             ]
           },
@@ -202,6 +237,11 @@
             "path": "src/data/",
             "phase": "1.B",
             "files": [
+              {
+                "name": "tabs.ts",
+                "role": "Tab definitions: TABS array (chat/wellness/gallery/menu/medicamente), TabDef type, isTabId/getTab helpers",
+                "phase": "1.B"
+              },
               {
                 "name": "doc-index.ts",
                 "role": "Document index: DocEntry CRUD în localStorage (indexDoc/searchDocs/removeDoc/clearIndex/getAllDocs)",
@@ -211,6 +251,21 @@
                 "name": "greetings.ts",
                 "role": "120 mesaje rotative ro-RO: DIMINEATA×30/ZI×30/SEARA×30/MOTIVARE×30; getGreeting() cu seed zilnic + selecție după oră",
                 "phase": "1.C"
+              },
+              {
+                "name": "local-store.ts",
+                "role": "Local-first storage: HydrationEntry, VitalEntry, EmotionEntry, SleepEntry, BookmarkEntry, HighlightEntry, DocNote, MenuEntry, DocIndexEntry; pushSupabase fallback",
+                "phase": "2"
+              },
+              {
+                "name": "photo-blob-store.ts",
+                "role": "IndexedDB blob store pentru poze: addPhoto/getPhoto/listPhotos/deletePhoto; resize 1920px înainte de stocare",
+                "phase": "3"
+              },
+              {
+                "name": "quotes.ts",
+                "role": "60 citate motivationale RO, 6 categorii; getDailyQuote() determinist per zi + getRandomQuote()",
+                "phase": "4"
               }
             ]
           }
@@ -253,8 +308,8 @@
             "files": [
               {
                 "name": "index.ts",
-                "role": "Cloudflare Worker AI proxy: Groq 8b→70b fallback, circuit breaker (3 err/5min), retry ×2, CORS, origin check",
-                "phase": "1.C"
+                "role": "Cloudflare Worker AI proxy: 8 categorii fallback (chat/embed/translate/vision/search/STT), circuit breaker, CORS, /health endpoint",
+                "phase": "1.5"
               },
               {
                 "name": "wrangler.toml",
@@ -269,8 +324,8 @@
             "files": [
               {
                 "name": "index.ts",
-                "role": "Cloudflare Worker cron: SELECT ping Supabase la fiecare 4 zile (cron 0 2 */4 * *), previne hibernare free tier",
-                "phase": "1.D"
+                "role": "Cloudflare Worker cron: keepalive Supabase (4 zile) + backup zilnic 8 tabele → R2 (30 backups) + auto-sumar AI nocturn 00:30 UTC via ntfy/Telegram",
+                "phase": "2"
               },
               {
                 "name": "wrangler.toml",

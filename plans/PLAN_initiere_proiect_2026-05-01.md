@@ -1,7 +1,7 @@
 # PLAN Inițiere Proiect Mami_Docs
 
 **Dată:** 2026-05-01  
-**Status:** ✅ Faza 0 Completată — pregătit pentru Faza 1  
+**Status:** ✅ Faza 0+1.5+2+3(parțial)+4(parțial) Complete — BLOCAT pe credențiale externe (Supabase, R2, ntfy)  
 **Versiune plan:** 1.0
 
 ---
@@ -73,11 +73,11 @@
 
 ## Faza 1.5 — AI Core + Agenți (1 săptămână)
 
-- [ ] Fallback complet (8 categorii din ADR decizia 4)
+- [x] Fallback complet (8 categorii din ADR decizia 4)
 - [x] System prompts per tab (schemă plug-in per tab dinamic)
 - [x] OCR cascadă: Tesseract.js → Gemini Flash → Mistral OCR
 - [x] Memo vocal cu Groq Whisper Large v3
-- [ ] Embeddings: gemini-embedding-001 → transformers.js → Cohere
+- [x] Embeddings: gemini-embedding-001 → transformers.js → Cohere
 - [x] Capabilități AI standard (sumarizare, traducere, explicații)
 
 ---
@@ -92,32 +92,32 @@
 - [x] Semne vitale (tensiune, greutate, temperatură)
 - [x] Tracker somn
 - [x] Check-in emoțional zilnic
-- [ ] Auto-sumar nocturn (00:30 UTC)
+- [x] Auto-sumar nocturn (00:30 UTC)
 
 ---
 
 ## Faza 3 — Memorie Lungă + RAG (2 săptămâni)
 
 - [ ] pgvector activat în Supabase
-- [ ] RAG pe documente (embeddings + căutare semantică)
+- [x] RAG pe documente (embeddings + căutare semantică)
 - [ ] AI proactiv contextual (pattern simptome, aniversări, etc.)
 - [ ] Jurnal wellness persistent
-- [ ] Pattern simptome (detecție automată)
+- [x] Pattern simptome (detecție automată)
 - [ ] Family sharing cu Row Level Security (RLS)
 - [ ] PDF medical generat cu jsPDF (client-side)
 - [ ] Galerie foto (upload cu resize 1920px, soft-delete 30 zile)
-- [ ] Bookmarks + highlights în documente
+- [x] Bookmarks + highlights în documente
 - [ ] Arhivă R2 la 60 zile nereaccesare (cu thumbnail Supabase)
 
 ---
 
 ## Faza 4 — Avansate + Go-Live (1-2 săptămâni)
 
-- [ ] RxNorm + openFDA interacțiuni medicamente
-- [ ] Meniu săptămânal (generator AI + printabil)
-- [ ] Traducere multi-limbă (DeepL ×2 → Azure ×2 → Gemini Flash)
-- [ ] Admin PIN mode (acces la setări avansate)
-- [ ] Dashboard quote-uri zilnice
+- [x] RxNorm + openFDA interacțiuni medicamente
+- [x] Meniu săptămânal (generator AI + printabil)
+- [x] Traducere multi-limbă (DeepL ×2 → Azure ×2 → Gemini Flash)
+- [x] Admin PIN mode (acces la setări avansate)
+- [x] Dashboard quote-uri zilnice
 - [ ] Backup secundar săptămânal (Storj sau Backblaze B2)
 - [ ] Alert admin la 80% storage Supabase
 - [ ] Go-live test pe telefon real mama (Android Chrome)
@@ -163,3 +163,14 @@
 | 2026-05-01 | Reminder hidratare 2h               | ✅ Completat | Toggle în Setări + setInterval anti-spam + permission request       |
 | 2026-05-01 | docs/CREDENTIALS_NEEDED.md          | ✅ Completat | 5 secțiuni cu pași și linkuri (Supabase, ntfy, CallMeBot, FCM, R2)  |
 | 2026-05-01 | .env.example + .gitignore exception | ✅ Completat | Template variabile Vite documentat, commitabil                      |
+| 2026-05-02 | AI Gateway rewrite complet          | ✅ Completat | 8 categorii fallback: chat/embed/translate/vision/search/STT        |
+| 2026-05-02 | local-store extins                  | ✅ Completat | BookmarkEntry, HighlightEntry, DocNote, MenuEntry, DocIndexEntry    |
+| 2026-05-02 | RAG client-side (rag.ts)            | ✅ Completat | Chunking 400ch, embeddings, cosine similarity, top-K                |
+| 2026-05-02 | Quotes zilnice (quotes.ts)          | ✅ Completat | 60 citate RO, 6 categorii, getDailyQuote determinist                |
+| 2026-05-02 | Admin PIN mode                      | ✅ Completat | SHA-256 hash, device_role, UI în mami-settings                      |
+| 2026-05-02 | Meniu săptămânal (mami-menu)        | ✅ Completat | Generator AI, navigare săptămâni, printare, istoric 4 săptămâni     |
+| 2026-05-02 | Drug checker (mami-drug-checker)    | ✅ Completat | RxNorm typeahead, interacțiuni, severitate, disclaimer medical      |
+| 2026-05-02 | Wellness pattern detection          | ✅ Completat | Detecție automată 5 tipare din ultimele 7 zile                      |
+| 2026-05-02 | Auto-sumar nocturn (keepalive)      | ✅ Completat | Rewrite complet: R2 backup real + sumar AI + ntfy/Telegram          |
+| 2026-05-02 | Bookmarks + highlights (doc-viewer) | ✅ Completat | Salvare scroll%, highlight text în doc, restaurare la redeschidere  |
+| 2026-05-02 | Build TypeScript clean              | ✅ Completat | 0 erori TS, build Vite OK (chunk size warning only)                 |

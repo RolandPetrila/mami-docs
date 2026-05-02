@@ -212,6 +212,241 @@ export function deletePhotoMeta(id: string): void {
   writeArr(KEY_PHOTOS, all);
 }
 
+// ---- Bookmarks ----
+
+export interface BookmarkEntry {
+  id: string;
+  ts: string;
+  docId: string; // filename or tab:filename
+  docName: string;
+  scrollPct: number; // 0-1
+  note: string;
+}
+
+const KEY_BOOKMARKS = "mami:bookmarks";
+
+export async function addBookmark(
+  docId: string,
+  docName: string,
+  scrollPct: number,
+  note = "",
+): Promise<BookmarkEntry> {
+  const entry: BookmarkEntry = {
+    id: uid(),
+    ts: new Date().toISOString(),
+    docId,
+    docName,
+    scrollPct,
+    note,
+  };
+  const all = readArr<BookmarkEntry>(KEY_BOOKMARKS);
+  const deduped = all.filter((b) => b.docId !== docId); // one bookmark per doc
+  deduped.push(entry);
+  writeArr(KEY_BOOKMARKS, deduped);
+  await pushSupabase("bookmarks", entry);
+  return entry;
+}
+
+export function listBookmarks(): BookmarkEntry[] {
+  return readArr<BookmarkEntry>(KEY_BOOKMARKS);
+}
+
+export function removeBookmark(docId: string): void {
+  writeArr(
+    KEY_BOOKMARKS,
+    readArr<BookmarkEntry>(KEY_BOOKMARKS).filter((b) => b.docId !== docId),
+  );
+}
+
+// ---- Highlights ----
+
+export interface HighlightEntry {
+  id: string;
+  ts: string;
+  docId: string;
+  docName: string;
+  text: string;
+  color: string; // hex
+  note: string;
+}
+
+const KEY_HIGHLIGHTS = "mami:highlights";
+
+export async function addHighlight(
+  docId: string,
+  docName: string,
+  text: string,
+  color = "#ffe066",
+  note = "",
+): Promise<HighlightEntry> {
+  const entry: HighlightEntry = {
+    id: uid(),
+    ts: new Date().toISOString(),
+    docId,
+    docName,
+    text,
+    color,
+    note,
+  };
+  const all = readArr<HighlightEntry>(KEY_HIGHLIGHTS);
+  all.push(entry);
+  writeArr(KEY_HIGHLIGHTS, all);
+  await pushSupabase("highlights", entry);
+  return entry;
+}
+
+export function listHighlights(docId?: string): HighlightEntry[] {
+  const all = readArr<HighlightEntry>(KEY_HIGHLIGHTS);
+  return docId ? all.filter((h) => h.docId === docId) : all;
+}
+
+export function removeHighlight(id: string): void {
+  writeArr(
+    KEY_HIGHLIGHTS,
+    readArr<HighlightEntry>(KEY_HIGHLIGHTS).filter((h) => h.id !== id),
+  );
+}
+
+// ---- Doc Notes ----
+
+export interface DocNote {
+  id: string;
+  ts: string;
+  docId: string;
+  docName: string;
+  text: string;
+}
+
+const KEY_DOC_NOTES = "mami:doc-notes";
+
+export async function addDocNote(
+  docId: string,
+  docName: string,
+  text: string,
+): Promise<DocNote> {
+  const entry: DocNote = {
+    id: uid(),
+    ts: new Date().toISOString(),
+    docId,
+    docName,
+    text,
+  };
+  const all = readArr<DocNote>(KEY_DOC_NOTES);
+  all.push(entry);
+  writeArr(KEY_DOC_NOTES, all);
+  await pushSupabase("doc_notes", entry);
+  return entry;
+}
+
+export function listDocNotes(docId?: string): DocNote[] {
+  const all = readArr<DocNote>(KEY_DOC_NOTES);
+  return docId ? all.filter((n) => n.docId === docId) : all;
+}
+
+export function removeDocNote(id: string): void {
+  writeArr(
+    KEY_DOC_NOTES,
+    readArr<DocNote>(KEY_DOC_NOTES).filter((n) => n.id !== id),
+  );
+}
+
+// ---- Weekly Menu ----
+
+export interface MenuEntry {
+  id: string;
+  ts: string;
+  weekStart: string; // ISO date YYYY-MM-DD
+  menu: Record<
+    string,
+    { breakfast: string; lunch: string; dinner: string; snack?: string }
+  >;
+  generatedBy: "ai" | "manual";
+}
+
+const KEY_MENUS = "mami:menus";
+
+export function saveMenu(
+  weekStart: string,
+  menu: MenuEntry["menu"],
+  generatedBy: "ai" | "manual" = "ai",
+): MenuEntry {
+  const entry: MenuEntry = {
+    id: uid(),
+    ts: new Date().toISOString(),
+    weekStart,
+    menu,
+    generatedBy,
+  };
+  const all = readArr<MenuEntry>(KEY_MENUS);
+  const deduped = all.filter((m) => m.weekStart !== weekStart);
+  deduped.push(entry);
+  writeArr(KEY_MENUS, deduped.slice(-8)); // keep last 8 weeks
+  return entry;
+}
+
+export function getMenu(weekStart: string): MenuEntry | undefined {
+  return readArr<MenuEntry>(KEY_MENUS).find((m) => m.weekStart === weekStart);
+}
+
+export function listMenus(): MenuEntry[] {
+  return readArr<MenuEntry>(KEY_MENUS);
+}
+
+// ---- RAG Document Index ----
+
+export interface DocIndexEntry {
+  id: string;
+  ts: string;
+  docId: string;
+  docName: string;
+  chunkIndex: number;
+  chunkText: string;
+  vector: number[];
+}
+
+const KEY_DOC_INDEX = "mami:doc-index";
+
+export function saveDocChunk(
+  docId: string,
+  docName: string,
+  chunkIndex: number,
+  chunkText: string,
+  vector: number[],
+): DocIndexEntry {
+  const entry: DocIndexEntry = {
+    id: uid(),
+    ts: new Date().toISOString(),
+    docId,
+    docName,
+    chunkIndex,
+    chunkText,
+    vector,
+  };
+  const all = readArr<DocIndexEntry>(KEY_DOC_INDEX);
+  const filtered = all.filter(
+    (e) => !(e.docId === docId && e.chunkIndex === chunkIndex),
+  );
+  filtered.push(entry);
+  // Cap: 2000 chunks (~20 large docs)
+  writeArr(
+    KEY_DOC_INDEX,
+    filtered.length > 2000 ? filtered.slice(-2000) : filtered,
+  );
+  return entry;
+}
+
+export function getDocChunks(docId?: string): DocIndexEntry[] {
+  const all = readArr<DocIndexEntry>(KEY_DOC_INDEX);
+  return docId ? all.filter((e) => e.docId === docId) : all;
+}
+
+export function clearDocIndex(docId: string): void {
+  writeArr(
+    KEY_DOC_INDEX,
+    readArr<DocIndexEntry>(KEY_DOC_INDEX).filter((e) => e.docId !== docId),
+  );
+}
+
 // ---- Migration helper (rulat o dată după ce admin conectează Supabase) ----
 
 export async function mirrorAllToSupabase(): Promise<{

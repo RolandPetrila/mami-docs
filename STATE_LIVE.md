@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-01T18:00Z by Opus 4.7 (executor mode)
-**Status:** Frontend complet local-first (fără credentiale) — așteaptă Setup Supabase + ntfy + (opțional) CallMeBot/FCM/R2
+**Ultimul update:** 2026-05-02T00:00Z by Sonnet 4.6 (executor mode, sesiune autonomă)
+**Status:** Faza 1.5+2+3+4 parțial complete local-first — **build TS 0 erori** — așteaptă credențiale Supabase/R2/ntfy/FCM pentru funcționalitate completă
 
 > 📋 **Pentru obținere credentiale:** vezi `docs/CREDENTIALS_NEEDED.md` cu pași + linkuri surse.
 
@@ -34,16 +34,29 @@
 
 ### NOU local (necomis — gata de commit):
 
-- ✅ **Bug fix critic** worker AI Gateway: `callGroqAudio` complet implementat (Whisper Large v3 ro-RO) + endpoint `/transcribe` funcțional + duplicare reziduară eliminată
-- ✅ **Wellness funcțional cu persistență localStorage** (hidratare, vitale, somn, emoții) + buton "Descarcă raport PDF" cu date reale din ultimele 14 măsurători
-- ✅ **Galerie Foto** completă: upload (capture mama Android), resize automat la 1920px JPEG, IndexedDB pentru blob-uri, lightbox + ștergere
-- ✅ **Tab Galerie** adăugat în `src/data/tabs.ts` (al treilea după Chat și Sănătate)
-- ✅ **Embeddings transformers.js** offline real (`Xenova/multilingual-e5-small` quantized) cu fallback la AI Gateway `/embed` când va exista
-- ✅ **Notificări 4 straturi**: Notification API local + ntfy.sh push + Telegram (worker) + CallMeBot voice — toate cu graceful skip dacă lipsesc credentiale
-- ✅ **Toggle "Reminder apă (la 2h)"** în Setări — activează `Notification.requestPermission()` + setInterval cu anti-spam
-- ✅ **Storage abstraction** `src/data/local-store.ts` — local-first cu auto-mirror Supabase când conectat (`mirrorAllToSupabase()`)
-- ✅ **`.env.example`** (commitabil) cu documentație completă variabile Vite necesare
-- ✅ **Build TypeScript + Vite** trece curat (923 modules, 1.7MB JS bundle, 7 entries precache)
+**Sesiunea 2026-05-01 (Opus/Sonnet):**
+
+- ✅ **Bug fix critic** worker AI Gateway: `callGroqAudio` complet implementat (Whisper Large v3 ro-RO) + endpoint `/transcribe`
+- ✅ **Wellness funcțional cu persistență localStorage** (hidratare, vitale, somn, emoții) + PDF export real
+- ✅ **Galerie Foto** completă: upload, resize 1920px, IndexedDB blob, lightbox, ștergere
+- ✅ **Embeddings transformers.js** offline (`Xenova/multilingual-e5-small` quantized)
+- ✅ **Notificări 4 straturi**: Notification API + ntfy.sh + Telegram + CallMeBot voice
+- ✅ **Storage abstraction** `src/data/local-store.ts` local-first cu auto-mirror Supabase
+
+**Sesiunea 2026-05-02 (Sonnet 4.6, executor autonom):**
+
+- ✅ **AI Gateway rewrite complet** — 8 categorii fallback: chat (Groq 8B→70B→Cerebras→OpenRouter), embed (Gemini→Cohere→Mistral), translate (DeepL→Azure→Gemini), vision (Gemini 2.5 Flash→Mistral pixtral), search (Brave→Tavily→Jina), STT (Groq Whisper→CF AI), `/health` endpoint
+- ✅ **local-store.ts extins** — BookmarkEntry, HighlightEntry, DocNote, MenuEntry (săptămânal), DocIndexEntry (RAG, cap 2000 chunks)
+- ✅ **RAG client-side** (`src/ai/rag.ts`) — chunking 400ch/80ch overlap, embeddings, cosine similarity, top-K deduplicat per doc
+- ✅ **Quotes zilnice** (`src/data/quotes.ts`) — 60 citate RO, 6 categorii, `getDailyQuote()` determinist per zi
+- ✅ **Admin PIN mode** (`mami-settings.ts`) — SHA-256 + salt, device_role mom/admin, UI în modal setări
+- ✅ **Meniu săptămânal** (`mami-menu.ts`) — generator AI (JSON strict 7 zile × 4 mese), navigare săptămâni, printare, istoric 4 săpt, quote zilnic
+- ✅ **Drug checker** (`mami-drug-checker.ts`) — RxNorm typeahead (400ms debounce), interacțiuni openFDA, severitate, disclaimer WCAG
+- ✅ **Wellness pattern detection** — 5 tipare detectate automat din ultimele 7 zile (hidratare, tensiune, somn, emoții, hidratare bună)
+- ✅ **Keepalive worker rewrite** — R2 backup real (8 tabele, 30 backups history), auto-sumar AI nocturn (00:30 UTC) via ntfy+Telegram
+- ✅ **Bookmarks + highlights** (`mami-doc-viewer.ts`) — salvare scroll%, highlight text cu wrapText, restaurare la redeschidere doc
+- ✅ **Tab-uri noi** în `src/data/tabs.ts`: Meniu (🍽️) + Medicamente (💊)
+- ✅ **Build TypeScript 0 erori** — 926 modules, Vite clean (chunk size warning ignorat)
 
 ---
 
@@ -62,7 +75,7 @@
 | Keepalive Worker deploy              | BLOCAT pe Supabase            | După chei §1: `cd workers/keepalive && npx wrangler deploy`   |
 | Cloudflare Pages env vars            | Doar `VITE_AI_GATEWAY_URL` ✅ | După chei: dashboard Pages → Settings → Environment Variables |
 | Buton `?` contextual per pagină      | NU implementat                | Faza 1.5                                                      |
-| Mod admin PIN                        | NU implementat                | Faza 4                                                        |
+| Mod admin PIN                        | ✅ IMPLEMENTAT (local-first)  | SHA-256 localStorage — backend Supabase rămâne de setat       |
 
 ---
 
@@ -78,18 +91,21 @@
 
 ## Stack consolidat
 
-| Layer                   | Tehnologie                                                        |
-| ----------------------- | ----------------------------------------------------------------- |
-| Frontend                | Vanilla JS + Web Components + Vite + TypeScript strict            |
-| PWA                     | Workbox via `vite-plugin-pwa` mode `injectManifest`               |
-| Hosting                 | Cloudflare Pages (`mami-docs.pages.dev`)                          |
-| Backend Worker          | Cloudflare Workers (`mami-docs-ai.petrilarolly.workers.dev`)      |
-| AI text                 | Groq Llama 3.1 8B → 3.3 70B (circuit breaker, retry, timeout 10s) |
-| AI vision (viitor)      | Tesseract.js client → Gemini 2.5 Flash                            |
-| Embeddings (viitor)     | `gemini-embedding-001` cu pgvector Supabase                       |
-| STT/TTS                 | Web Speech API ro-RO native                                       |
-| Storage privat (viitor) | Supabase + R2 backup                                              |
-| Notificări (viitor)     | ntfy.sh + Telegram + CallMeBot + FCM                              |
+| Layer          | Tehnologie                                                   |
+| -------------- | ------------------------------------------------------------ |
+| Frontend       | Vanilla JS + Web Components + Vite + TypeScript strict       |
+| PWA            | Workbox via `vite-plugin-pwa` mode `injectManifest`          |
+| Hosting        | Cloudflare Pages (`mami-docs.pages.dev`)                     |
+| Backend Worker | Cloudflare Workers (`mami-docs-ai.petrilarolly.workers.dev`) |
+| AI text        | Groq 8B→70B→Cerebras→OpenRouter (circuit breaker, retry)     |
+| AI embed       | Gemini embedding-001 → Cohere multilingual → Mistral         |
+| AI vision      | Tesseract.js → Gemini 2.5 Flash → Mistral pixtral            |
+| AI translate   | DeepL → Azure Translator → Gemini Flash                      |
+| AI search      | Brave → Tavily → Jina Reader                                 |
+| RAG            | transformers.js (Xenova/multilingual-e5-small) + cosine sim  |
+| STT/TTS        | Web Speech API ro-RO native + Groq Whisper fallback          |
+| Storage privat | Supabase (configurat de admin) + R2 backup zilnic            |
+| Notificări     | ntfy.sh + Telegram Bot + CallMeBot + FCM (4 straturi)        |
 
 ---
 
@@ -123,10 +139,21 @@ Toate cerințele admin sunt în `info_chat.txt` (16 runde Q&A). Spec-ul `PROIECT
 
 ## Pași imediați următori (alegerea admin)
 
-1. **Faza 1.5 — AI Core extins** (sumarizare, traducere, OCR cascadă Tesseract+Gemini, "explică simplu", "rezumat 3 puncte", definire cuvânt) ~1 săpt.
-2. **G3 Supabase + G6 Audio** — admin manual, deblochează Faza 2
-3. **Test pe telefon real mama** — deschide `mami-docs.pages.dev` în Chrome Android, "Add to home screen", testează tot
-4. ~~**Refactor system-prompts.ts** — eliminare prompts hardcoded specifice~~ (Completat)
+### Neimplementate (necesită credențiale externe — admin manual):
+
+1. **Supabase** — pgvector activat, tabele schema SQL, RLS, device_role backend, Family sharing
+2. **R2 bucket** (`mami-docs-backup`) + deploy `workers/keepalive` cu secrete reale
+3. **ntfy.sh topic** + instalare app Android pe telefonul mamei
+4. **Firebase FCM** (opțional, alternative = ntfy)
+5. **Test pe telefon real mama** — deschide `mami-docs.pages.dev` în Chrome Android, "Add to home screen"
+6. **Lighthouse ≥90** — audit PWA, Performance, Accessibility
+7. **Documentație utilizator finală** pentru mama (simplu, cu poze, fără termeni tehnici)
+8. **Backup secundar** (Storj/Backblaze B2) — opțional
+
+### Faza 1 checklist complet (blocate pe admin gates):
+
+- `public/audio/tenderness.mp3` — admin descarcă manual (Pixabay FASSounds CC0)
+- Cloudflare Pages env vars — adaugă `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_NTFY_TOPIC` etc.
 
 ---
 

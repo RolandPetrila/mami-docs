@@ -7,6 +7,8 @@ import "./components/mami-chat";
 import "./components/mami-doc-viewer";
 import "./components/mami-image-viewer";
 import "./components/mami-gallery";
+import "./components/mami-menu";
+import "./components/mami-drug-checker";
 import { registerSW } from "virtual:pwa-register";
 
 // Restore dark mode setting before paint (avoid flash)

@@ -6,6 +6,12 @@ import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import * as XLSX from "xlsx";
 import { sendChat } from "../ai/client";
 import { speak, stopSpeaking } from "../ai/speech";
+import {
+  addBookmark,
+  addHighlight,
+  listBookmarks,
+  listHighlights,
+} from "../data/local-store";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
@@ -70,7 +76,10 @@ tmpl.innerHTML = `
     font-size: 0.9rem; cursor: pointer; flex-shrink: 0; font-weight: 500;
   }
   .action-btn.primary { background: var(--color-accent, #a05c2a); color: #fff; border: none; }
+  .action-btn.bookmark-active { background: #ffe066; color: #333; border-color: #e6c200; }
   .action-btn:focus-visible { outline: 3px solid var(--color-primary, #2e5c8a); outline-offset: 2px; }
+  .highlight { background: #ffe066; border-radius: 2px; cursor: pointer; }
+  .highlight:hover { background: #ffd000; }
   
   .viewer { flex: 1; overflow-y: auto; padding: 1.25rem 1rem; position: relative; }
   .doc-content { max-width: 72ch; margin: 0 auto; line-height: 1.7; position: relative; }
@@ -138,6 +147,7 @@ tmpl.innerHTML = `
 <div class="toolbar hidden" id="toolbar">
   <button class="action-btn primary" type="button" id="summary-btn" aria-label="Rezumat inteligent">✨ Rezumat</button>
   <button class="action-btn" type="button" id="read-doc-btn" aria-label="Citește tot documentul">🔊 Citește</button>
+  <button class="action-btn" type="button" id="bookmark-btn" aria-label="Salvează bookmark">🔖 Bookmark</button>
   <span class="file-name" id="file-name"></span>
   <button class="action-btn" type="button" id="close-btn" aria-label="Închide document">✕ Închide</button>
 </div>
@@ -151,6 +161,7 @@ tmpl.innerHTML = `
   <button type="button" data-action="traduce">🌍 Traduce</button>
   <button type="button" data-action="defineste">📖 Definește</button>
   <button type="button" data-action="citeste">🔊 Citește</button>
+  <button type="button" data-action="highlight">🖊️ Highlight</button>
 </div>
 
 <!-- AI Results Dialog -->
@@ -172,6 +183,8 @@ export class MamiDocViewer extends HTMLElement {
   private _ready = false;
   private _selectedText = "";
   private _reading = false;
+  private _docId = "";
+  private _docFileName = "";
 
   constructor() {
     super();
@@ -190,7 +203,9 @@ export class MamiDocViewer extends HTMLElement {
   ): void {
     if (name === "type" && val && isDocType(val)) {
       this._type = val;
-      const input = this._sr.querySelector(".file-input") as HTMLInputElement | null;
+      const input = this._sr.querySelector(
+        ".file-input",
+      ) as HTMLInputElement | null;
       if (input) input.accept = this._accept();
     }
     if (name === "src" && val) {
@@ -205,7 +220,9 @@ export class MamiDocViewer extends HTMLElement {
     const typeAttr = this.getAttribute("type");
     if (typeAttr && isDocType(typeAttr)) this._type = typeAttr;
 
-    const input = this._sr.querySelector(".file-input") as HTMLInputElement | null;
+    const input = this._sr.querySelector(
+      ".file-input",
+    ) as HTMLInputElement | null;
     if (input) {
       input.accept = this._accept();
       input.addEventListener("change", () => {
@@ -222,7 +239,9 @@ export class MamiDocViewer extends HTMLElement {
       if (file) void this._loadFile(file);
     });
 
-    this._sr.querySelector("#close-btn")?.addEventListener("click", () => this._reset());
+    this._sr
+      .querySelector("#close-btn")
+      ?.addEventListener("click", () => this._reset());
 
     // Main toolbar AI buttons
     this._sr.querySelector("#summary-btn")?.addEventListener("click", () => {
@@ -249,6 +268,10 @@ export class MamiDocViewer extends HTMLElement {
         });
       }
     });
+
+    this._sr
+      .querySelector("#bookmark-btn")
+      ?.addEventListener("click", () => void this._saveBookmark());
 
     // AI selection popover setup
     const viewer = this._sr.querySelector("#viewer");
@@ -296,6 +319,8 @@ export class MamiDocViewer extends HTMLElement {
       if (action === "citeste") {
         stopSpeaking();
         speak(this._selectedText);
+      } else if (action === "highlight") {
+        void this._highlightSelection(this._selectedText);
       } else {
         void this._sendToAI(action, this._selectedText);
       }
@@ -304,14 +329,19 @@ export class MamiDocViewer extends HTMLElement {
 
     // AI Dialog setup
     const dialog = this._sr.querySelector("#ai-dialog") as HTMLDialogElement;
-    this._sr.querySelector("#ai-dialog-close")?.addEventListener("click", () => {
-      dialog.close();
-      stopSpeaking();
-    });
-    this._sr.querySelector("#ai-dialog-speak")?.addEventListener("click", () => {
-      const text = this._sr.querySelector("#ai-dialog-body")?.textContent || "";
-      if (text) speak(text);
-    });
+    this._sr
+      .querySelector("#ai-dialog-close")
+      ?.addEventListener("click", () => {
+        dialog.close();
+        stopSpeaking();
+      });
+    this._sr
+      .querySelector("#ai-dialog-speak")
+      ?.addEventListener("click", () => {
+        const text =
+          this._sr.querySelector("#ai-dialog-body")?.textContent || "";
+        if (text) speak(text);
+      });
 
     const srcAttr = this.getAttribute("src");
     if (srcAttr) void this._loadUrl(srcAttr);
@@ -326,9 +356,9 @@ export class MamiDocViewer extends HTMLElement {
     const dialog = this._sr.querySelector("#ai-dialog") as HTMLDialogElement;
     const titleEl = this._sr.querySelector("#ai-dialog-title");
     const bodyEl = this._sr.querySelector("#ai-dialog-body");
-    
+
     if (!dialog || !titleEl || !bodyEl) return;
-    
+
     let prompt = "";
     if (action === "rezumat") {
       titleEl.textContent = "✨ Rezumat 3 Puncte";
@@ -344,7 +374,7 @@ export class MamiDocViewer extends HTMLElement {
       prompt = `Explică pe scurt (în 1-2 propoziții) ce înseamnă următorul cuvânt sau expresie, într-un mod foarte simplu de înțeles:\n\n"${text.substring(0, 200)}"`;
     }
 
-    // System prompt default, as we don't have tab context here specifically, 
+    // System prompt default, as we don't have tab context here specifically,
     // but the AI is friendly to "mami".
     const systemPrompt = `Ești asistentul personal inteligent al mamei (~60 ani din România).
 Răspunzi EXCLUSIV în română, concis, blând și pe înțelesul ei.
@@ -355,7 +385,10 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
     dialog.showModal();
 
     try {
-      const response = await sendChat([{ role: "user", content: prompt }], systemPrompt);
+      const response = await sendChat(
+        [{ role: "user", content: prompt }],
+        systemPrompt,
+      );
       bodyEl.innerHTML = DOMPurify.sanitize(markdownParse(response) as string);
     } catch (err) {
       bodyEl.innerHTML = `<p class="error-msg">A apărut o eroare: ${err instanceof Error ? err.message : String(err)}</p>`;
@@ -364,12 +397,17 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
 
   private _accept(): string {
     const map: Record<DocType, string> = {
-      docx: ".docx", pdf: ".pdf", md: ".md,.markdown", xlsx: ".xlsx,.xls",
+      docx: ".docx",
+      pdf: ".pdf",
+      md: ".md,.markdown",
+      xlsx: ".xlsx,.xls",
     };
     return map[this._type];
   }
 
   private async _loadFile(file: File): Promise<void> {
+    this._docId = `file:${file.name}`;
+    this._docFileName = file.name;
     this._showLoading(file.name);
     try {
       const buf = await file.arrayBuffer();
@@ -380,12 +418,16 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
         this._showDoc(html, file.name);
       }
     } catch (err) {
-      this._showError(`Eroare la deschiderea documentului: ${err instanceof Error ? err.message : String(err)}`);
+      this._showError(
+        `Eroare la deschiderea documentului: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
   private async _loadUrl(url: string): Promise<void> {
     const filename = url.split("/").pop() || url;
+    this._docId = `url:${url}`;
+    this._docFileName = filename;
     this._showLoading(filename);
     try {
       const res = await fetch(url);
@@ -398,7 +440,9 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
         this._showDoc(html, filename);
       }
     } catch (err) {
-      this._showError(`Nu s-a putut încărca documentul: ${err instanceof Error ? err.message : String(err)}`);
+      this._showError(
+        `Nu s-a putut încărca documentul: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
 
@@ -422,8 +466,12 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
         const fullHtml = XLSX.utils.sheet_to_html(sheet);
         const doc = new DOMParser().parseFromString(fullHtml, "text/html");
         const table = doc.querySelector("table");
-        const tableHtml = table ? DOMPurify.sanitize(table.outerHTML) : "<p><em>Foaie goală</em></p>";
-        sections.push(`<h3>${DOMPurify.sanitize(sheetName)}</h3><div class="xlsx-table">${tableHtml}</div>`);
+        const tableHtml = table
+          ? DOMPurify.sanitize(table.outerHTML)
+          : "<p><em>Foaie goală</em></p>";
+        sections.push(
+          `<h3>${DOMPurify.sanitize(sheetName)}</h3><div class="xlsx-table">${tableHtml}</div>`,
+        );
       }
       return sections.join("\n");
     }
@@ -431,10 +479,13 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
   }
 
   private async _renderPdf(buf: ArrayBuffer, filename: string): Promise<void> {
-    const content = this._sr.querySelector("#doc-content") as HTMLElement | null;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
     if (!content) return;
 
-    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) })
+      .promise;
     const numPages = pdf.numPages;
 
     const firstPage = await pdf.getPage(1);
@@ -452,7 +503,9 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
       const containerWidth = content.clientWidth || 600;
       const scale = containerWidth / baseViewport.width;
       const viewport = page.getViewport({ scale });
-      const canvas = wrapper.querySelector("canvas") as HTMLCanvasElement | null;
+      const canvas = wrapper.querySelector(
+        "canvas",
+      ) as HTMLCanvasElement | null;
       if (!canvas) return;
       canvas.width = viewport.width;
       canvas.height = viewport.height;
@@ -492,31 +545,128 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
     this._sr.querySelector("#viewer")?.classList.remove("hidden");
     const fname = this._sr.querySelector("#file-name") as HTMLElement | null;
     if (fname) fname.textContent = name;
-    const content = this._sr.querySelector("#doc-content") as HTMLElement | null;
-    if (content) content.innerHTML = `<p class="spinner">Se încarcă <strong>${DOMPurify.sanitize(name)}</strong>…</p>`;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
+    if (content)
+      content.innerHTML = `<p class="spinner">Se încarcă <strong>${DOMPurify.sanitize(name)}</strong>…</p>`;
   }
 
   private _showDoc(html: string, name: string): void {
-    const content = this._sr.querySelector("#doc-content") as HTMLElement | null;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
     if (content) content.innerHTML = html;
     const fname = this._sr.querySelector("#file-name") as HTMLElement | null;
     if (fname) fname.textContent = name;
+    this._applyHighlights();
+    this._updateBookmarkBtn();
   }
 
   private _showError(msg: string): void {
-    const content = this._sr.querySelector("#doc-content") as HTMLElement | null;
-    if (content) content.innerHTML = `<p class="error-msg">${DOMPurify.sanitize(msg)}</p>`;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
+    if (content)
+      content.innerHTML = `<p class="error-msg">${DOMPurify.sanitize(msg)}</p>`;
+  }
+
+  private async _saveBookmark(): Promise<void> {
+    if (!this._docId) return;
+    const viewer = this._sr.querySelector("#viewer") as HTMLElement | null;
+    const scrollPct = viewer
+      ? viewer.scrollTop /
+        Math.max(1, viewer.scrollHeight - viewer.clientHeight)
+      : 0;
+    await addBookmark(this._docId, this._docFileName, scrollPct);
+    const btn = this._sr.querySelector("#bookmark-btn");
+    if (btn) {
+      btn.classList.add("bookmark-active");
+      const orig = btn.textContent;
+      btn.textContent = "🔖 Salvat!";
+      setTimeout(() => {
+        if (btn) btn.textContent = orig;
+      }, 1500);
+    }
+  }
+
+  private async _highlightSelection(text: string): Promise<void> {
+    if (!this._docId || !text) return;
+    await addHighlight(this._docId, this._docFileName, text);
+    this._applyHighlights();
+  }
+
+  private _applyHighlights(): void {
+    if (!this._docId) return;
+    const highlights = listHighlights(this._docId);
+    if (!highlights.length) return;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
+    if (!content) return;
+    for (const h of highlights) {
+      this._wrapText(content, h.text, h.color);
+    }
+  }
+
+  private _wrapText(
+    root: HTMLElement,
+    searchText: string,
+    color: string,
+  ): void {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes: Text[] = [];
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      if ((node as Text).textContent?.includes(searchText)) {
+        nodes.push(node as Text);
+      }
+    }
+    for (const textNode of nodes) {
+      const idx = textNode.textContent?.indexOf(searchText) ?? -1;
+      if (idx === -1) continue;
+      const parent = textNode.parentNode;
+      if (!parent || (parent as HTMLElement).closest?.("mark")) continue;
+      const before = document.createTextNode(
+        textNode.textContent?.slice(0, idx) ?? "",
+      );
+      const mark = document.createElement("mark");
+      mark.className = "highlight";
+      mark.style.background = color;
+      mark.textContent = searchText;
+      const after = document.createTextNode(
+        textNode.textContent?.slice(idx + searchText.length) ?? "",
+      );
+      parent.replaceChild(after, textNode);
+      parent.insertBefore(mark, after);
+      parent.insertBefore(before, mark);
+      break;
+    }
+  }
+
+  private _updateBookmarkBtn(): void {
+    if (!this._docId) return;
+    const bookmarks = listBookmarks();
+    const has = bookmarks.some((b) => b.docId === this._docId);
+    const btn = this._sr.querySelector("#bookmark-btn");
+    if (btn) btn.classList.toggle("bookmark-active", has);
   }
 
   private _reset(): void {
     this._sr.querySelector("#drop-zone")?.classList.remove("hidden");
     this._sr.querySelector("#toolbar")?.classList.add("hidden");
     this._sr.querySelector("#viewer")?.classList.add("hidden");
-    const content = this._sr.querySelector("#doc-content") as HTMLElement | null;
+    const content = this._sr.querySelector(
+      "#doc-content",
+    ) as HTMLElement | null;
     if (content) content.innerHTML = "";
-    const input = this._sr.querySelector(".file-input") as HTMLInputElement | null;
+    const input = this._sr.querySelector(
+      ".file-input",
+    ) as HTMLInputElement | null;
     if (input) input.value = "";
     this._selectedText = "";
+    this._docId = "";
+    this._docFileName = "";
     if (this._reading) {
       stopSpeaking();
       this._reading = false;

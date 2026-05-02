@@ -1,4 +1,5 @@
-// Mami Settings modal — volum, mute, dark mode, viteză voce TTS, reminder hidratare
+// Mami Settings modal — volum, mute, dark mode, viteză voce TTS, reminder hidratare,
+// Admin PIN, device_role (mom/admin).
 // Persistă în localStorage. Aplică temă imediat (CSS vars).
 
 import {
@@ -10,6 +11,43 @@ const STORAGE_VOLUME = "mami-volume";
 const STORAGE_MUTE = "mami-mute";
 const STORAGE_DARK = "mami-dark";
 const STORAGE_VOICE_RATE = "mami-voice-rate";
+const STORAGE_ADMIN_PIN_HASH = "mami-admin-pin-hash";
+const STORAGE_DEVICE_ROLE = "mami-device-role"; // "mom" | "admin"
+
+export type DeviceRole = "mom" | "admin";
+
+// Simple hash: not cryptographic — just PIN obfuscation in localStorage
+async function hashPin(pin: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode("mami:" + pin);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function getDeviceRole(): DeviceRole {
+  return (
+    (localStorage.getItem(STORAGE_DEVICE_ROLE) as DeviceRole | null) ?? "mom"
+  );
+}
+
+export function isAdminMode(): boolean {
+  return getDeviceRole() === "admin";
+}
+
+async function verifyPin(pin: string): Promise<boolean> {
+  const stored = localStorage.getItem(STORAGE_ADMIN_PIN_HASH);
+  if (!stored) return false;
+  return (await hashPin(pin)) === stored;
+}
+
+async function setAdminPin(pin: string): Promise<void> {
+  localStorage.setItem(STORAGE_ADMIN_PIN_HASH, await hashPin(pin));
+}
+
+function hasPinSet(): boolean {
+  return !!localStorage.getItem(STORAGE_ADMIN_PIN_HASH);
+}
 
 const tmpl = document.createElement("template");
 tmpl.innerHTML = `
@@ -198,6 +236,22 @@ tmpl.innerHTML = `
         <span class="slider"></span>
       </label>
     </div>
+
+    <hr style="border:none;border-top:1px solid #e0e7ef;margin:0.25rem 0" />
+
+    <div class="row">
+      <label class="field-label">Mod administrator</label>
+      <div class="help" id="admin-status-text">Mod: Mama</div>
+      <div id="pin-area" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
+        <input type="password" id="pin-input" placeholder="PIN (4-8 cifre)"
+          style="padding:0.5rem;font-size:1rem;border:1.5px solid #2e5c8a;border-radius:6px;min-height:44px" />
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn-primary" type="button" id="pin-confirm-btn" style="flex:1;font-size:0.9rem">Confirmă PIN</button>
+          <button class="btn-outline" type="button" id="pin-exit-admin-btn" style="display:none;flex:1;font-size:0.9rem">Ieși din admin</button>
+        </div>
+        <div class="help" id="pin-error" style="color:#c0392b;display:none">PIN incorect</div>
+      </div>
+    </div>
   </div>
   <div class="footer">
     <button class="btn-primary" type="button" id="done-btn">Gata</button>
@@ -287,6 +341,21 @@ export class MamiSettings extends HTMLElement {
       this._dispatch("mami-settings-hydration", { value: hydration.checked });
     });
 
+    // Admin PIN logic
+    this._updateAdminStatus();
+    this._sr
+      .querySelector("#pin-confirm-btn")
+      ?.addEventListener("click", () => {
+        void this._handlePinConfirm();
+      });
+    this._sr
+      .querySelector("#pin-exit-admin-btn")
+      ?.addEventListener("click", () => {
+        localStorage.setItem(STORAGE_DEVICE_ROLE, "mom");
+        this._updateAdminStatus();
+        this._dispatch("mami-role-change", { role: "mom" });
+      });
+
     this._sr.querySelector("#close-btn")?.addEventListener("click", () => {
       this.removeAttribute("open");
     });
@@ -300,6 +369,73 @@ export class MamiSettings extends HTMLElement {
       if (e.key === "Escape" && this.hasAttribute("open"))
         this.removeAttribute("open");
     });
+  }
+
+  private _updateAdminStatus(): void {
+    const role = getDeviceRole();
+    const statusText = this._sr.querySelector("#admin-status-text");
+    const exitBtn = this._sr.querySelector(
+      "#pin-exit-admin-btn",
+    ) as HTMLElement | null;
+    const pinInput = this._sr.querySelector(
+      "#pin-input",
+    ) as HTMLInputElement | null;
+    if (statusText) {
+      statusText.textContent =
+        role === "admin"
+          ? "Mod: Administrator activ ✓"
+          : hasPinSet()
+            ? "Mod: Mama (introdu PIN pentru admin)"
+            : "Mod: Mama (setează PIN admin)";
+    }
+    if (exitBtn) exitBtn.style.display = role === "admin" ? "block" : "none";
+    if (pinInput) {
+      pinInput.placeholder =
+        role === "admin"
+          ? "PIN curent"
+          : hasPinSet()
+            ? "PIN admin"
+            : "Setează PIN nou (4-8 cifre)";
+    }
+  }
+
+  private async _handlePinConfirm(): Promise<void> {
+    const pinInput = this._sr.querySelector(
+      "#pin-input",
+    ) as HTMLInputElement | null;
+    const errorEl = this._sr.querySelector("#pin-error") as HTMLElement | null;
+    if (!pinInput?.value) return;
+    const pin = pinInput.value.trim();
+    if (pin.length < 4 || pin.length > 8 || !/^\d+$/.test(pin)) {
+      if (errorEl) {
+        errorEl.textContent = "PIN trebuie să fie 4-8 cifre";
+        errorEl.style.display = "block";
+      }
+      return;
+    }
+    if (errorEl) errorEl.style.display = "none";
+
+    if (!hasPinSet()) {
+      await setAdminPin(pin);
+      localStorage.setItem(STORAGE_DEVICE_ROLE, "admin");
+      this._updateAdminStatus();
+      this._dispatch("mami-role-change", { role: "admin" });
+      pinInput.value = "";
+    } else {
+      const ok = await verifyPin(pin);
+      if (ok) {
+        localStorage.setItem(STORAGE_DEVICE_ROLE, "admin");
+        this._updateAdminStatus();
+        this._dispatch("mami-role-change", { role: "admin" });
+        pinInput.value = "";
+      } else {
+        if (errorEl) {
+          errorEl.textContent = "PIN incorect";
+          errorEl.style.display = "block";
+        }
+        pinInput.value = "";
+      }
+    }
   }
 
   private _dispatch<T>(name: string, detail: T): void {
