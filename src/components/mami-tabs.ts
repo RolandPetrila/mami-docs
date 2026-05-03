@@ -172,9 +172,9 @@ tmpl.innerHTML = `
     line-height: 1.5;
   }
 
-  .tab-content { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
-  .panel { display: flex; flex-direction: column; flex: 1; padding: 0; min-height: 0; }
-  .panel > * { flex: 1; }
+  .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+  .panel { display: flex; flex-direction: column; flex: 1; padding: 0; min-height: 0; height: 100%; }
+  .panel > * { flex: 1; min-height: 0; }
 </style>
 
 <header class="app-header">
@@ -286,9 +286,14 @@ export class MamiTabs extends HTMLElement {
         div.innerHTML = `<mami-wellness></mami-wellness>`;
       } else if (id === "gallery") {
         div.innerHTML = `<mami-gallery></mami-gallery>`;
+      } else if (id === "menu") {
+        div.innerHTML = `<mami-menu></mami-menu>`;
+      } else if (id === "medicamente") {
+        div.innerHTML = `<mami-drug-checker></mami-drug-checker>`;
       } else {
         div.textContent = `${label} — în pregătire…`;
       }
+      div.style.display = "none"; // _refresh() afișează doar panel-ul activ
       content.appendChild(div);
     }
   }
@@ -296,7 +301,7 @@ export class MamiTabs extends HTMLElement {
   private _refresh(): void {
     this._sr.querySelectorAll(".panel").forEach((el) => {
       const isActive = el.id === `panel-${this._active}`;
-      (el as HTMLElement).hidden = !isActive;
+      (el as HTMLElement).style.display = isActive ? "flex" : "none";
       el.setAttribute("aria-hidden", String(!isActive));
     });
     this._sr.querySelectorAll(".header-tab, .drawer-item").forEach((el) => {

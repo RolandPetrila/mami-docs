@@ -37,13 +37,14 @@ tmpl.innerHTML = `
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 300px;
+    min-height: 0;
     font-size: var(--font-base, 18px);
     color: var(--color-text, #1a1a2e);
     background: var(--color-bg, #eef4fa);
   }
   .messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 1rem;
     display: flex;
@@ -117,7 +118,7 @@ tmpl.innerHTML = `
   }
   .thinking.hidden { display: none; }
 
-  /* Input row */
+  /* Input row — sticky la baza ecranului pe mobile */
   .input-row {
     display: flex;
     gap: 0.5rem;
@@ -125,6 +126,10 @@ tmpl.innerHTML = `
     background: var(--color-surface, #fff);
     border-top: 1px solid #e0e7ef;
     align-items: flex-end;
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
   }
   .text-input {
     flex: 1;
@@ -203,19 +208,26 @@ tmpl.innerHTML = `
   .empty-state {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 1rem;
     color: var(--color-text-muted, #888);
-    font-size: 0.9rem;
+    font-size: 1rem;
     text-align: center;
-    padding: 1rem;
-    pointer-events: none;
+    padding: 2rem 1.5rem;
+    cursor: pointer;
   }
+  .empty-state .hint-icon { font-size: 2.5rem; }
+  .empty-state .hint-text { line-height: 1.5; }
   .empty-state.hidden { display: none; }
 </style>
 
 <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversație cu AI" aria-relevant="additions">
-  <p class="empty-state" id="empty-state">Scrie un mesaj sau apasă pe microfon pentru a vorbi cu Mami AI.</p>
+  <div class="empty-state" id="empty-state" role="button" tabindex="0" aria-label="Apasă pentru a scrie un mesaj">
+    <span class="hint-icon">💬</span>
+    <span class="hint-text">Apasă aici sau pe<br>🎤 microfon ca să vorbești<br>cu Mami AI</span>
+  </div>
   <div class="bubble-wrap ai hidden" id="thinking-wrap">
     <div class="thinking" id="thinking" aria-label="AI gândește…" role="status">
       <span></span><span></span><span></span>
@@ -306,6 +318,17 @@ export class MamiChat extends HTMLElement {
         new CustomEvent("mami-chat-mic", { bubbles: true, composed: true }),
       );
       this._toggleStt();
+    });
+
+    // Tap pe empty-state → focus textarea
+    const emptyState = this._sr.querySelector("#empty-state");
+    emptyState?.addEventListener("click", () => input?.focus());
+    emptyState?.addEventListener("keydown", (e) => {
+      if (
+        (e as KeyboardEvent).key === "Enter" ||
+        (e as KeyboardEvent).key === " "
+      )
+        input?.focus();
     });
 
     // Pre-load TTS voices for faster first speak()
