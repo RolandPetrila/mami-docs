@@ -27,15 +27,8 @@ updateOnlineStatus();
 // Service Worker registration with update notification
 const updateSW = registerSW({
   onNeedRefresh() {
-    const banner = document.createElement("div");
-    banner.className = "update-banner";
-    banner.innerHTML =
-      'Versiune nouă disponibilă! <button id="sw-update">Actualizează</button>';
-    document.body.prepend(banner);
-    document.getElementById("sw-update")?.addEventListener("click", () => {
-      void updateSW();
-      banner.remove();
-    });
+    // Aplică update automat — reload silențios
+    void updateSW(true);
   },
   onOfflineReady() {
     console.info("[SW] App gata pentru utilizare offline");
