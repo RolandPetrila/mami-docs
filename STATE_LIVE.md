@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-02 by Sonnet 4.6 (sesiune Track A completă)
-**Status:** Infrastructură completă ✅ — Supabase + ntfy + CallMeBot + R2 + keepalive Worker deployat
+**Ultimul update:** 2026-05-02 by Sonnet 4.6 (Track A + fix layout mobile)
+**Status:** Infrastructură completă ✅ + fix layout mobile în deploy — așteaptă confirmare test pe telefon Roland
 
 ---
 
