@@ -400,6 +400,58 @@ async function notifyAdmin(
   }
 }
 
+// ---- STORAGE ALERT ----
+
+const SUPABASE_FREE_STORAGE_BYTES = 500 * 1024 * 1024; // 500 MB
+const STORAGE_ALERT_THRESHOLD = 0.8; // 80%
+
+async function runStorageCheck(env: Env): Promise<void> {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return;
+
+  try {
+    const resp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/rpc/get_db_size_bytes`,
+      {
+        method: "POST",
+        headers: {
+          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      },
+    );
+
+    if (!resp.ok) {
+      console.warn(
+        `[storage-check] RPC get_db_size_bytes HTTP ${resp.status} — funcția lipsă? Rulează docs/sql/pgvector_migration.sql`,
+      );
+      return;
+    }
+
+    const sizeBytes = (await resp.json()) as number;
+    const pct = sizeBytes / SUPABASE_FREE_STORAGE_BYTES;
+    const sizeMb = (sizeBytes / (1024 * 1024)).toFixed(1);
+
+    console.info(
+      `[storage-check] DB size: ${sizeMb} MB (${(pct * 100).toFixed(1)}%)`,
+    );
+
+    if (pct >= STORAGE_ALERT_THRESHOLD) {
+      await notifyAdmin(
+        env,
+        `⚠️ Storage Supabase la ${(pct * 100).toFixed(0)}% (${sizeMb} MB din 500 MB free tier). Consideră upgrade sau curățare date vechi.`,
+        "ALERTĂ Storage Mami Docs",
+      );
+    }
+  } catch (err) {
+    console.warn(
+      "[storage-check] eroare:",
+      err instanceof Error ? err.message : err,
+    );
+  }
+}
+
 // ---- MAIN ----
 
 export default {
@@ -409,7 +461,7 @@ export default {
     ctx: ExecutionContext,
   ): Promise<void> {
     if (event.cron === "0 2 * * *") {
-      ctx.waitUntil(runR2Backup(env));
+      ctx.waitUntil(runR2Backup(env).then(() => runStorageCheck(env)));
     } else if (event.cron === "30 0 * * *") {
       ctx.waitUntil(runAutoSummary(env));
     } else {

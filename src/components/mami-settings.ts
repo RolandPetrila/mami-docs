@@ -6,6 +6,7 @@ import {
   isHydrationReminderEnabled,
   setHydrationReminderEnabled,
 } from "../services/notifications";
+import { supabase } from "../data/supabase";
 
 const STORAGE_VOLUME = "mami-volume";
 const STORAGE_MUTE = "mami-mute";
@@ -15,6 +16,33 @@ const STORAGE_ADMIN_PIN_HASH = "mami-admin-pin-hash";
 const STORAGE_DEVICE_ROLE = "mami-device-role"; // "mom" | "admin"
 
 export type DeviceRole = "mom" | "admin";
+
+const STORAGE_DEVICE_ID = "mami-device-id";
+
+function getOrCreateDeviceId(): string {
+  let id = localStorage.getItem(STORAGE_DEVICE_ID);
+  if (!id) {
+    id = `d_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem(STORAGE_DEVICE_ID, id);
+  }
+  return id;
+}
+
+async function syncDeviceRole(role: DeviceRole): Promise<void> {
+  if (!supabase) return;
+  const deviceId = getOrCreateDeviceId();
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from("user_profiles")
+      .upsert(
+        { device_id: deviceId, device_role: role },
+        { onConflict: "device_id" },
+      );
+  } catch {
+    /* silent — local-first, Supabase e opțional */
+  }
+}
 
 // Simple hash: not cryptographic — just PIN obfuscation in localStorage
 async function hashPin(pin: string): Promise<string> {
@@ -354,6 +382,7 @@ export class MamiSettings extends HTMLElement {
         localStorage.setItem(STORAGE_DEVICE_ROLE, "mom");
         this._updateAdminStatus();
         this._dispatch("mami-role-change", { role: "mom" });
+        void syncDeviceRole("mom");
       });
 
     this._sr.querySelector("#close-btn")?.addEventListener("click", () => {

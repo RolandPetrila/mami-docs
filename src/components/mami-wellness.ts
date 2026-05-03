@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { sendChat } from "../ai/client";
 import {
   addEmotion,
   addHydration,
@@ -168,6 +169,13 @@ tmpl.innerHTML = `
   </p>
 </div>
 
+<!-- AI Proactiv Sugestii -->
+<div class="card" id="ai-suggestions-card" style="display:none">
+  <h2>🤖 Sfaturi Personalizate AI</h2>
+  <div id="ai-suggestions-text" style="font-size:0.9rem;line-height:1.6;margin-bottom:0.75rem;white-space:pre-wrap;"></div>
+  <button class="btn outline" id="btn-ai-suggestions" type="button" style="width:100%">💡 Cere sfaturi de la AI</button>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 `;
 
@@ -230,6 +238,11 @@ export class MamiWellness extends HTMLElement {
       .querySelector("#btn-generate-pdf")
       ?.addEventListener("click", () => this._generatePdf());
 
+    // AI Sugestii
+    this._sr
+      .querySelector("#btn-ai-suggestions")
+      ?.addEventListener("click", () => void this._getAiSuggestions());
+
     this._refreshHydration();
     this._refreshVitalsHistory();
     this._refreshSleepStatus();
@@ -238,6 +251,9 @@ export class MamiWellness extends HTMLElement {
 
   private _refreshPatterns(): void {
     const card = this._sr.querySelector("#pattern-card") as HTMLElement | null;
+    const aiCard = this._sr.querySelector(
+      "#ai-suggestions-card",
+    ) as HTMLElement | null;
     const alertsEl = this._sr.querySelector("#pattern-alerts");
     if (!card || !alertsEl) return;
 
@@ -250,10 +266,13 @@ export class MamiWellness extends HTMLElement {
 
     if (alerts.length === 0) {
       card.style.display = "none";
+      if (aiCard) aiCard.style.display = "none";
       return;
     }
 
     card.style.display = "block";
+    if (aiCard) aiCard.style.display = "block";
+
     alertsEl.innerHTML = alerts
       .map(
         (a) => `<div style="
@@ -266,6 +285,45 @@ export class MamiWellness extends HTMLElement {
       ">${a.message}</div>`,
       )
       .join("");
+  }
+
+  private async _getAiSuggestions(): Promise<void> {
+    const btn = this._sr.querySelector(
+      "#btn-ai-suggestions",
+    ) as HTMLButtonElement | null;
+    const textEl = this._sr.querySelector(
+      "#ai-suggestions-text",
+    ) as HTMLElement | null;
+    if (!btn || !textEl) return;
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Se generează…";
+    textEl.textContent = "";
+
+    const alerts = detectPatterns(
+      listHydration(),
+      listVitals(30),
+      listEmotion(30),
+      listSleep(14),
+    );
+
+    const patternLines = alerts.map((a) => `- ${a.message}`).join("\n");
+    const prompt = `Bazat pe aceste observații privind starea mea de sănătate din ultimele 7 zile:\n${patternLines}\n\nOferă-mi 3-4 sfaturi practice, calde și concrete în română. Fii scurt și încurajator. NU da diagnostic, doar sugestii de stil de viață.`;
+
+    try {
+      const reply = await sendChat(
+        [{ role: "user", content: prompt }],
+        "Ești un asistent de wellness prietenos care vorbește în română cu o femeie de ~60 ani. Fii cald, simplu și practic.",
+      );
+      textEl.textContent = reply;
+      btn.textContent = "🔄 Actualizează sfaturile";
+    } catch {
+      textEl.textContent =
+        "Nu am putut genera sfaturi. Verifică conexiunea la internet.";
+      btn.textContent = "💡 Încearcă din nou";
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   private _toast(msg: string): void {

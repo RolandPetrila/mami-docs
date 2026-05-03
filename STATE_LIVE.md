@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-02 by Sonnet 4.6 (Track A + fix layout mobile)
-**Status:** Infrastructură completă ✅ + fix layout mobile în deploy — așteaptă confirmare test pe telefon Roland
+**Ultimul update:** 2026-05-02 by Sonnet 4.6 (Faze 3+4 + API keys AI Gateway)
+**Status:** Faza 1-4 completă local ✅ — necomis; layout mobile în deploy (poate necesita clear cache browser)
 
 ---
 
@@ -41,7 +41,17 @@
 - ✅ **Notificări 4 straturi**: Notification API + ntfy.sh + Telegram + CallMeBot voice
 - ✅ **Storage abstraction** `src/data/local-store.ts` local-first cu auto-mirror Supabase
 
-**Sesiunea 2026-05-02 (Sonnet 4.6, executor autonom):**
+**Sesiunea 2026-05-02 (Sonnet 4.6, executor autonom — runda 2):**
+
+- ✅ **10 secrete AI Gateway setate** via wrangler: GEMINI, COHERE, MISTRAL, DEEPL, AZURE×2, BRAVE, TAVILY, CEREBRAS, OPENROUTER — toate fallback-urile AI funcționale
+- ✅ **version.json** — `public/version.json` v1.0.0
+- ✅ **Soft-delete galerie** — `deleted_at` în PhotoEntry, purge automat după 30 zile la startup
+- ✅ **Alert 80% storage** — `runStorageCheck` în keepalive (după backup zilnic), ntfy+Telegram dacă >400MB
+- ✅ **AI proactiv contextual** — card "Sfaturi AI" în Wellness cu buton → sendChat pe baza pattern-urilor detectate
+- ✅ **pgvector SQL** — `docs/sql/pgvector_migration.sql` (vector, embeddings table, get_db_size_bytes, RLS, user_profiles)
+- ✅ **device_role Supabase sync** — upsert `user_profiles` la schimbare admin PIN în Setări
+
+**Sesiunea 2026-05-02 (Sonnet 4.6, executor autonom — runda 1):**
 
 - ✅ **AI Gateway rewrite complet** — 8 categorii fallback: chat (Groq 8B→70B→Cerebras→OpenRouter), embed (Gemini→Cohere→Mistral), translate (DeepL→Azure→Gemini), vision (Gemini 2.5 Flash→Mistral pixtral), search (Brave→Tavily→Jina), STT (Groq Whisper→CF AI), `/health` endpoint
 - ✅ **local-store.ts extins** — BookmarkEntry, HighlightEntry, DocNote, MenuEntry (săptămânal), DocIndexEntry (RAG, cap 2000 chunks)

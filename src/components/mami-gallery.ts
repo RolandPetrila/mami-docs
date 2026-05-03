@@ -1,7 +1,8 @@
 import {
   addPhotoMeta,
-  deletePhotoMeta,
   listPhotos,
+  purgeDeletedPhotosMeta,
+  softDeletePhotoMeta,
   type PhotoEntry,
 } from "../data/local-store";
 import {
@@ -156,6 +157,12 @@ export class MamiGallery extends HTMLElement {
     });
     document.addEventListener("keydown", this._onKeyDown);
 
+    // Purge blobs pentru fotografii șterse cu mai mult de 30 de zile în urmă
+    const expiredIds = purgeDeletedPhotosMeta(30);
+    if (expiredIds.length > 0) {
+      Promise.all(expiredIds.map((id) => deleteBlob(id))).catch(() => {});
+    }
+
     void this._renderGrid();
   }
 
@@ -266,10 +273,10 @@ export class MamiGallery extends HTMLElement {
 
   private async _deleteActive(): Promise<void> {
     if (!this._activePhotoId) return;
-    if (!confirm("Sigur ștergi poza?")) return;
+    if (!confirm("Sigur ștergi poza? (Va fi păstrată 30 de zile în coș)"))
+      return;
     const id = this._activePhotoId;
-    deletePhotoMeta(id);
-    await deleteBlob(id);
+    softDeletePhotoMeta(id);
     this._closeLightbox();
     await this._renderGrid();
   }

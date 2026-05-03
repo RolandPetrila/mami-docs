@@ -38,8 +38,7 @@ export interface PhotoEntry {
   ts: string;
   caption: string;
   blob_size: number;
-  // blob-ul e salvat separat în IndexedDB (vezi photo-blob-store.ts)
-  // aici păstrăm doar metadata, ușor de serializat în localStorage
+  deleted_at?: string; // soft-delete — blob-ul se șterge fizic după 30 zile
 }
 
 const KEY_HYDRATION = "mami:hydration";
@@ -204,12 +203,37 @@ export async function addPhotoMeta(
 }
 
 export function listPhotos(): PhotoEntry[] {
-  return readArr<PhotoEntry>(KEY_PHOTOS);
+  return readArr<PhotoEntry>(KEY_PHOTOS).filter((p) => !p.deleted_at);
+}
+
+export function listDeletedPhotos(): PhotoEntry[] {
+  return readArr<PhotoEntry>(KEY_PHOTOS).filter((p) => !!p.deleted_at);
+}
+
+export function softDeletePhotoMeta(id: string): void {
+  const all = readArr<PhotoEntry>(KEY_PHOTOS).map((p) =>
+    p.id === id ? { ...p, deleted_at: new Date().toISOString() } : p,
+  );
+  writeArr(KEY_PHOTOS, all);
+}
+
+// Returnează ID-urile foto șterse mai vechi de N zile (blob-ul trebuie șters separat)
+export function purgeDeletedPhotosMeta(olderThanDays: number): string[] {
+  const cutoff = new Date(
+    Date.now() - olderThanDays * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  const all = readArr<PhotoEntry>(KEY_PHOTOS);
+  const toDelete = all.filter((p) => p.deleted_at && p.deleted_at < cutoff);
+  const remaining = all.filter((p) => !p.deleted_at || p.deleted_at >= cutoff);
+  writeArr(KEY_PHOTOS, remaining);
+  return toDelete.map((p) => p.id);
 }
 
 export function deletePhotoMeta(id: string): void {
-  const all = readArr<PhotoEntry>(KEY_PHOTOS).filter((p) => p.id !== id);
-  writeArr(KEY_PHOTOS, all);
+  writeArr(
+    KEY_PHOTOS,
+    readArr<PhotoEntry>(KEY_PHOTOS).filter((p) => p.id !== id),
+  );
 }
 
 // ---- Bookmarks ----
