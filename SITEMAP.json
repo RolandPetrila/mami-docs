@@ -3,8 +3,8 @@
     "project": "Mami_Docs PWA",
     "generated": "2026-05-02T00:00:00Z",
     "audit_tag": "AUDIT-2-OK",
-    "version": "0.2.0",
-    "phase": "Faza 1.5+2+3+4 parțial ✅ | Blocate pe credențiale: Supabase pgvector, R2 deploy, device_role backend, Go-live",
+    "version": "0.3.0",
+    "phase": "Faza 1-4 completă local ✅ | Deploy necesar: git push + wrangler pages deploy + wrangler keepalive deploy",
     "note": "Auto-update obligatoriu la orice modificare structurală (Regula R6 + CLAUDE.md proiect)"
   },
   "root": {
@@ -391,6 +391,18 @@
                 "name": "0001-anexa-c-decisions.md",
                 "role": "ADR 17 decizii Anexa C v2 (confirmate admin 2026-05-01)",
                 "phase": "0"
+              }
+            ]
+          },
+          "sql": {
+            "path": "docs/sql/",
+            "type": "migrations",
+            "role": "Scripturi SQL pentru admin — rulat manual în Supabase SQL Editor",
+            "files": [
+              {
+                "name": "pgvector_migration.sql",
+                "role": "pgvector extension + doc_embeddings + user_profiles + get_db_size_bytes RPC + RLS policies",
+                "phase": "3"
               }
             ]
           }
