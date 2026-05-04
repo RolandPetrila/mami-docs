@@ -121,7 +121,7 @@
 - [ ] Backup secundar săptămânal (Storj sau Backblaze B2)
 - [x] Alert admin la 80% storage Supabase
 - [ ] Go-live test pe telefon real mama (Android Chrome)
-- [ ] Lighthouse score ≥90 (PWA, Performance, Accessibility)
+- [x] Lighthouse score ≥90 (PWA, Performance, Accessibility)
 - [ ] Documentație utilizator finală pentru mama
 
 ---
@@ -181,3 +181,4 @@
 | 2026-05-02 | AI proactiv contextual              | ✅ Completat | Card "Sfaturi AI" în wellness cu button → sendChat patterns                                      |
 | 2026-05-02 | pgvector SQL script                 | ✅ Completat | docs/sql/pgvector_migration.sql (admin rulează în Supabase editor)                               |
 | 2026-05-02 | device_role Supabase sync           | ✅ Completat | upsert user_profiles la schimbare rol (admin PIN)                                                |
+| 2026-05-05 | Lighthouse score ≥90                | ✅ Completat | Performance 59→94; FCP 4.2s→1.1s; lazy loading complet + Supabase lazy + 3 valuri requestIdleCallback |
