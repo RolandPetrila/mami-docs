@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-02 by Sonnet 4.6 (Faze 3+4 + API keys AI Gateway)
-**Status:** Faza 1-4 completă local ✅ — necomis; layout mobile în deploy (poate necesita clear cache browser)
+**Ultimul update:** 2026-05-05 by Sonnet 4.6 (Performance Lighthouse 94 + lazy loading)
+**Status:** Faza 1-4 completă ✅ — comis + deployat; Lighthouse Performance 94/Accessibility 96/Best Practices 100/SEO 91
 
 ---
 
@@ -157,6 +157,13 @@ Toate cerințele admin sunt în `info_chat.txt` (16 runde Q&A). Spec-ul `PROIECT
 6. **Lighthouse ≥90** — audit PWA, Performance, Accessibility
 7. **Documentație utilizator finală** pentru mama (simplu, cu poze, fără termeni tehnici)
 8. **Backup secundar** (Storj/Backblaze B2) — opțional
+
+### Faza 4 completă (2026-05-05):
+
+- ✅ **Lighthouse Performance 94** — FCP 1.1s, LCP 1.6s, TBT 270ms, CLS 0
+- ✅ **Lazy loading complet** — bundle inițial 29 kB (era 1.79 MB)
+- ✅ **Supabase lazy** — @supabase/supabase-js nu mai blochează startup-ul
+- ✅ **SW precache 656 kB** (era 2.16 MB) — vendor chunks excluse
 
 ### Faza 1 checklist complet (blocate pe admin gates):
 
