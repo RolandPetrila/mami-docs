@@ -1,4 +1,3 @@
-import Tesseract from "tesseract.js";
 import { speak, stopSpeaking } from "../ai/speech";
 
 const MIN_SCALE = 1;
@@ -169,14 +168,19 @@ export class MamiImageViewer extends HTMLElement {
     });
 
     const dialog = this._sr.querySelector("#ai-dialog") as HTMLDialogElement;
-    this._sr.querySelector("#ai-dialog-close")?.addEventListener("click", () => {
-      dialog.close();
-      stopSpeaking();
-    });
-    this._sr.querySelector("#ai-dialog-speak")?.addEventListener("click", () => {
-      const text = this._sr.querySelector("#ai-dialog-body")?.textContent || "";
-      if (text) speak(text);
-    });
+    this._sr
+      .querySelector("#ai-dialog-close")
+      ?.addEventListener("click", () => {
+        dialog.close();
+        stopSpeaking();
+      });
+    this._sr
+      .querySelector("#ai-dialog-speak")
+      ?.addEventListener("click", () => {
+        const text =
+          this._sr.querySelector("#ai-dialog-body")?.textContent || "";
+        if (text) speak(text);
+      });
 
     const area = this._sr.querySelector("#canvas-area") as HTMLElement | null;
     area?.addEventListener("pointerdown", (e) => {
@@ -208,6 +212,7 @@ export class MamiImageViewer extends HTMLElement {
     dialog.showModal();
 
     try {
+      const { default: Tesseract } = await import("tesseract.js");
       const result = await Tesseract.recognize(img.src, "ron", {
         logger: (m: any) => {
           if (m.status === "recognizing text") {

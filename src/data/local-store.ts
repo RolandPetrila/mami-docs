@@ -3,7 +3,7 @@
 // Dacă Supabase e configurat (chei prezente), automat se sincronizează în plus.
 // Migrarea ulterioară din local → cloud se face cu `mirrorAllToSupabase()`.
 
-import { supabase } from "./supabase";
+import { getSupabaseClient } from "./supabase";
 
 export interface HydrationEntry {
   id: string;
@@ -74,10 +74,11 @@ function writeArr<T>(key: string, arr: T[]): void {
 }
 
 async function pushSupabase(table: string, row: unknown): Promise<void> {
-  if (!supabase) return;
+  const client = await getSupabaseClient();
+  if (!client) return;
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await supabase.from(table).insert(row as any);
+    const { error } = await client.from(table).insert(row as any);
     if (error) console.warn(`[supabase] insert ${table}:`, error.message);
   } catch (err) {
     console.warn(`[supabase] unreachable ${table}:`, err);
@@ -477,6 +478,7 @@ export async function mirrorAllToSupabase(): Promise<{
   inserted: number;
   failed: number;
 }> {
+  const supabase = await getSupabaseClient();
   if (!supabase) return { inserted: 0, failed: 0 };
   let inserted = 0;
   let failed = 0;

@@ -6,7 +6,7 @@ import {
   isHydrationReminderEnabled,
   setHydrationReminderEnabled,
 } from "../services/notifications";
-import { supabase } from "../data/supabase";
+import { getSupabaseClient } from "../data/supabase";
 
 const STORAGE_VOLUME = "mami-volume";
 const STORAGE_MUTE = "mami-mute";
@@ -29,11 +29,11 @@ function getOrCreateDeviceId(): string {
 }
 
 async function syncDeviceRole(role: DeviceRole): Promise<void> {
-  if (!supabase) return;
+  const client = await getSupabaseClient();
+  if (!client) return;
   const deviceId = getOrCreateDeviceId();
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any)
+    await client
       .from("user_profiles")
       .upsert(
         { device_id: deviceId, device_role: role },

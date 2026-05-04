@@ -1,9 +1,5 @@
 import DOMPurify from "dompurify";
-import { convertToHtml } from "mammoth";
-import { parse as markdownParse } from "marked";
-import * as pdfjsLib from "pdfjs-dist";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import * as XLSX from "xlsx";
 import { sendChat } from "../ai/client";
 import { speak, stopSpeaking } from "../ai/speech";
 import {
@@ -12,8 +8,6 @@ import {
   listBookmarks,
   listHighlights,
 } from "../data/local-store";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 type DocType = "docx" | "pdf" | "md" | "xlsx";
 
@@ -389,7 +383,8 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
         [{ role: "user", content: prompt }],
         systemPrompt,
       );
-      bodyEl.innerHTML = DOMPurify.sanitize(markdownParse(response) as string);
+      const { parse: mdParse } = await import("marked");
+      bodyEl.innerHTML = DOMPurify.sanitize(mdParse(response) as string);
     } catch (err) {
       bodyEl.innerHTML = `<p class="error-msg">A apărut o eroare: ${err instanceof Error ? err.message : String(err)}</p>`;
     }
@@ -448,16 +443,19 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
 
   private async _convert(buf: ArrayBuffer): Promise<string> {
     if (this._type === "docx") {
+      const { convertToHtml } = await import("mammoth");
       const result = await convertToHtml({ arrayBuffer: buf });
       return DOMPurify.sanitize(result.value);
     }
     if (this._type === "md") {
       const text = new TextDecoder("utf-8").decode(new Uint8Array(buf));
+      const { parse: markdownParse } = await import("marked");
       const parsed = markdownParse(text);
       const html = typeof parsed === "string" ? parsed : await parsed;
       return DOMPurify.sanitize(html);
     }
     if (this._type === "xlsx") {
+      const XLSX = await import("xlsx");
       const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
       const sections: string[] = [];
       for (const sheetName of wb.SheetNames) {
@@ -484,6 +482,8 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
     ) as HTMLElement | null;
     if (!content) return;
 
+    const pdfjsLib = await import("pdfjs-dist");
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
     const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) })
       .promise;
     const numPages = pdf.numPages;

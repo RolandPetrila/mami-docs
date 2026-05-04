@@ -10,6 +10,18 @@ export default defineConfig({
       manifest: false,
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,json,woff2}"],
+        globIgnores: [
+          "**/vendor-*.js",
+          "**/pdf.worker.min*.mjs",
+          "**/pdf-*.js",
+          "**/jspdf*.js",
+          "**/xlsx-*.js",
+          "**/mammoth-*.js",
+          "**/html2canvas*.js",
+          "**/marked*.js",
+          "**/tesseract*.js",
+          "**/index.es-*.js",
+        ],
       },
       devOptions: {
         enabled: true,
@@ -17,4 +29,10 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    target: "esnext",
+    modulePreload: {
+      polyfill: false,
+    },
+  },
 });

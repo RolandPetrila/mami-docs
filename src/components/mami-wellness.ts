@@ -1,4 +1,4 @@
-import jsPDF from "jspdf";
+import type jsPDF from "jspdf";
 import { sendChat } from "../ai/client";
 import {
   addEmotion,
@@ -455,7 +455,8 @@ export class MamiWellness extends HTMLElement {
     }
   }
 
-  private _generatePdf(): void {
+  private async _generatePdf(): Promise<void> {
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     const today = new Date().toLocaleDateString("ro-RO");
 
