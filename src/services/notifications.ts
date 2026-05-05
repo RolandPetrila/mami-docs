@@ -29,7 +29,7 @@ export interface NotifyOptions {
   voice?: boolean;
 }
 
-const PRIORITY_MAP: Record<NotificationLevel, number> = {
+export const PRIORITY_MAP: Record<NotificationLevel, number> = {
   info: 3,
   warning: 4,
   critical: 5,
