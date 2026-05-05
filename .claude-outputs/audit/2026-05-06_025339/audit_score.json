@@ -1,0 +1,55 @@
+{
+  "date": "2026-05-06T02:53:39Z",
+  "model": "claude-opus-4-7-1m",
+  "mode": "standard",
+  "branch": "main",
+  "commit": "883a3b6",
+  "score": 80,
+  "score_max": 100,
+  "delta_vs_baseline": 22,
+  "baseline": {
+    "date": "2026-05-06T01:17:40Z",
+    "score": 58,
+    "report": ".claude-outputs/audit/2026-05-06_011740/audit_report.md"
+  },
+  "domains": {
+    "securitate": { "score": 18, "max": 25, "delta": 10 },
+    "calitate_cod": { "score": 17, "max": 20, "delta": 7 },
+    "arhitectura": { "score": 13, "max": 15, "delta": 1 },
+    "dependente": { "score": 6, "max": 10, "delta": 2 },
+    "testare": { "score": 7, "max": 10, "delta": 0 },
+    "deploy_readiness": { "score": 9, "max": 10, "delta": 1 },
+    "accesibilitate": { "score": 9, "max": 10, "delta": 6 },
+    "documentatie": { "score": 8, "max": 10, "delta": 2 }
+  },
+  "issues": {
+    "resolved_in_phase_5": 18,
+    "pending_phase_6": 8,
+    "pending_phase_8": 4,
+    "pending_phase_9": 1,
+    "new_discovered": 1
+  },
+  "metrics": {
+    "build": "verde",
+    "tests_pass": 114,
+    "tests_total": 115,
+    "ts_errors": 0,
+    "npm_audit_vulnerabilities": {
+      "critical": 4,
+      "high": 4,
+      "moderate": 3,
+      "total": 11
+    },
+    "lighthouse_performance": 94,
+    "deploy_status": "success",
+    "deploy_commit": "883a3b6"
+  },
+  "dod_gates_phase_5": {
+    "all_t5_completed": true,
+    "build_clean": true,
+    "tests_pass_above_114": true,
+    "audit_score_above_75": true,
+    "lighthouse_accessibility_95_pending_telephone_test": true,
+    "commit_pushed_actions_green": true
+  }
+}
