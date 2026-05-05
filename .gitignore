@@ -56,6 +56,9 @@ coverage/
 *.temp
 *.swp
 
+# Poze locale admin pentru documentare ad-hoc (nu commit)
+Poza_*.png
+
 # Lighthouse rapoarte locale (nu commitezi rezultate testare)
 lighthouse-report*.json
 lighthouse-report*.html
