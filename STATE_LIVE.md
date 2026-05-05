@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-05 by Opus 4.7 (Faza 3+4 completare autonomă: jurnal wellness, family sharing RLS, arhivă R2 60 zile, ghid utilizator)
-**Status:** Faza 1-4 implementare COMPLETĂ ✅ — testare pe telefon Roland în desfășurare; mama primește app DOAR după validare completă
+**Ultimul update:** 2026-05-05 19:30 UTC by Opus 4.7 (autonomie regulament + 3 fix-uri live + manual deploy)
+**Status:** Faza 1-4 implementare COMPLETĂ ✅; aplicația livrată cu env vars, iconițe SVG, keepalive HTTP fix; testare interactivă pe telefon Roland încă necesară; mama primește app DOAR după validare
 
 ## Workflow Testare (CRITIC)
 
@@ -86,6 +86,13 @@
 | Cloudflare Pages env vars             | ✅ Complete (Supabase + ntfy + AI Gateway)  |
 | Mod admin PIN                         | ✅ SHA-256 + Supabase sync device_role      |
 | Lighthouse Performance                | ✅ 94 (FCP 1.1s, LCP 1.6s)                  |
+| Iconițe PWA (192/512/512-maskable)    | ✅ SVG (image/svg+xml) — fix 2026-05-05     |
+| Keepalive worker HTTP fetch handler   | ✅ 200 OK — fix 1101 exception              |
+| Cron sync worker keepalive            | ✅ "0 3 * * sun" sync code+wrangler.toml    |
+| Env vars CF Pages (4 VITE_*)          | ✅ Setate via API REST + bundle baked       |
+| Auto-deploy GitHub→CF Pages           | ❌ DECONECTAT (NO SOURCE in project info)   |
+| Workflow deploy actual                | Manual: `scripts/build-and-deploy.ps1`      |
+| GitHub Actions deploy.yml (propunere) | ⏸ workflow_dispatch — needs 4 GH secrets   |
 | `public/audio/tenderness.mp3`         | ❌ Lipsește — descarcă CC0 de pe Pixabay    |
 | CallMeBot pe telefonul MAMEI          | ❌ De făcut când ești cu mama lângă tine    |
 | ntfy app Android pe telefonul MAMEI   | ❌ Instalează + subscrie la topic           |

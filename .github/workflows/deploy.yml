@@ -1,0 +1,49 @@
+name: Deploy Mami_Docs to Cloudflare Pages
+
+# Workflow MANUAL — rulare prin Actions UI sau `gh workflow run deploy.yml`
+# Necesita 4 GitHub secrets configurate in repo settings:
+#   - CLOUDFLARE_API_TOKEN
+#   - CLOUDFLARE_ACCOUNT_ID
+#   - VITE_SUPABASE_URL
+#   - VITE_SUPABASE_ANON_KEY
+# (VITE_NTFY_TOPIC + VITE_AI_GATEWAY_URL sunt hardcoded sub fiindca sunt URL-uri publice)
+#
+# Alternativa: build local + wrangler pages deploy via scripts/build-and-deploy.ps1
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Vite
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_NTFY_TOPIC: mami-docs-2026-roland
+          VITE_AI_GATEWAY_URL: https://mami-docs-ai.petrilarolly.workers.dev
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=mami-docs --branch=main --commit-dirty=true
