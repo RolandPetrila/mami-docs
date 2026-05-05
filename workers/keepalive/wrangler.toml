@@ -7,7 +7,7 @@ crons = [
   "0 2 */4 * *",   # keepalive Supabase (la 4 zile)
   "0 2 * * *",     # backup zilnic Supabase → R2
   "30 0 * * *",    # auto-sumar nocturn (00:30 UTC = ~03:30 EET)
-  "0 3 * * 0"      # mentenanță săptămânală duminică 03:00 UTC (archive 60d, cleanup invites)
+  "0 3 * * sun"    # mentenanță săptămânală duminică 03:00 UTC (archive 60d, cleanup invites)
 ]
 
 [[r2_buckets]]
