@@ -1,20 +1,22 @@
 // Mami_Docs AI Gateway — Cloudflare Worker proxy
 // CRITIC SECURITATE: cheile API trăiesc exclusiv în Cloudflare Secrets.
 //
-// Endpoint: POST /chat        { messages[], systemPrompt? }
-// Endpoint: POST /transcribe  multipart/form-data { file: Blob }
-// Endpoint: POST /embed       { text: string, provider?: "gemini"|"cohere"|"mistral" }
-// Endpoint: POST /translate   { text: string, to: string, from?: string }
-// Endpoint: POST /vision      { imageBase64: string, mimeType: string, prompt?: string }
-// Endpoint: POST /search      { query: string }
-// Endpoint: GET  /health      → { ok: true }
+// Endpoint: POST /chat          { messages[], systemPrompt? }
+// Endpoint: POST /transcribe    multipart/form-data { file: Blob }
+// Endpoint: POST /embed         { text: string, provider?: "gemini"|"cohere"|"mistral" }
+// Endpoint: POST /translate     { text: string, to: string, from?: string }
+// Endpoint: POST /vision        { imageBase64: string, mimeType: string, prompt?: string }
+// Endpoint: POST /ocr-document  { fileBase64: string, model?: "prebuilt-document"|"prebuilt-receipt"|"prebuilt-layout"|"prebuilt-invoice"|"prebuilt-idDocument" }
+// Endpoint: POST /search        { query: string }
+// Endpoint: GET  /health        → { ok: true }
 //
 // Fallback chains (ADR D4 + 2026-05-06 extension):
-//   Chat:      Groq 8B → SambaNova 70B → Cerebras 70B → xAI Grok-3-mini → Mistral Large → OpenRouter :free
+//   Chat:      Groq 8B → SambaNova 70B → Cerebras 70B → xAI Grok-3-mini → Mistral Large → GitHub Models → OpenRouter :free
 //   Embed:     Gemini gemini-embedding-001 → Cohere multilingual-v3 → Mistral embed
 //   STT:       Groq Whisper → CF Workers AI Whisper
 //   Translate: DeepL → Azure Translator → Gemini Flash
 //   Vision:    Gemini 2.5 Flash → Mistral OCR
+//   OCR-Doc:   Azure Document Intelligence (prebuilt-document/receipt/layout/invoice/idDocument)
 //   Search:    Brave → Tavily → Jina Reader
 
 export interface Env {
@@ -29,6 +31,9 @@ export interface Env {
   DEEPL_API_KEY?: string;
   AZURE_TRANSLATOR_KEY?: string;
   AZURE_TRANSLATOR_REGION?: string;
+  AZURE_DOC_INTEL_KEY?: string;
+  AZURE_DOC_INTEL_ENDPOINT?: string;
+  GITHUB_MODELS_TOKEN?: string;
   BRAVE_API_KEY?: string;
   TAVILY_API_KEY?: string;
   AI?: { run: (model: string, inputs: unknown) => Promise<unknown> }; // CF Workers AI binding
@@ -57,6 +62,7 @@ const GROQ_AUDIO_API = "https://api.groq.com/openai/v1/audio/transcriptions";
 const SAMBANOVA_API = "https://api.sambanova.ai/v1/chat/completions";
 const CEREBRAS_API = "https://api.cerebras.ai/v1/chat/completions";
 const XAI_API = "https://api.x.ai/v1/chat/completions";
+const GITHUB_MODELS_API = "https://models.github.ai/inference/chat/completions";
 const OPENROUTER_API = "https://openrouter.ai/api/v1/chat/completions";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const COHERE_EMBED_API = "https://api.cohere.com/v2/embed";
@@ -81,6 +87,7 @@ const CHAT_PROVIDERS = [
   { id: "cerebras-70b", model: "llama3.3-70b", provider: "cerebras" },
   { id: "xai-grok-mini", model: "grok-3-mini", provider: "xai" },
   { id: "mistral-large", model: "mistral-large-latest", provider: "mistral" },
+  { id: "github-gpt4o-mini", model: "openai/gpt-4o-mini", provider: "github" },
   {
     id: "openrouter-free",
     model: "meta-llama/llama-3.1-8b-instruct:free",
@@ -268,6 +275,32 @@ async function callMistralChat(
   return content;
 }
 
+async function callGitHubModelsChat(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<string> {
+  const resp = await withTimeout(
+    fetch(GITHUB_MODELS_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, messages, max_tokens: MAX_TOKENS }),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  if (!resp.ok) throw new Error(`GitHub Models HTTP ${resp.status}`);
+  const data = (await resp.json()) as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  const content = data.choices[0]?.message.content;
+  if (typeof content !== "string")
+    throw new Error("GitHub Models: invalid response");
+  return content;
+}
+
 async function callOpenRouterChat(
   model: string,
   messages: ChatMessage[],
@@ -343,6 +376,14 @@ async function handleChat(
         } else if (provider === "mistral") {
           if (!env.MISTRAL_API_KEY) throw new Error("MISTRAL_API_KEY missing");
           content = await callMistralChat(model, messages, env.MISTRAL_API_KEY);
+        } else if (provider === "github") {
+          if (!env.GITHUB_MODELS_TOKEN)
+            throw new Error("GITHUB_MODELS_TOKEN missing");
+          content = await callGitHubModelsChat(
+            model,
+            messages,
+            env.GITHUB_MODELS_TOKEN,
+          );
         } else {
           if (!env.OPENROUTER_API_KEY)
             throw new Error("OPENROUTER_API_KEY missing");
@@ -951,6 +992,150 @@ async function handleSearch(
   return jsonResp({ error: "Search service unavailable" }, 503, cors);
 }
 
+// ---- OCR Document (Azure Document Intelligence) ----
+
+const ALLOWED_DOC_INTEL_MODELS = new Set([
+  "prebuilt-document",
+  "prebuilt-receipt",
+  "prebuilt-layout",
+  "prebuilt-invoice",
+  "prebuilt-idDocument",
+  "prebuilt-healthInsuranceCard.us",
+  "prebuilt-read",
+]);
+
+const DOC_INTEL_POLL_INTERVAL_MS = 2_000;
+const DOC_INTEL_MAX_POLLS = 12; // ~24s total max
+const DOC_INTEL_API_VERSION = "2024-11-30";
+
+interface DocIntelResult {
+  status: string;
+  analyzeResult?: {
+    content?: string;
+    pages?: Array<{ pageNumber?: number; words?: unknown[] }>;
+    tables?: unknown[];
+    documents?: Array<{ docType?: string; fields?: Record<string, unknown> }>;
+  };
+}
+
+async function handleOcrDocument(
+  body: { fileBase64: string; model?: string },
+  env: Env,
+  cors: Record<string, string>,
+): Promise<Response> {
+  if (!env.AZURE_DOC_INTEL_KEY || !env.AZURE_DOC_INTEL_ENDPOINT) {
+    return jsonResp({ error: "Azure Doc Intel not configured" }, 503, cors);
+  }
+
+  const fileBase64 = body.fileBase64?.trim();
+  if (!fileBase64) {
+    return jsonResp({ error: "fileBase64 required" }, 400, cors);
+  }
+
+  const model =
+    body.model && ALLOWED_DOC_INTEL_MODELS.has(body.model)
+      ? body.model
+      : "prebuilt-document";
+
+  const endpoint = env.AZURE_DOC_INTEL_ENDPOINT.replace(/\/$/, "");
+  const submitUrl = `${endpoint}/documentintelligence/documentModels/${model}:analyze?api-version=${DOC_INTEL_API_VERSION}`;
+
+  // Submit document
+  let operationLocation: string | null;
+  try {
+    const submitResp = await withTimeout(
+      fetch(submitUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Ocp-Apim-Subscription-Key": env.AZURE_DOC_INTEL_KEY,
+        },
+        body: JSON.stringify({ base64Source: fileBase64 }),
+      }),
+      REQUEST_TIMEOUT_MS,
+    );
+
+    if (submitResp.status !== 202) {
+      const errText = (await submitResp.text()).slice(0, 300);
+      console.warn(`[ocr-submit-fail] HTTP ${submitResp.status}: ${errText}`);
+      return jsonResp(
+        { error: `Doc Intel submit failed: ${submitResp.status}` },
+        submitResp.status >= 400 && submitResp.status < 500 ? 400 : 502,
+        cors,
+      );
+    }
+
+    operationLocation = submitResp.headers.get("Operation-Location");
+    if (!operationLocation) {
+      return jsonResp(
+        { error: "Doc Intel: no Operation-Location header" },
+        502,
+        cors,
+      );
+    }
+  } catch (err) {
+    console.warn(
+      "[ocr-submit-error]",
+      err instanceof Error ? err.message : err,
+    );
+    return jsonResp({ error: "Doc Intel submit error" }, 502, cors);
+  }
+
+  // Poll for result
+  for (let i = 0; i < DOC_INTEL_MAX_POLLS; i++) {
+    await new Promise<void>((r) => setTimeout(r, DOC_INTEL_POLL_INTERVAL_MS));
+    try {
+      const pollResp = await withTimeout(
+        fetch(operationLocation, {
+          headers: { "Ocp-Apim-Subscription-Key": env.AZURE_DOC_INTEL_KEY },
+        }),
+        REQUEST_TIMEOUT_MS,
+      );
+
+      if (!pollResp.ok) {
+        console.warn(`[ocr-poll-fail] HTTP ${pollResp.status} attempt=${i}`);
+        continue;
+      }
+
+      const data = (await pollResp.json()) as DocIntelResult;
+      if (data.status === "succeeded") {
+        const content = data.analyzeResult?.content ?? "";
+        const tables = data.analyzeResult?.tables ?? [];
+        const documents = data.analyzeResult?.documents ?? [];
+        console.log(
+          `[ocr-ok] model=${model} chars=${content.length} tables=${tables.length} polls=${i + 1}`,
+        );
+        return jsonResp(
+          {
+            content,
+            tables,
+            documents,
+            model,
+            polls: i + 1,
+          },
+          200,
+          cors,
+        );
+      }
+      if (data.status === "failed") {
+        return jsonResp({ error: "Doc Intel analysis failed" }, 502, cors);
+      }
+      // status: "running" or "notStarted" → continue polling
+    } catch (err) {
+      console.warn(
+        "[ocr-poll-error]",
+        err instanceof Error ? err.message : err,
+      );
+    }
+  }
+
+  return jsonResp(
+    { error: "Doc Intel timeout (analysis still running)" },
+    504,
+    cors,
+  );
+}
+
 // ---- MAIN HANDLER ----
 
 export default {
@@ -981,12 +1166,14 @@ export default {
               "cerebras-70b",
               "xai-grok-mini",
               "mistral-large",
+              "github-gpt4o-mini",
               "openrouter-free",
             ],
             embed: ["gemini", "cohere", "mistral"],
             stt: ["groq-whisper", "cf-workers-ai"],
             translate: ["deepl", "azure", "gemini"],
             vision: ["gemini", "mistral"],
+            "ocr-document": env.AZURE_DOC_INTEL_KEY ? ["azure-doc-intel"] : [],
             search: ["brave", "tavily", "jina"],
           },
         },
@@ -1054,6 +1241,14 @@ export default {
 
     if (pathname === "/search") {
       return handleSearch(body as { query: string }, env, cors);
+    }
+
+    if (pathname === "/ocr-document") {
+      return handleOcrDocument(
+        body as { fileBase64: string; model?: string },
+        env,
+        cors,
+      );
     }
 
     return jsonResp({ error: "Not found" }, 404, cors);

@@ -1,0 +1,45 @@
+{
+  "date": "2026-05-06",
+  "model": "claude-sonnet-4-6",
+  "build_time_s": 80,
+  "modules_count": 925,
+  "entry_gzip_kb": 6.4,
+  "sw_precache_kb": 665,
+  "sw_precache_entries": 24,
+  "suggestions_total": 16,
+  "top_p0": ["S1_dompurify_3.4.2", "S2_mammoth_1.12.0"],
+  "top_p1": ["D1_transformers_v4", "A1_system_prompts", "D2_pdfjs_v5"],
+  "versions_current": {
+    "vite": "5.2.11",
+    "typescript": "5.4.5",
+    "vite_plugin_pwa": "0.20.5",
+    "supabase_js": "2.105.1",
+    "xenova_transformers": "2.17.2",
+    "marked": "12.0.0",
+    "mammoth": "1.8.0",
+    "pdfjs_dist": "4.4.168",
+    "tesseract_js": "7.0.0",
+    "dompurify": "3.1.5",
+    "jspdf": "4.2.1",
+    "xlsx": "0.18.5",
+    "vitest": "4.1.5"
+  },
+  "versions_latest_2026_05": {
+    "vite": "8.0.10",
+    "typescript": "6.0.3",
+    "vite_plugin_pwa": "1.3.0",
+    "supabase_js": "2.105.3",
+    "transformers_hf": "4.x",
+    "marked": "18.0.3",
+    "mammoth": "1.12.0",
+    "pdfjs_dist": "5.7.284",
+    "dompurify": "3.4.2"
+  },
+  "security_cves": [
+    "CVE-2025-15599 (DOMPurify XSS)",
+    "CVE-2026-0540 (DOMPurify XSS)",
+    "CVE-2026-41239 (DOMPurify XSS)",
+    "CVE-2026-41240 (DOMPurify XSS)",
+    "CVE-2025-11849 (mammoth directory traversal)"
+  ]
+}

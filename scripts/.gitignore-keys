@@ -1,0 +1,2 @@
+# Acest folder NU primeste fisiere cu chei hardcoded.
+# Toate scripturile citesc chei din Windows User env vars.

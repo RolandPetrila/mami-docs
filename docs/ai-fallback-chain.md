@@ -19,20 +19,23 @@
 
 **Use case:** Chat AI general, întrebări despre rețete, sfaturi livadă, explicații sănătate, asistent personal.
 
-| Prioritate  | Provider   | Model                         | Latency tipică | Condiție trigger fallback |
-| ----------- | ---------- | ----------------------------- | -------------- | ------------------------- |
-| 1 (primar)  | Groq       | `llama-3.1-8b-instant`        | ~400ms         | 5xx / 429 / timeout >15s  |
-| 2 (70B)     | SambaNova  | `Meta-Llama-3.3-70B-Instruct` | **~940ms**     | idem (înlocuit Groq 70B)  |
-| 3 (70B alt) | Cerebras   | `llama3.3-70b`                | ~700ms         | idem                      |
-| 4 (frontier)| xAI        | `grok-3-mini`                 | ~6s            | idem (cazuri complexe)    |
-| 5           | Mistral    | `mistral-large-latest`        | ~600ms         | idem (1B tokens/lună)     |
-| 6 (ultim)   | OpenRouter | `:free` rotație               | variabil       | idem — cached responses   |
+| Prioritate   | Provider   | Model                         | Latency tipică | Condiție trigger fallback |
+| ------------ | ---------- | ----------------------------- | -------------- | ------------------------- |
+| 1 (primar)   | Groq       | `llama-3.1-8b-instant`        | ~400ms         | 5xx / 429 / timeout >15s  |
+| 2 (70B)      | SambaNova  | `Meta-Llama-3.3-70B-Instruct` | **~940ms**     | idem (înlocuit Groq 70B)  |
+| 3 (70B alt)  | Cerebras   | `llama3.3-70b`                | ~700ms         | idem                      |
+| 4 (frontier) | xAI        | `grok-3-mini`                 | ~6s            | idem (cazuri complexe)    |
+| 5            | Mistral    | `mistral-large-latest`        | ~600ms         | idem (1B tokens/lună)     |
+| 6            | GitHub Models | `openai/gpt-4o-mini`          | ~1.8s          | idem (50-150 req/zi free) |
+| 7 (ultim)    | OpenRouter | `:free` rotație                  | variabil       | idem — cached responses   |
 
 **Schimbări 2026-05-06:**
 
 - **SambaNova înlocuiește Groq 70B** în poziția 2 — testat 939ms latency vs Groq 70B mai lent + risc cumulativ pe același vendor
 - **xAI Grok-3-mini adăugat** ca strat frontier-class între 70B și safety net (cazuri medicale complexe)
 - **Mistral Large adăugat** ca redundanță (1 MILIARD tokens/lună gratuit, deja avem keys)
+- **GitHub Models adăugat** ca penultim fallback — `gpt-4o-mini` validat 1.8s latency, 50-150 req/zi free
+- **Azure Document Intelligence adăugat** ca serviciu nou `/ocr-document` (vezi categoria 2.5 mai jos)
 
 **Condiții speciale:**
 
@@ -45,7 +48,7 @@
 
 ---
 
-## Categoria 2 — Vision / OCR
+## Categoria 2 — Vision / OCR (text simplu)
 
 **Use case:** OCR imagini documente, recunoaștere rețete scrise de mână, extragere text din poze acte.
 
@@ -55,6 +58,32 @@
 | 2           | Gemini       | `gemini-2.5-flash`        | 5xx / 429 / timeout >15s        |
 | 3           | Gemini       | `gemini-2.5-flash-lite`   | quota Flash epuizată            |
 | 4 (ultim)   | Mistral      | `mistral-ocr-latest`      | idem                            |
+
+---
+
+## Categoria 2.5 — OCR Documente Structurate (NOU 2026-05-06)
+
+**Use case:** Documente medicale cu structură (rețete scanate, formulare, analize laborator, facturi farmacie, carte identitate). Detecție tabele, paragrafe, casete bifabile, semnături.
+
+| Prioritate | Provider                    | Model preantrenat                                                                                                   | Condiție trigger fallback |
+| ---------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1 (unic)   | Azure Document Intelligence | `prebuilt-document` (default) / `prebuilt-receipt` / `prebuilt-layout` / `prebuilt-invoice` / `prebuilt-idDocument` | 5xx / 429 / timeout >24s  |
+
+**Endpoint:** `POST /ocr-document` body `{ fileBase64: string, model?: string }`
+
+**Limită free F0:** 500 pagini/lună gratuit, region `westeurope` (GDPR-compliant EU)
+
+**Modele recomandate per use case:**
+
+- `prebuilt-document` (DEFAULT) — orice document general, extrage text + tables + key-value pairs
+- `prebuilt-layout` — pentru rețete medicale (tabele cu medicamente)
+- `prebuilt-receipt` — chitanțe farmacie (extrage furnizor, total, articole, dată)
+- `prebuilt-invoice` — facturi medicale (CNAS, decontări)
+- `prebuilt-idDocument` — extragere CNP, nume, dată naștere de pe carte identitate
+
+**Resource Azure:** `mami-docs-docintel` la `https://mami-docs-docintel.cognitiveservices.azure.com/`
+
+**Logging level:** `INFO` succes + model + chars + polls, `WARN` la timeout polling
 
 **Condiții speciale:**
 

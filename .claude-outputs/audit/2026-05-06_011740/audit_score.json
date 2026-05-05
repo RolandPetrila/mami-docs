@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "project": "mami-docs",
+    "date": "2026-05-06",
+    "model": "claude-sonnet-4-6",
+    "mode": "complet",
+    "commit": "094797d",
+    "branch": "main",
+    "protocol": "AGENT_PROTOCOL v1.0"
+  },
+  "score": {
+    "total": 58,
+    "max": 100,
+    "breakdown": {
+      "securitate": { "score": 8, "max": 25 },
+      "calitate_cod": { "score": 10, "max": 20 },
+      "arhitectura": { "score": 12, "max": 15 },
+      "dependente": { "score": 4, "max": 10 },
+      "testare": { "score": 7, "max": 10 },
+      "deploy_readiness": { "score": 8, "max": 10 },
+      "accesibilitate": { "score": 3, "max": 10 }
+    }
+  },
+  "issues": {
+    "critica": 7,
+    "high": 9,
+    "medium": 12,
+    "low": 5,
+    "total": 33
+  },
+  "issues_detail": {
+    "critica": [
+      {
+        "id": "CRITICA-1",
+        "file": "src/components/mami-image-viewer.ts",
+        "lines": "211,219,227,230",
+        "title": "XSS innerHTML OCR fara DOMPurify",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-2",
+        "file": "src/components/mami-chat.ts",
+        "title": "Tap target 28px (sub 44px WCAG)",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-3",
+        "file": "src/components/mami-search.ts",
+        "lines": "103-104",
+        "title": "Tap target 32px (sub 44px WCAG)",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-4",
+        "file": "src/components/mami-settings.ts",
+        "lines": "521-523",
+        "title": "Race condition syncDeviceRole fire-and-forget",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-5",
+        "file": "src/components/mami-doc-viewer.ts",
+        "lines": "620-643",
+        "title": "Null pointer deref in _wrapText",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-6",
+        "file": "src/components/mami-chat.ts",
+        "lines": "361-370",
+        "title": "Chat message build incorect (sentinel logic)",
+        "effort": "MIC"
+      },
+      {
+        "id": "CRITICA-7",
+        "file": "docs/sql/pgvector_migration.sql",
+        "lines": "56-67",
+        "title": "RLS anon read/write pe date medicale",
+        "effort": "MARE",
+        "requires_admin_confirm": true
+      }
+    ],
+    "high": [
+      {
+        "id": "HIGH-1",
+        "file": "src/services/notifications.ts",
+        "lines": "12-14",
+        "title": "CALLMEBOT API key expus client-side"
+      },
+      {
+        "id": "HIGH-2",
+        "file": "src/components/mami-doc-viewer.ts",
+        "lines": "573-590",
+        "title": "PDF generate fara error handling"
+      },
+      {
+        "id": "HIGH-3",
+        "file": "src/components/mami-chat.ts",
+        "lines": "438-448",
+        "title": "Memory leak listen buttons"
+      },
+      {
+        "id": "HIGH-4",
+        "file": "src/ai/client.ts",
+        "lines": "36-194",
+        "title": "Duplicate error handling (5x)"
+      },
+      {
+        "id": "HIGH-5",
+        "file": "src/ai/system-prompts.ts",
+        "title": "System prompts incomplete fara disclaimers medicale"
+      },
+      {
+        "id": "HIGH-6",
+        "file": "package.json",
+        "lines": "24",
+        "title": "xlsx 0.18.5 CVE Prototype Pollution"
+      },
+      {
+        "id": "HIGH-7",
+        "file": "src/components/mami-search.ts",
+        "lines": "101,108",
+        "title": "Contrast #aaa/#bbb sub WCAG AA"
+      },
+      {
+        "id": "HIGH-8",
+        "file": "src/ai/rag.ts + src/components/mami-chat.ts",
+        "title": "RAG implementat dar neintegrat in chat"
+      },
+      {
+        "id": "HIGH-9",
+        "file": "package.json",
+        "title": "protobufjs CVE-2024-24999 via @xenova/transformers"
+      }
+    ]
+  },
+  "positives": [
+    "DOMPurify implementat corect in doc-viewer",
+    "TypeScript strict + noUncheckedIndexedAccess",
+    "Build 0 erori",
+    "Lighthouse 94 Performance",
+    "Service Worker precache 656kB optimizat",
+    "Chei AI in Secrets (nu client)",
+    "Fallback chain AI complet (8 categorii)",
+    "114/115 teste passing",
+    "GitHub Actions auto-deploy functional"
+  ],
+  "previous_audit": null,
+  "delta": null
+}

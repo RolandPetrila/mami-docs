@@ -115,21 +115,22 @@
 
 ## Stack consolidat
 
-| Layer          | Tehnologie                                                   |
-| -------------- | ------------------------------------------------------------ |
-| Frontend       | Vanilla JS + Web Components + Vite + TypeScript strict       |
-| PWA            | Workbox via `vite-plugin-pwa` mode `injectManifest`          |
-| Hosting        | Cloudflare Pages (`mami-docs.pages.dev`)                     |
-| Backend Worker | Cloudflare Workers (`mami-docs-ai.petrilarolly.workers.dev`) |
-| AI text        | Groq 8B→70B→Cerebras→OpenRouter (circuit breaker, retry)     |
-| AI embed       | Gemini embedding-001 → Cohere multilingual → Mistral         |
-| AI vision      | Tesseract.js → Gemini 2.5 Flash → Mistral pixtral            |
-| AI translate   | DeepL → Azure Translator → Gemini Flash                      |
-| AI search      | Brave → Tavily → Jina Reader                                 |
-| RAG            | transformers.js (Xenova/multilingual-e5-small) + cosine sim  |
-| STT/TTS        | Web Speech API ro-RO native + Groq Whisper fallback          |
-| Storage privat | Supabase (configurat de admin) + R2 backup zilnic            |
-| Notificări     | ntfy.sh + Telegram Bot + CallMeBot + FCM (4 straturi)        |
+| Layer          | Tehnologie                                                                        |
+| -------------- | --------------------------------------------------------------------------------- |
+| Frontend       | Vanilla JS + Web Components + Vite + TypeScript strict                            |
+| PWA            | Workbox via `vite-plugin-pwa` mode `injectManifest`                               |
+| Hosting        | Cloudflare Pages (`mami-docs.pages.dev`)                                          |
+| Backend Worker | Cloudflare Workers (`mami-docs-ai.petrilarolly.workers.dev`)                      |
+| AI text        | Groq 8B→SambaNova 70B→Cerebras→xAI Grok→Mistral Large→GitHub Models→OpenRouter    |
+| AI OCR docs    | Azure Document Intelligence (prebuilt-document/receipt/layout/invoice/idDocument) |
+| AI embed       | Gemini embedding-001 → Cohere multilingual → Mistral                              |
+| AI vision      | Tesseract.js → Gemini 2.5 Flash → Mistral pixtral                                 |
+| AI translate   | DeepL → Azure Translator → Gemini Flash                                           |
+| AI search      | Brave → Tavily → Jina Reader                                                      |
+| RAG            | transformers.js (Xenova/multilingual-e5-small) + cosine sim                       |
+| STT/TTS        | Web Speech API ro-RO native + Groq Whisper fallback                               |
+| Storage privat | Supabase (configurat de admin) + R2 backup zilnic                                 |
+| Notificări     | ntfy.sh + Telegram Bot + CallMeBot + FCM (4 straturi)                             |
 
 ---
 
