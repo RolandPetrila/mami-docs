@@ -56,6 +56,13 @@ coverage/
 *.temp
 *.swp
 
+# Lighthouse rapoarte locale (nu commitezi rezultate testare)
+lighthouse-report*.json
+lighthouse-report*.html
+
+# Wrangler dry-run output
+workers/**/.dryrun/
+
 # Chei și certificate
 *.pem
 *.key

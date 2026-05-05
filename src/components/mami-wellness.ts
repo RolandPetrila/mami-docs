@@ -169,6 +169,16 @@ tmpl.innerHTML = `
   </p>
 </div>
 
+<!-- Jurnal complet (cronologic 30 zile) -->
+<div class="card">
+  <h2>📔 Jurnal complet (30 zile)</h2>
+  <p style="margin-top: 0; font-size: 0.9rem; color: var(--color-text-muted, #555);">
+    Tot ce ai notat, organizat pe zile.
+  </p>
+  <button class="btn outline" id="btn-toggle-journal" type="button" style="width:100%">Arată jurnalul</button>
+  <div id="journal-content" style="display:none; margin-top: 1rem;"></div>
+</div>
+
 <!-- AI Proactiv Sugestii -->
 <div class="card" id="ai-suggestions-card" style="display:none">
   <h2>🤖 Sfaturi Personalizate AI</h2>
@@ -243,10 +253,115 @@ export class MamiWellness extends HTMLElement {
       .querySelector("#btn-ai-suggestions")
       ?.addEventListener("click", () => void this._getAiSuggestions());
 
+    // Jurnal complet
+    this._sr
+      .querySelector("#btn-toggle-journal")
+      ?.addEventListener("click", () => this._toggleJournal());
+
     this._refreshHydration();
     this._refreshVitalsHistory();
     this._refreshSleepStatus();
     this._refreshPatterns();
+  }
+
+  private _toggleJournal(): void {
+    const btn = this._sr.querySelector(
+      "#btn-toggle-journal",
+    ) as HTMLButtonElement | null;
+    const content = this._sr.querySelector(
+      "#journal-content",
+    ) as HTMLElement | null;
+    if (!btn || !content) return;
+    const visible = content.style.display !== "none";
+    if (visible) {
+      content.style.display = "none";
+      btn.textContent = "Arată jurnalul";
+      return;
+    }
+    content.innerHTML = this._buildJournalHtml();
+    content.style.display = "block";
+    btn.textContent = "Ascunde jurnalul";
+  }
+
+  private _buildJournalHtml(): string {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const since = cutoff.toISOString();
+
+    interface JournalItem {
+      ts: string;
+      icon: string;
+      text: string;
+    }
+    const items: JournalItem[] = [];
+
+    for (const h of listHydration().filter((e) => e.ts >= since)) {
+      items.push({ ts: h.ts, icon: "💧", text: `${h.amount_ml} ml apă` });
+    }
+    for (const v of listVitals(365).filter((e) => e.ts >= since)) {
+      const pulse = v.pulse ? `, puls ${v.pulse}` : "";
+      items.push({
+        ts: v.ts,
+        icon: "❤️",
+        text: `tensiune ${v.systolic}/${v.diastolic}${pulse}`,
+      });
+    }
+    for (const e of listEmotion(365).filter((em) => em.ts >= since)) {
+      const labels = ["", "foarte rău", "rău", "neutru", "bine", "foarte bine"];
+      const note = e.note ? ` — „${e.note}"` : "";
+      items.push({
+        ts: e.ts,
+        icon: "😊",
+        text: `stare: ${labels[e.level]}${note}`,
+      });
+    }
+    for (const s of listSleep(365).filter((sl) => sl.start_ts >= since)) {
+      items.push({
+        ts: s.start_ts,
+        icon: "🌙",
+        text: `somn ${s.hours}h`,
+      });
+    }
+
+    if (items.length === 0) {
+      return `<p style="text-align:center;color:var(--color-text-muted,#666);font-size:0.9rem;padding:1rem;">Nu sunt date încă. Adaugă măsurători mai sus.</p>`;
+    }
+
+    items.sort((a, b) => b.ts.localeCompare(a.ts));
+
+    const byDay = new Map<string, JournalItem[]>();
+    for (const it of items) {
+      const day = it.ts.slice(0, 10);
+      if (!byDay.has(day)) byDay.set(day, []);
+      byDay.get(day)?.push(it);
+    }
+
+    const sections: string[] = [];
+    for (const [day, dayItems] of byDay) {
+      const date = new Date(day);
+      const dayLabel = date.toLocaleDateString("ro-RO", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      });
+      const liItems = dayItems
+        .map((it) => {
+          const time = new Date(it.ts).toLocaleTimeString("ro-RO", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          return `<li style="padding:0.3rem 0;border-bottom:1px dashed #e0e7ef;font-size:0.9rem;"><span style="display:inline-block;width:1.6rem;">${it.icon}</span> <span style="color:var(--color-text-muted,#777);font-variant-numeric:tabular-nums;">${time}</span> — ${it.text}</li>`;
+        })
+        .join("");
+      sections.push(`
+        <div style="margin-bottom:1rem;">
+          <div style="font-weight:600;color:var(--color-primary,#2e5c8a);margin-bottom:0.3rem;text-transform:capitalize;">${dayLabel}</div>
+          <ul style="list-style:none;padding:0;margin:0;">${liItems}</ul>
+        </div>
+      `);
+    }
+
+    return sections.join("");
   }
 
   private _refreshPatterns(): void {

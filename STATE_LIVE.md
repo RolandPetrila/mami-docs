@@ -1,7 +1,13 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-05 by Sonnet 4.6 (Performance Lighthouse 94 + lazy loading)
-**Status:** Faza 1-4 completă ✅ — comis + deployat; Lighthouse Performance 94/Accessibility 96/Best Practices 100/SEO 91
+**Ultimul update:** 2026-05-05 by Opus 4.7 (Faza 3+4 completare autonomă: jurnal wellness, family sharing RLS, arhivă R2 60 zile, ghid utilizator)
+**Status:** Faza 1-4 implementare COMPLETĂ ✅ — testare pe telefon Roland în desfășurare; mama primește app DOAR după validare completă
+
+## Workflow Testare (CRITIC)
+
+1. **Roland (telefon + laptop):** testează FIECARE modul după deploy folosind `docs/TEST_CHECKLIST.md`
+2. **Validare admin:** doar după ce toate modulele trec checklist-ul
+3. **Go-live mama:** instalare PWA + setup ntfy/CallMeBot pe telefonul ei DOAR după validare
 
 ---
 
@@ -70,19 +76,19 @@
 
 ## Status Infrastructură (actualizat 2026-05-05)
 
-| Item                                 | Status                                          |
-| ------------------------------------ | ----------------------------------------------- |
-| Supabase Frankfurt                   | ✅ Configurat complet (sesiunea 2026-05-02)     |
-| ntfy.sh topic `mami-docs-2026-roland`| ✅ Configurat + testat HTTP 200                 |
-| CallMeBot WhatsApp                   | ✅ Configurat pe telefonul Roland               |
-| Firebase FCM                         | ✅ Sărit deliberat (ntfy suficient)             |
-| Cloudflare R2 `mami-docs-backup`     | ✅ Creat EU + Keepalive Worker deploat          |
-| Cloudflare Pages env vars            | ✅ Complete (Supabase + ntfy + AI Gateway)      |
-| Mod admin PIN                        | ✅ SHA-256 + Supabase sync device_role          |
-| Lighthouse Performance               | ✅ 94 (FCP 1.1s, LCP 1.6s)                     |
-| `public/audio/tenderness.mp3`        | ❌ Lipsește — descarcă CC0 de pe Pixabay       |
-| CallMeBot pe telefonul MAMEI         | ❌ De făcut când ești cu mama lângă tine       |
-| ntfy app Android pe telefonul MAMEI  | ❌ Instalează + subscrie la topic              |
+| Item                                  | Status                                      |
+| ------------------------------------- | ------------------------------------------- |
+| Supabase Frankfurt                    | ✅ Configurat complet (sesiunea 2026-05-02) |
+| ntfy.sh topic `mami-docs-2026-roland` | ✅ Configurat + testat HTTP 200             |
+| CallMeBot WhatsApp                    | ✅ Configurat pe telefonul Roland           |
+| Firebase FCM                          | ✅ Sărit deliberat (ntfy suficient)         |
+| Cloudflare R2 `mami-docs-backup`      | ✅ Creat EU + Keepalive Worker deploat      |
+| Cloudflare Pages env vars             | ✅ Complete (Supabase + ntfy + AI Gateway)  |
+| Mod admin PIN                         | ✅ SHA-256 + Supabase sync device_role      |
+| Lighthouse Performance                | ✅ 94 (FCP 1.1s, LCP 1.6s)                  |
+| `public/audio/tenderness.mp3`         | ❌ Lipsește — descarcă CC0 de pe Pixabay    |
+| CallMeBot pe telefonul MAMEI          | ❌ De făcut când ești cu mama lângă tine    |
+| ntfy app Android pe telefonul MAMEI   | ❌ Instalează + subscrie la topic           |
 
 ## Pași imediați (în ordine)
 

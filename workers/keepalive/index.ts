@@ -1,8 +1,9 @@
-// Cloudflare Worker: Supabase keepalive + backup R2 + auto-sumar nocturn
+// Cloudflare Worker: Supabase keepalive + backup R2 + auto-sumar nocturn + mentenanță săptămânală
 // Cron triggers (configurate în wrangler.toml):
 //   "0 2 */4 * *"  → keepalive Supabase (la 4 zile)
 //   "0 2 * * *"    → backup zilnic Supabase → R2
 //   "30 0 * * *"   → auto-sumar nocturn (00:30 UTC = ~03:30 EET)
+//   "0 3 * * 0"    → mentenanță săptămânală duminică (archive 60d, cleanup invites)
 
 export interface Env {
   SUPABASE_URL: string;
@@ -452,6 +453,112 @@ async function runStorageCheck(env: Env): Promise<void> {
   }
 }
 
+// ---- WEEKLY MAINTENANCE ----
+
+interface PhotoMetaRow {
+  id: string;
+  ts: string;
+  caption?: string;
+  blob_size?: number;
+  archived_at?: string | null;
+  deleted_at?: string | null;
+}
+
+async function runWeeklyMaintenance(env: Env): Promise<void> {
+  console.log("[maintenance] Starting weekly maintenance");
+
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn("[maintenance] SUPABASE_SERVICE_ROLE_KEY lipsă. Skip.");
+    return;
+  }
+
+  const headers = {
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    "Content-Type": "application/json",
+  };
+
+  const cutoff60 = new Date(
+    Date.now() - 60 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  let archivedCount = 0;
+  let invitesCleared = 0;
+  const errors: string[] = [];
+
+  // 1) Marchează photos_meta neaccesate >60 zile cu archived_at
+  try {
+    const listResp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/photos_meta?select=id,ts,archived_at,deleted_at&ts=lt.${cutoff60}&archived_at=is.null&deleted_at=is.null`,
+      { headers },
+    );
+    if (listResp.ok) {
+      const rows = (await listResp.json()) as PhotoMetaRow[];
+      if (rows.length > 0) {
+        const ids = rows.map((r) => r.id);
+        const updateResp = await fetch(
+          `${env.SUPABASE_URL}/rest/v1/photos_meta?id=in.(${ids.map((i) => `"${i}"`).join(",")})`,
+          {
+            method: "PATCH",
+            headers: { ...headers, Prefer: "return=minimal" },
+            body: JSON.stringify({ archived_at: new Date().toISOString() }),
+          },
+        );
+        if (updateResp.ok) {
+          archivedCount = rows.length;
+        } else {
+          errors.push(`photos archive PATCH: HTTP ${updateResp.status}`);
+        }
+      }
+    } else {
+      errors.push(`photos_meta list: HTTP ${listResp.status}`);
+    }
+  } catch (err) {
+    errors.push(`photos archive: ${err instanceof Error ? err.message : err}`);
+  }
+
+  // 2) Cleanup invitații expirate via RPC (cleanup_expired_invites)
+  try {
+    const resp = await fetch(
+      `${env.SUPABASE_URL}/rest/v1/rpc/cleanup_expired_invites`,
+      { method: "POST", headers, body: "{}" },
+    );
+    if (resp.ok) {
+      invitesCleared = (await resp.json()) as number;
+    } else if (resp.status === 404) {
+      console.warn(
+        "[maintenance] cleanup_expired_invites RPC lipsă — rulează docs/sql/family_sharing.sql",
+      );
+    } else {
+      errors.push(`cleanup_expired_invites: HTTP ${resp.status}`);
+    }
+  } catch (err) {
+    errors.push(`invites cleanup: ${err instanceof Error ? err.message : err}`);
+  }
+
+  // 3) Raport admin
+  const summary = [
+    `🔧 Mentenanță săptămânală Mami Docs:`,
+    `- 📷 Foto arhivate (>60 zile): ${archivedCount}`,
+    `- 👨‍👩‍👧 Invitații expirate șterse: ${invitesCleared}`,
+  ];
+  if (errors.length > 0) {
+    summary.push(`- ⚠️ Erori: ${errors.length}`);
+    summary.push(...errors.map((e) => `  • ${e}`));
+  }
+  console.info(summary.join("\n"));
+
+  // Notifică doar dacă sunt erori sau lucru de raportat
+  if (archivedCount > 0 || invitesCleared > 0 || errors.length > 0) {
+    await notifyAdmin(
+      env,
+      summary.join("\n"),
+      "Mentenanță săptămânală Mami Docs",
+    );
+  }
+
+  console.info("[maintenance] ✅ Weekly maintenance completed");
+}
+
 // ---- MAIN ----
 
 export default {
@@ -464,6 +571,8 @@ export default {
       ctx.waitUntil(runR2Backup(env).then(() => runStorageCheck(env)));
     } else if (event.cron === "30 0 * * *") {
       ctx.waitUntil(runAutoSummary(env));
+    } else if (event.cron === "0 3 * * 0") {
+      ctx.waitUntil(runWeeklyMaintenance(env));
     } else {
       ctx.waitUntil(runKeepalive(env));
     }

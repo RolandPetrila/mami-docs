@@ -14,6 +14,7 @@ const STORAGE_DARK = "mami-dark";
 const STORAGE_VOICE_RATE = "mami-voice-rate";
 const STORAGE_ADMIN_PIN_HASH = "mami-admin-pin-hash";
 const STORAGE_DEVICE_ROLE = "mami-device-role"; // "mom" | "admin"
+const STORAGE_FAMILY_GROUP = "mami-family-group"; // { groupId, inviteCode, role }
 
 export type DeviceRole = "mom" | "admin";
 
@@ -42,6 +43,120 @@ async function syncDeviceRole(role: DeviceRole): Promise<void> {
   } catch {
     /* silent — local-first, Supabase e opțional */
   }
+}
+
+// ---- Family Sharing ----
+
+interface FamilyGroupInfo {
+  groupId: string;
+  inviteCode: string;
+  role: "admin" | "member";
+}
+
+function getStoredFamilyGroup(): FamilyGroupInfo | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_FAMILY_GROUP);
+    return raw ? (JSON.parse(raw) as FamilyGroupInfo) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredFamilyGroup(info: FamilyGroupInfo | null): void {
+  if (info) localStorage.setItem(STORAGE_FAMILY_GROUP, JSON.stringify(info));
+  else localStorage.removeItem(STORAGE_FAMILY_GROUP);
+}
+
+async function createFamilyGroup(displayName: string): Promise<string | null> {
+  const client = await getSupabaseClient();
+  if (!client) return null;
+  const deviceId = getOrCreateDeviceId();
+  try {
+    const { data, error } = await client.rpc("create_family_group", {
+      p_device_id: deviceId,
+      p_display_name: displayName,
+    });
+    if (error) {
+      console.warn("[family] create_family_group:", error.message);
+      return null;
+    }
+    const code = data as string;
+    // Re-fetch group_id via get_my_groups
+    const { data: groups } = await client.rpc("get_my_groups", {
+      p_device_id: deviceId,
+    });
+    const myGroup = (
+      groups as Array<{
+        group_id: string;
+        invite_code: string;
+        role: string;
+      }> | null
+    )?.find((g) => g.invite_code === code);
+    if (myGroup) {
+      setStoredFamilyGroup({
+        groupId: myGroup.group_id,
+        inviteCode: code,
+        role: "admin",
+      });
+    }
+    return code;
+  } catch (err) {
+    console.warn("[family] create unreachable:", err);
+    return null;
+  }
+}
+
+async function joinFamilyGroup(
+  code: string,
+  displayName: string,
+): Promise<boolean> {
+  const client = await getSupabaseClient();
+  if (!client) return false;
+  const deviceId = getOrCreateDeviceId();
+  try {
+    const { data, error } = await client.rpc("join_family_group", {
+      p_invite_code: code.toUpperCase().trim(),
+      p_device_id: deviceId,
+      p_display_name: displayName,
+    });
+    if (error || !data) {
+      console.warn(
+        "[family] join_family_group:",
+        error?.message ?? "invalid code",
+      );
+      return false;
+    }
+    setStoredFamilyGroup({
+      groupId: data as string,
+      inviteCode: code.toUpperCase().trim(),
+      role: "member",
+    });
+    return true;
+  } catch (err) {
+    console.warn("[family] join unreachable:", err);
+    return false;
+  }
+}
+
+async function leaveFamilyGroup(): Promise<boolean> {
+  const stored = getStoredFamilyGroup();
+  if (!stored) return false;
+  const client = await getSupabaseClient();
+  if (!client) {
+    setStoredFamilyGroup(null);
+    return true;
+  }
+  const deviceId = getOrCreateDeviceId();
+  try {
+    await client.rpc("leave_family_group", {
+      p_group_id: stored.groupId,
+      p_device_id: deviceId,
+    });
+  } catch (err) {
+    console.warn("[family] leave unreachable:", err);
+  }
+  setStoredFamilyGroup(null);
+  return true;
 }
 
 // Simple hash: not cryptographic — just PIN obfuscation in localStorage
@@ -280,6 +395,29 @@ tmpl.innerHTML = `
         <div class="help" id="pin-error" style="color:#c0392b;display:none">PIN incorect</div>
       </div>
     </div>
+
+    <hr style="border:none;border-top:1px solid #e0e7ef;margin:0.25rem 0" />
+
+    <div class="row">
+      <label class="field-label">👨‍👩‍👧 Familie (sharing)</label>
+      <div class="help" id="family-status-text">Nu ești într-un grup de familie.</div>
+      <div id="family-area" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem">
+        <input type="text" id="family-display-name" placeholder="Numele tău (ex. Roland)"
+          style="padding:0.5rem;font-size:1rem;border:1.5px solid #2e5c8a;border-radius:6px;min-height:44px" />
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn-primary" type="button" id="family-create-btn" style="flex:1;font-size:0.9rem">Generează cod</button>
+          <button class="btn-primary" type="button" id="family-join-toggle-btn" style="flex:1;font-size:0.9rem;background:#5b6c7e">Conectează cu cod</button>
+        </div>
+        <div id="family-join-area" style="display:none;flex-direction:column;gap:0.4rem">
+          <input type="text" id="family-code-input" placeholder="Cod 8 caractere (ex. AB12CD34)" maxlength="8"
+            style="padding:0.5rem;font-size:1rem;border:1.5px solid #2e5c8a;border-radius:6px;min-height:44px;text-transform:uppercase;letter-spacing:0.1em" />
+          <button class="btn-primary" type="button" id="family-join-confirm-btn" style="font-size:0.9rem">Conectează</button>
+        </div>
+        <div id="family-code-display" style="display:none;background:#e8f4ff;padding:0.6rem;border-radius:6px;font-family:monospace;font-size:1.2rem;text-align:center;letter-spacing:0.15em;font-weight:600;color:#2e5c8a"></div>
+        <button class="btn-primary" type="button" id="family-leave-btn" style="display:none;background:#c0392b;font-size:0.9rem">Părăsește grupul</button>
+        <div class="help" id="family-error" style="color:#c0392b;display:none"></div>
+      </div>
+    </div>
   </div>
   <div class="footer">
     <button class="btn-primary" type="button" id="done-btn">Gata</button>
@@ -385,6 +523,21 @@ export class MamiSettings extends HTMLElement {
         void syncDeviceRole("mom");
       });
 
+    // Family sharing
+    this._updateFamilyStatus();
+    this._sr
+      .querySelector("#family-create-btn")
+      ?.addEventListener("click", () => void this._handleFamilyCreate());
+    this._sr
+      .querySelector("#family-join-toggle-btn")
+      ?.addEventListener("click", () => this._toggleFamilyJoinArea());
+    this._sr
+      .querySelector("#family-join-confirm-btn")
+      ?.addEventListener("click", () => void this._handleFamilyJoin());
+    this._sr
+      .querySelector("#family-leave-btn")
+      ?.addEventListener("click", () => void this._handleFamilyLeave());
+
     this._sr.querySelector("#close-btn")?.addEventListener("click", () => {
       this.removeAttribute("open");
     });
@@ -471,6 +624,121 @@ export class MamiSettings extends HTMLElement {
     this.dispatchEvent(
       new CustomEvent(name, { detail, bubbles: true, composed: true }),
     );
+  }
+
+  private _updateFamilyStatus(): void {
+    const stored = getStoredFamilyGroup();
+    const statusText = this._sr.querySelector("#family-status-text");
+    const codeDisplay = this._sr.querySelector(
+      "#family-code-display",
+    ) as HTMLElement | null;
+    const leaveBtn = this._sr.querySelector(
+      "#family-leave-btn",
+    ) as HTMLElement | null;
+    const createBtn = this._sr.querySelector(
+      "#family-create-btn",
+    ) as HTMLElement | null;
+    const joinToggleBtn = this._sr.querySelector(
+      "#family-join-toggle-btn",
+    ) as HTMLElement | null;
+    const joinArea = this._sr.querySelector(
+      "#family-join-area",
+    ) as HTMLElement | null;
+    const errorEl = this._sr.querySelector(
+      "#family-error",
+    ) as HTMLElement | null;
+
+    if (stored) {
+      if (statusText)
+        statusText.textContent =
+          stored.role === "admin"
+            ? "✓ Ești admin într-un grup. Cod activ:"
+            : "✓ Ești conectat la un grup. Cod:";
+      if (codeDisplay) {
+        codeDisplay.textContent = stored.inviteCode;
+        codeDisplay.style.display = "block";
+      }
+      if (leaveBtn) leaveBtn.style.display = "block";
+      if (createBtn) createBtn.style.display = "none";
+      if (joinToggleBtn) joinToggleBtn.style.display = "none";
+      if (joinArea) joinArea.style.display = "none";
+    } else {
+      if (statusText)
+        statusText.textContent = "Nu ești într-un grup de familie.";
+      if (codeDisplay) codeDisplay.style.display = "none";
+      if (leaveBtn) leaveBtn.style.display = "none";
+      if (createBtn) createBtn.style.display = "";
+      if (joinToggleBtn) joinToggleBtn.style.display = "";
+    }
+    if (errorEl) errorEl.style.display = "none";
+  }
+
+  private _toggleFamilyJoinArea(): void {
+    const joinArea = this._sr.querySelector(
+      "#family-join-area",
+    ) as HTMLElement | null;
+    if (!joinArea) return;
+    const visible = joinArea.style.display !== "none";
+    joinArea.style.display = visible ? "none" : "flex";
+  }
+
+  private _showFamilyError(msg: string): void {
+    const errorEl = this._sr.querySelector(
+      "#family-error",
+    ) as HTMLElement | null;
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.style.display = "block";
+  }
+
+  private async _handleFamilyCreate(): Promise<void> {
+    const nameInput = this._sr.querySelector(
+      "#family-display-name",
+    ) as HTMLInputElement | null;
+    const name = nameInput?.value.trim() || "Admin";
+    const code = await createFamilyGroup(name);
+    if (!code) {
+      this._showFamilyError(
+        "Nu am putut crea grupul. Verifică conexiunea + Supabase.",
+      );
+      return;
+    }
+    this._updateFamilyStatus();
+    this._dispatch("mami-family-change", { role: "admin", code });
+  }
+
+  private async _handleFamilyJoin(): Promise<void> {
+    const codeInput = this._sr.querySelector(
+      "#family-code-input",
+    ) as HTMLInputElement | null;
+    const nameInput = this._sr.querySelector(
+      "#family-display-name",
+    ) as HTMLInputElement | null;
+    const code = codeInput?.value.trim() ?? "";
+    if (code.length !== 8) {
+      this._showFamilyError("Codul trebuie să aibă exact 8 caractere.");
+      return;
+    }
+    const name = nameInput?.value.trim() || "Membru";
+    const ok = await joinFamilyGroup(code, name);
+    if (!ok) {
+      this._showFamilyError("Cod invalid sau expirat.");
+      return;
+    }
+    this._updateFamilyStatus();
+    this._dispatch("mami-family-change", { role: "member", code });
+  }
+
+  private async _handleFamilyLeave(): Promise<void> {
+    if (
+      !confirm(
+        "Sigur vrei să părăsești grupul? Datele rămân pe acest dispozitiv.",
+      )
+    )
+      return;
+    await leaveFamilyGroup();
+    this._updateFamilyStatus();
+    this._dispatch("mami-family-change", { role: null, code: null });
   }
 }
 
