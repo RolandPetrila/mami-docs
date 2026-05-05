@@ -68,22 +68,27 @@
 
 ---
 
-## Ce LIPSEȘTE (admin manual)
+## Status Infrastructură (actualizat 2026-05-05)
 
-> 📋 **Pași complete cu linkuri sursă:** `docs/CREDENTIALS_NEEDED.md`
+| Item                                 | Status                                          |
+| ------------------------------------ | ----------------------------------------------- |
+| Supabase Frankfurt                   | ✅ Configurat complet (sesiunea 2026-05-02)     |
+| ntfy.sh topic `mami-docs-2026-roland`| ✅ Configurat + testat HTTP 200                 |
+| CallMeBot WhatsApp                   | ✅ Configurat pe telefonul Roland               |
+| Firebase FCM                         | ✅ Sărit deliberat (ntfy suficient)             |
+| Cloudflare R2 `mami-docs-backup`     | ✅ Creat EU + Keepalive Worker deploat          |
+| Cloudflare Pages env vars            | ✅ Complete (Supabase + ntfy + AI Gateway)      |
+| Mod admin PIN                        | ✅ SHA-256 + Supabase sync device_role          |
+| Lighthouse Performance               | ✅ 94 (FCP 1.1s, LCP 1.6s)                     |
+| `public/audio/tenderness.mp3`        | ❌ Lipsește — descarcă CC0 de pe Pixabay       |
+| CallMeBot pe telefonul MAMEI         | ❌ De făcut când ești cu mama lângă tine       |
+| ntfy app Android pe telefonul MAMEI  | ❌ Instalează + subscrie la topic              |
 
-| Item                                 | Status                        | Cum se obține                                                 |
-| ------------------------------------ | ----------------------------- | ------------------------------------------------------------- |
-| `public/audio/tenderness.mp3`        | LIPSEȘTE                      | Admin descarcă manual de pe Pixabay (FASSounds CC0)           |
-| Supabase (URL + anon + service_role) | LIPSEȘTE → vezi §1            | supabase.com cont nou + proiect Frankfurt + SQL schema        |
-| ntfy.sh topic                        | LIPSEȘTE → vezi §2            | Topic random + app Android pe telefonul mamei                 |
-| CallMeBot WhatsApp                   | LIPSEȘTE → vezi §3            | Setup cu mama lângă tine (WhatsApp +34 644 51 95 23)          |
-| Firebase FCM                         | LIPSEȘTE → vezi §4 (opțional) | console.firebase.google.com (alternativ ntfy)                 |
-| Cloudflare R2 bucket                 | LIPSEȘTE → vezi §5 (opțional) | dash.cloudflare.com R2 → bucket `mami-docs-backup`            |
-| Keepalive Worker deploy              | BLOCAT pe Supabase            | După chei §1: `cd workers/keepalive && npx wrangler deploy`   |
-| Cloudflare Pages env vars            | Doar `VITE_AI_GATEWAY_URL` ✅ | După chei: dashboard Pages → Settings → Environment Variables |
-| Buton `?` contextual per pagină      | NU implementat                | Faza 1.5                                                      |
-| Mod admin PIN                        | ✅ IMPLEMENTAT (local-first)  | SHA-256 localStorage — backend Supabase rămâne de setat       |
+## Pași imediați (în ordine)
+
+1. **Confirmare layout pe telefon Roland** — deschide https://mami-docs.pages.dev și verifică că tab-urile se comută corect
+2. **Implementabil automat de Claude**: documentație utilizator pentru mama, PDF medical, jurnal wellness
+3. **Go-live pe telefonul mamei** — când ești pregătit
 
 ---
 
