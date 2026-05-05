@@ -81,14 +81,26 @@ Citat (1-3 linii din fișier):
 
 ## 3. SCOPE DISCIPLINE — ce NU faci niciodată fără confirmare
 
-### Interzise absolut (R-RISK MEDIUM/HIGH):
+### Permise FĂRĂ confirmare per acțiune (autonomie 2026-05-05):
 
-- `git push`, `git remote add`, `git commit --amend` pe commit deja împins
-- Deploy Cloudflare Pages, Workers, Supabase migrations applied
+- `git add` / `git commit` / `git push` pentru modificări legitime
+- `npx wrangler deploy` pentru workers (`ai-gateway`, `keepalive`)
+- `npm install` local (devDependencies / dependencies legitime)
+- Modificare state remote Supabase/Cloudflare via API/SDK pentru fix bug-uri (valori din env vars, fără afișare în chat)
+- Setare env vars Cloudflare Pages via API REST (`PATCH /pages/projects/{name}`)
+- Auto-fix bug-uri identificate, urmate de commit + push + redeploy
+- Rulare audit autonom (Lighthouse, tsc, build, endpoint health)
+
+### Interzise absolut (R-RISK HIGH — ireversibil, necesită confirmare explicită admin):
+
+- `git push --force` pe main / orice branch protected
+- `git reset --hard` / `git commit --amend` pe commit deja împins
+- `git remote add` / `remove` / `set-url` (modificare topology Git)
 - `npm install -g`, instalare globală orice
 - Modificare orice fișier din `~/.claude/` (regulament global, hooks, settings)
-- Ștergere fișiere/foldere fără listare prealabilă + confirmare
-- Modificări la fișierele `.api-keys/` (catalog, scripts)
+- Modificări la `~/.api-keys/` (catalog, scripts, master-location.txt)
+- `DROP TABLE` / `DROP DATABASE` Supabase, `delete bucket` R2
+- Ștergere fișiere/foldere multiple fără listare prealabilă + confirmare
 
 ### Interzise implicit (focus discipline):
 

@@ -3,7 +3,7 @@
 //   "0 2 */4 * *"  → keepalive Supabase (la 4 zile)
 //   "0 2 * * *"    → backup zilnic Supabase → R2
 //   "30 0 * * *"   → auto-sumar nocturn (00:30 UTC = ~03:30 EET)
-//   "0 3 * * 0"    → mentenanță săptămânală duminică (archive 60d, cleanup invites)
+//   "0 3 * * sun"  → mentenanță săptămânală duminică (archive 60d, cleanup invites)
 
 export interface Env {
   SUPABASE_URL: string;
@@ -562,6 +562,16 @@ async function runWeeklyMaintenance(env: Env): Promise<void> {
 // ---- MAIN ----
 
 export default {
+  async fetch(_request: Request, _env: Env): Promise<Response> {
+    return new Response(
+      "mami-docs-keepalive — Worker is alive (scheduled only). 4 cron triggers active.",
+      {
+        status: 200,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      },
+    );
+  },
+
   async scheduled(
     event: ScheduledEvent,
     env: Env,
@@ -571,7 +581,7 @@ export default {
       ctx.waitUntil(runR2Backup(env).then(() => runStorageCheck(env)));
     } else if (event.cron === "30 0 * * *") {
       ctx.waitUntil(runAutoSummary(env));
-    } else if (event.cron === "0 3 * * 0") {
+    } else if (event.cron === "0 3 * * sun") {
       ctx.waitUntil(runWeeklyMaintenance(env));
     } else {
       ctx.waitUntil(runKeepalive(env));

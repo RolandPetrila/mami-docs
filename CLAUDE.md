@@ -34,13 +34,35 @@ Bibliotecă documente + agent AI conversațional voce/text + funcții native PWA
 - La orice decizie: recomandă varianta ideală (1 singură), nu liste.
 - Limba română în tot ce nu e cod/comenzi.
 
-### Git & Remote — INTERDICȚII ABSOLUTE
+### Git & Remote — Autonomie Extinsă (2026-05-05, autorizat admin)
 
-- `NO git push` fără confirmare admin
-- `NO git remote add` fără confirmare admin
-- `NO deploy` Cloudflare/Supabase/GitHub fără confirmare admin
-- `NO npm install -g` fără confirmare admin
-- `NO modificare state remote` (API Supabase/Cloudflare/GitHub) fără confirmare
+**Permis FĂRĂ confirmare per acțiune:**
+
+- `git add` / `git commit` / `git push` pentru modificări legitime (cu raportare scurtă)
+- `npx wrangler deploy` pentru workers (`ai-gateway`, `keepalive`)
+- `npm install` local (`devDependencies` / `dependencies` legitime)
+- Modificare state remote Supabase/Cloudflare via API/SDK pentru fix bug-uri (cu valori din `~/.api-keys` sau Windows env vars, **fără afișare valori** în chat)
+- Setare env vars Cloudflare Pages via API REST
+- Auto-fix bug-uri identificate de teste/audit, urmate de commit + push + redeploy
+- Trigger rebuilds Cloudflare Pages (push commit gol)
+- Rulare Lighthouse, tsc, build, endpoint health checks autonom
+
+**Rămâne cu confirmare admin (R-RISK HIGH ireversibil):**
+
+- `git push --force` (NICIODATĂ pe main/master, chiar și cu autonomie)
+- `git reset --hard` / `git commit --amend` pe commit deja împins
+- `git remote add` / `remove` / `set-url` (modificare topology Git)
+- `npm install -g` (instalare globală)
+- Modificări la `~/.claude/` (regulament global, hooks, settings)
+- Modificări la `~/.api-keys/` (catalog, scripts, master-location.txt)
+- `DROP TABLE` / `DROP DATABASE` Supabase, `delete bucket` R2
+- Ștergere fișiere/foldere multiple fără listare prealabilă
+
+**Format raportare obligatoriu (per acțiune autonomă):**
+
+- 1-2 fraze cu ce s-a făcut (commit message, deploy URL/version ID, fix code citate)
+- La detectare bug înainte de fix: raport scurt cu cauza + soluția propusă
+- La fix: file:line + citat exact din diff (per `AGENT_PROTOCOL.md` §1)
 
 ### Securitate
 
