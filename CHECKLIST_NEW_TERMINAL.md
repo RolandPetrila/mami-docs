@@ -87,12 +87,12 @@ CREATE POLICY "anon_all_photos_meta" ON photos_meta FOR ALL TO anon USING (true)
 
 În ordine de prioritate (din `docs/CREDENTIALS_NEEDED.md`):
 
-| Pas | Serviciu                | Timp             | Link tap-direct                                                                                            |
-| --- | ----------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
-| §2  | ntfy.sh                 | 3 min            | [Play Store ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy)                            |
-| §3  | CallMeBot WhatsApp      | 10 min (cu mama) | [Trimite mesaj activare](https://wa.me/34644519523?text=I%20allow%20callmebot%20to%20send%20me%20messages) |
-| §4  | Firebase FCM (opțional) | 15 min           | [Firebase Console](https://console.firebase.google.com/)                                                   |
-| §5  | Cloudflare R2 backup    | 5 min            | [R2 Buckets](https://dash.cloudflare.com/?to=/:account/r2/overview/buckets)                                |
+| Pas | Serviciu             | Timp     | Link tap-direct                                                                                                 |
+| --- | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| §2  | ntfy.sh (Roland)     | 3 min    | [Play Store ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy) — **DOAR Roland; mama AMÂNATĂ** |
+| §3  | CallMeBot WhatsApp   | DEFERRED | **AMÂNAT pe termen nedefinit** — admin va activa când dorește                                                   |
+| §4  | Firebase FCM         | SKIP     | **Sărit deliberat** — ntfy + Telegram suficient când va fi nevoie                                               |
+| §5  | Cloudflare R2 backup | 5 min    | [R2 Buckets](https://dash.cloudflare.com/?to=/:account/r2/overview/buckets)                                     |
 
 Workflow procesare: lipește valori în `C:\Users\ALIENWARE\.api-keys\INBOX.md` → în acel folder, sesiune Claude → `proceseaza inbox`.
 

@@ -34,6 +34,28 @@ Bibliotecă documente + agent AI conversațional voce/text + funcții native PWA
 - La orice decizie: recomandă varianta ideală (1 singură), nu liste.
 - Limba română în tot ce nu e cod/comenzi.
 
+### Autonomie Totală — Principiu Suprem (2026-05-06, autorizat admin)
+
+**REGULA CHEIE:** rulezi TOTUL automat. Admin face manual DOAR ceea ce e fizic imposibil pentru un agent AI să facă (ex: lipit cu mâna pe telefonul mamei, plătit cu cardul, sunat la un serviciu de suport telefonic, semnat un act fizic).
+
+**În practică, asta înseamnă:**
+
+- Detectezi ceea ce trebuie făcut → DECIZI singur abordarea ideală → EXECUȚI fără să întrebi
+- Dacă tool-urile tale pot rezolva problema (cod, API, deploy, descărcare resurse, configurare), o faci
+- NU întrebi confirmare pentru pași intermediari când scopul final e clar
+- NU explici de ce ai ales o abordare ÎNAINTE de execuție — execuți + raportezi pe scurt rezultatul
+- La eșec, încerci alternativă fără să întrebi (max 2 alternative, apoi raportezi blocaj real)
+- Doar la blocaj fizic real (e.g. "trebuie să fii lângă telefonul fizic al mamei pentru a apăsa Allow") raportezi că rămâne pe admin
+
+**Exemple de "imposibil" pentru tine (lasă admin):**
+
+- Setup pe telefonul fizic al mamei (instalare app, click pe ecran)
+- Plată / introducere card de credit pe servicii noi
+- Verificare 2FA care necesită SMS pe telefonul admin
+- Acțiuni care necesită prezență fizică (semnătură, fotografiere ID, etc.)
+
+**Tot restul = autonomie totală fără întrebări.**
+
 ### Git & Remote — Autonomie Extinsă (2026-05-05, autorizat admin)
 
 **Permis FĂRĂ confirmare per acțiune:**

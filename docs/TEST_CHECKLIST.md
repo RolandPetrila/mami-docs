@@ -262,11 +262,11 @@
 - [ ] Mama are telefon Android cu ≥4GB RAM, Chrome ultima versiune
 - [ ] Wi-fi acasă funcțional + date mobile activate
 - [ ] PWA instalat pe telefonul mamei + iconită vizibilă pe ecran
-- [ ] App **ntfy** instalat pe telefonul mamei + subscris la topic propriu (alt topic decât Roland)
-- [ ] CallMeBot configurat pe numărul mamei
 - [ ] Roland a făcut test live 1 oră în prezența mamei (a folosit ea cu el lângă)
 - [ ] Hand-over: ghid `USER_GUIDE_MAMA.md` printat sau pe ecran
 - [ ] Setat un nr. de telefon de urgență (Roland) pentru SOS
+
+**Notă:** App **ntfy** și **CallMeBot** pe telefonul mamei = AMÂNATE pe termen nedefinit. Admin decide unilateral când să le activeze; sistemul ntfy/Telegram pe telefonul Roland rămâne funcțional pentru notificări.
 
 **DOAR DUPĂ:** sterge testflight de pe device-uri secundare, lasă mama cu app-ul.
 

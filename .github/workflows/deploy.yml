@@ -11,6 +11,8 @@ name: Deploy Mami_Docs to Cloudflare Pages
 # Alternativa: build local + wrangler pages deploy via scripts/build-and-deploy.ps1
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:

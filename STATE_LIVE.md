@@ -1,13 +1,13 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-05 19:30 UTC by Opus 4.7 (autonomie regulament + 3 fix-uri live + manual deploy)
-**Status:** Faza 1-4 implementare COMPLETĂ ✅; aplicația livrată cu env vars, iconițe SVG, keepalive HTTP fix; testare interactivă pe telefon Roland încă necesară; mama primește app DOAR după validare
+**Ultimul update:** 2026-05-06 by Opus 4.7 (autonomie totală + auto-deploy GitHub Actions + tenderness.mp3 CC0)
+**Status:** Faza 1-4 implementare COMPLETĂ ✅; auto-deploy GitHub Actions ACTIV; audio CC0 prezent; testare interactivă pe telefon Roland încă necesară
 
 ## Workflow Testare (CRITIC)
 
 1. **Roland (telefon + laptop):** testează FIECARE modul după deploy folosind `docs/TEST_CHECKLIST.md`
 2. **Validare admin:** doar după ce toate modulele trec checklist-ul
-3. **Go-live mama:** instalare PWA + setup ntfy/CallMeBot pe telefonul ei DOAR după validare
+3. **Go-live mama:** instalare PWA pe telefonul mamei când admin decide. Setup ntfy/CallMeBot pe telefonul mamei = AMÂNAT pe termen nedefinit (admin va activa la cerere explicită)
 
 ---
 
@@ -88,20 +88,18 @@
 | Lighthouse Performance                | ✅ 94 (FCP 1.1s, LCP 1.6s)                  |
 | Iconițe PWA (192/512/512-maskable)    | ✅ SVG (image/svg+xml) — fix 2026-05-05     |
 | Keepalive worker HTTP fetch handler   | ✅ 200 OK — fix 1101 exception              |
-| Cron sync worker keepalive            | ✅ "0 3 * * sun" sync code+wrangler.toml    |
-| Env vars CF Pages (4 VITE_*)          | ✅ Setate via API REST + bundle baked       |
-| Auto-deploy GitHub→CF Pages           | ❌ DECONECTAT (NO SOURCE in project info)   |
-| Workflow deploy actual                | Manual: `scripts/build-and-deploy.ps1`      |
-| GitHub Actions deploy.yml (propunere) | ⏸ workflow_dispatch — needs 4 GH secrets   |
-| `public/audio/tenderness.mp3`         | ❌ Lipsește — descarcă CC0 de pe Pixabay    |
-| CallMeBot pe telefonul MAMEI          | ❌ De făcut când ești cu mama lângă tine    |
-| ntfy app Android pe telefonul MAMEI   | ❌ Instalează + subscrie la topic           |
+| Cron sync worker keepalive            | ✅ "0 3 \* \* sun" sync code+wrangler.toml  |
+| Env vars CF Pages (4 VITE\_\*)        | ✅ Setate via API REST + bundle baked       |
+| Auto-deploy GitHub→CF Pages           | ✅ ACTIV via GitHub Actions (push to main)  |
+| Workflow deploy actual                | Auto: `.github/workflows/deploy.yml`        |
+| GitHub Actions deploy.yml             | ✅ 4 secrets setate (CF + VITE*SUPABASE*\*) |
+| `public/audio/tenderness.mp3`         | ✅ Calm Sketch for Piano (CC0 archive.org)  |
 
 ## Pași imediați (în ordine)
 
 1. **Confirmare layout pe telefon Roland** — deschide https://mami-docs.pages.dev și verifică că tab-urile se comută corect
-2. **Implementabil automat de Claude**: documentație utilizator pentru mama, PDF medical, jurnal wellness
-3. **Go-live pe telefonul mamei** — când ești pregătit
+2. **Implementabil automat de Claude**: documentație utilizator pentru mama, PDF medical, jurnal wellness, integrări AI noi
+3. **Go-live pe telefonul mamei** — instalare PWA când admin decide (ntfy/CallMeBot pe telefonul mamei = AMÂNATE)
 
 ---
 
@@ -169,9 +167,9 @@ Toate cerințele admin sunt în `info_chat.txt` (16 runde Q&A). Spec-ul `PROIECT
 
 1. **Supabase** — pgvector activat, tabele schema SQL, RLS, device_role backend, Family sharing
 2. **R2 bucket** (`mami-docs-backup`) + deploy `workers/keepalive` cu secrete reale
-3. **ntfy.sh topic** + instalare app Android pe telefonul mamei
-4. **Firebase FCM** (opțional, alternative = ntfy)
-5. **Test pe telefon real mama** — deschide `mami-docs.pages.dev` în Chrome Android, "Add to home screen"
+3. **ntfy.sh topic mama** — AMÂNAT pe termen nedefinit (admin va activa la cerere)
+4. **Firebase FCM** — sărit deliberat (ntfy + Telegram suficient când va fi nevoie)
+5. **Test pe telefon real mama** — instalare PWA când admin decide (ntfy/CallMeBot rămân deferre)
 6. **Lighthouse ≥90** — audit PWA, Performance, Accessibility
 7. **Documentație utilizator finală** pentru mama (simplu, cu poze, fără termeni tehnici)
 8. **Backup secundar** (Storj/Backblaze B2) — opțional
