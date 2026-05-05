@@ -19,15 +19,15 @@
 
 **Use case:** Chat AI general, întrebări despre rețete, sfaturi livadă, explicații sănătate, asistent personal.
 
-| Prioritate   | Provider   | Model                         | Latency tipică | Condiție trigger fallback |
-| ------------ | ---------- | ----------------------------- | -------------- | ------------------------- |
-| 1 (primar)   | Groq       | `llama-3.1-8b-instant`        | ~400ms         | 5xx / 429 / timeout >15s  |
-| 2 (70B)      | SambaNova  | `Meta-Llama-3.3-70B-Instruct` | **~940ms**     | idem (înlocuit Groq 70B)  |
-| 3 (70B alt)  | Cerebras   | `llama3.3-70b`                | ~700ms         | idem                      |
-| 4 (frontier) | xAI        | `grok-3-mini`                 | ~6s            | idem (cazuri complexe)    |
-| 5            | Mistral    | `mistral-large-latest`        | ~600ms         | idem (1B tokens/lună)     |
+| Prioritate   | Provider      | Model                         | Latency tipică | Condiție trigger fallback |
+| ------------ | ------------- | ----------------------------- | -------------- | ------------------------- |
+| 1 (primar)   | Groq          | `llama-3.1-8b-instant`        | ~400ms         | 5xx / 429 / timeout >15s  |
+| 2 (70B)      | SambaNova     | `Meta-Llama-3.3-70B-Instruct` | **~940ms**     | idem (înlocuit Groq 70B)  |
+| 3 (70B alt)  | Cerebras      | `llama3.3-70b`                | ~700ms         | idem                      |
+| 4 (frontier) | xAI           | `grok-3-mini`                 | ~6s            | idem (cazuri complexe)    |
+| 5            | Mistral       | `mistral-large-latest`        | ~600ms         | idem (1B tokens/lună)     |
 | 6            | GitHub Models | `openai/gpt-4o-mini`          | ~1.8s          | idem (50-150 req/zi free) |
-| 7 (ultim)    | OpenRouter | `:free` rotație                  | variabil       | idem — cached responses   |
+| 7 (ultim)    | OpenRouter    | `:free` rotație               | variabil       | idem — cached responses   |
 
 **Schimbări 2026-05-06:**
 

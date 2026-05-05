@@ -321,5 +321,27 @@ La T2: confirm că pot rula `npm install` (creare `node_modules/`)?
 - TypeScript strict din primul commit (ADR D8 confirmat)
 - **Chei AI NICIODATĂ pe client**: AI Gateway = `workers/ai-gateway/` (Cloudflare Worker). _(Opus remark T15 — ADR D4)_
 - Chei private (Supabase service key, Cloudflare token, AI keys): **exclusiv în Workers** (nu ajung în bundle-ul client)
-- Audio `tenderness.mp3`: verificare licență Bensound obligatorie la T20 (Free License = cu atribuire în UI)
+- Audio `tenderness.mp3`: licență finală Pixabay CC0 ("Tenderness" by FASSounds; alternativă "Calm Sketch for Piano" archive.org), fișier prezent în `public/audio/` (confirmat 2026-05-06)
 - Adobe PDF Services (T11): 500 tranzacții/lună — monitorizat prin `docs/service-limits.md`
+
+---
+
+## Note Post-MVP (Faze 5-10) — actualizat 2026-05-06
+
+Faza 1 e completă. Pentru următoarele etape (Hardening, Securitate Avansată, Funcționalități noi, Modernizare stack, Go-Live mama) consultă fișierul principal de plan și sursele:
+
+- **Plan principal:** `plans/PLAN_initiere_proiect_2026-05-01.md` (v2.0) — secțiunile **Faza 5-10** (61 task-uri noi)
+- **Surse recomandări (citește înainte de execuție):**
+  - `.claude-outputs/audit/2026-05-06_011740/audit_report.md` — scor 58/100, 7 CRITICA + 9 HIGH + 12 MEDIUM
+  - `.claude-outputs/improve/2026-05-06_120000/improve_report.md` — 16 recomandări P0-P3 (CVE patches, dependențe, modernizare)
+  - `.claude-outputs/improve/2026-05-06_120000/roadmap.md` — calendarizare săptămâni 1-2 + lună următoare
+  - `.claude-outputs/imbunatatiri/2026-05-06_imbunatatiri/RECOMANDARI_IMBUNATATIRI.md` — 29 îmbunătățiri (15 existente + 6 funcții noi + 8 tehnice)
+
+**Pre-condiție pentru orice task din Faza 5+:** branch `main` clean (T5.0 commit fișiere modificate curente).
+
+**Logica execuție recomandată:**
+
+1. Faza 5 → Faza 8 → Faza 6 → Faza 7 (sprinturi A-E) → Faza 9 (intercalat) → Faza 10
+2. Sau: Faza 5 → Faza 7.A + 7.B (impact direct mama) → Faza 6 → Faza 8 → Faza 7.C+D+E → Faza 9 → Faza 10
+
+Admin alege ordinea finală în funcție de prioritate (securitate vs feature-uri noi).

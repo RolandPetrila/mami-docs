@@ -72,3 +72,6 @@ workers/**/.dryrun/
 *.p12
 *.pfx
 .claude/
+
+# Scripturi locale cu valori sensibile (token, secret) — NICIODATĂ committed
+scripts/set-cf-ai-token-secret.ps1
