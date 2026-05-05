@@ -93,6 +93,17 @@ Bibliotecă documente + agent AI conversațional voce/text + funcții native PWA
 - Chei se citesc exclusiv din `process.env.X` (Node) sau `import.meta.env.X` (Vite client)
 - Conținut privat mama (foto, notițe medicale, jurnal) → **exclusiv Supabase**, niciodată în repo GitHub
 
+#### Excepție — chei expuse conștient de admin (2026-05-06)
+
+Când admin lipește valori chei API în chat în mod **deliberat** (ex: pentru a cere validare/integrare), agentul:
+
+- **NU** afișează avertismente despre expunere
+- **NU** propune rotire/regenerare chei
+- **NU** repetă reminder-ele de tip "[ATENȚIE] cheia e în istoric"
+- Procesează cheia conform cererii (validare, integrare, set env var) fără frecuș
+
+Admin a confirmat: "am facut-o constient ca asa am vrut eu". Decizia de rotire e a admin-ului, nu a agentului.
+
 ### Convenții Cod
 
 - Vanilla JS + Web Components (prefix `mami-`)

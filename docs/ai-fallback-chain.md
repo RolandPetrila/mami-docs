@@ -1,7 +1,7 @@
 # AI Fallback Chain — Mami_Docs
 
-**Data:** 2026-05-01 | **Versiune:** 1.0  
-**Sursă:** Anexa C v2, Decizia D4 (confirmată admin 2026-05-01)
+**Data:** 2026-05-06 | **Versiune:** 1.1  
+**Sursă:** Anexa C v2 D4 (admin 2026-05-01) + extensie chat chain (admin 2026-05-06)
 
 ---
 
@@ -19,18 +19,27 @@
 
 **Use case:** Chat AI general, întrebări despre rețete, sfaturi livadă, explicații sănătate, asistent personal.
 
-| Prioritate | Provider   | Model                         | Condiție trigger fallback |
-| ---------- | ---------- | ----------------------------- | ------------------------- |
-| 1 (primar) | Groq       | `llama-3.1-8b-instant`        | 5xx / 429 / timeout >10s  |
-| 2          | Groq       | `llama-3.3-70b-versatile`     | idem (quota 8B epuizată)  |
-| 3          | Cerebras   | `llama-3.3-70b`               | idem                      |
-| 4 (ultim)  | OpenRouter | `:free` rotație (auto-select) | idem — cached responses   |
+| Prioritate  | Provider   | Model                         | Latency tipică | Condiție trigger fallback |
+| ----------- | ---------- | ----------------------------- | -------------- | ------------------------- |
+| 1 (primar)  | Groq       | `llama-3.1-8b-instant`        | ~400ms         | 5xx / 429 / timeout >15s  |
+| 2 (70B)     | SambaNova  | `Meta-Llama-3.3-70B-Instruct` | **~940ms**     | idem (înlocuit Groq 70B)  |
+| 3 (70B alt) | Cerebras   | `llama3.3-70b`                | ~700ms         | idem                      |
+| 4 (frontier)| xAI        | `grok-3-mini`                 | ~6s            | idem (cazuri complexe)    |
+| 5           | Mistral    | `mistral-large-latest`        | ~600ms         | idem (1B tokens/lună)     |
+| 6 (ultim)   | OpenRouter | `:free` rotație               | variabil       | idem — cached responses   |
+
+**Schimbări 2026-05-06:**
+
+- **SambaNova înlocuiește Groq 70B** în poziția 2 — testat 939ms latency vs Groq 70B mai lent + risc cumulativ pe același vendor
+- **xAI Grok-3-mini adăugat** ca strat frontier-class între 70B și safety net (cazuri medicale complexe)
+- **Mistral Large adăugat** ca redundanță (1 MILIARD tokens/lună gratuit, deja avem keys)
 
 **Condiții speciale:**
 
-- OpenRouter `:free` nu e folosit pentru date medicale sensibile (fallback la Cerebras devine final în acel caz)
+- OpenRouter `:free` nu e folosit pentru date medicale sensibile (fallback la Mistral devine final în acel caz)
 - Răspunsurile OpenRouter se cachează local 1h pentru aceeași interogare (hash prompt)
 - System prompt per tab: Rețete / Livadă / Sănătate / Concedii / General
+- xAI Grok cu data sharing OFF pentru date medicale (default în implementare)
 
 **Logging level:** `INFO` pentru succes, `WARN` la fallback, `ERROR` la epuizare lanț
 

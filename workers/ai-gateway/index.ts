@@ -9,8 +9,8 @@
 // Endpoint: POST /search      { query: string }
 // Endpoint: GET  /health      → { ok: true }
 //
-// Fallback chains (ADR D4):
-//   Chat:      Groq 8B → Groq 70B → Cerebras 70B → OpenRouter :free
+// Fallback chains (ADR D4 + 2026-05-06 extension):
+//   Chat:      Groq 8B → SambaNova 70B → Cerebras 70B → xAI Grok-3-mini → Mistral Large → OpenRouter :free
 //   Embed:     Gemini gemini-embedding-001 → Cohere multilingual-v3 → Mistral embed
 //   STT:       Groq Whisper → CF Workers AI Whisper
 //   Translate: DeepL → Azure Translator → Gemini Flash
@@ -19,7 +19,9 @@
 
 export interface Env {
   GROQ_API_KEY: string;
+  SAMBANOVA_API_KEY?: string;
   CEREBRAS_API_KEY?: string;
+  XAI_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   GEMINI_API_KEY?: string;
   COHERE_API_KEY?: string;
@@ -52,20 +54,33 @@ const MAX_TOKENS = 1_024;
 
 const GROQ_CHAT_API = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_AUDIO_API = "https://api.groq.com/openai/v1/audio/transcriptions";
+const SAMBANOVA_API = "https://api.sambanova.ai/v1/chat/completions";
 const CEREBRAS_API = "https://api.cerebras.ai/v1/chat/completions";
+const XAI_API = "https://api.x.ai/v1/chat/completions";
 const OPENROUTER_API = "https://openrouter.ai/api/v1/chat/completions";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 const COHERE_EMBED_API = "https://api.cohere.com/v2/embed";
 const MISTRAL_API = "https://api.mistral.ai/v1";
+const MISTRAL_CHAT_API = "https://api.mistral.ai/v1/chat/completions";
 const DEEPL_API = "https://api-free.deepl.com/v2/translate";
 const AZURE_TRANSLATOR_BASE = "https://api.cognitive.microsofttranslator.com";
 const BRAVE_API = "https://api.search.brave.com/res/v1/web/search";
 const TAVILY_API = "https://api.tavily.com/search";
 
+// Chain order: rapid → puternic → frontier → safety net
+// SambaNova testat 939ms latency pe Llama 3.3-70B (3-7x mai rapid decât Groq 70B).
+// xAI Grok-3-mini = frontier-class pentru cazuri complexe (medical, contextual).
+// Mistral Large = 1B tokens/lună gratuit, redundanță suplimentară.
 const CHAT_PROVIDERS = [
   { id: "groq-8b", model: "llama-3.1-8b-instant", provider: "groq" },
-  { id: "groq-70b", model: "llama-3.3-70b-versatile", provider: "groq" },
+  {
+    id: "sambanova-70b",
+    model: "Meta-Llama-3.3-70B-Instruct",
+    provider: "sambanova",
+  },
   { id: "cerebras-70b", model: "llama3.3-70b", provider: "cerebras" },
+  { id: "xai-grok-mini", model: "grok-3-mini", provider: "xai" },
+  { id: "mistral-large", model: "mistral-large-latest", provider: "mistral" },
   {
     id: "openrouter-free",
     model: "meta-llama/llama-3.1-8b-instruct:free",
@@ -174,6 +189,85 @@ async function callCerebrasChat(
   return content;
 }
 
+async function callSambaNovaChat(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<string> {
+  const resp = await withTimeout(
+    fetch(SAMBANOVA_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, messages, max_tokens: MAX_TOKENS }),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  if (!resp.ok)
+    throw new Error(
+      `SambaNova HTTP ${resp.status}: ${await resp.text().then((t) => t.slice(0, 200))}`,
+    );
+  const data = (await resp.json()) as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  const content = data.choices[0]?.message.content;
+  if (typeof content !== "string")
+    throw new Error("SambaNova: invalid response");
+  return content;
+}
+
+async function callXAIChat(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<string> {
+  const resp = await withTimeout(
+    fetch(XAI_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, messages, max_tokens: MAX_TOKENS }),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  if (!resp.ok) throw new Error(`xAI HTTP ${resp.status}`);
+  const data = (await resp.json()) as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  const content = data.choices[0]?.message.content;
+  if (typeof content !== "string") throw new Error("xAI: invalid response");
+  return content;
+}
+
+async function callMistralChat(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<string> {
+  const resp = await withTimeout(
+    fetch(MISTRAL_CHAT_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, messages, max_tokens: MAX_TOKENS }),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  if (!resp.ok) throw new Error(`Mistral HTTP ${resp.status}`);
+  const data = (await resp.json()) as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  const content = data.choices[0]?.message.content;
+  if (typeof content !== "string") throw new Error("Mistral: invalid response");
+  return content;
+}
+
 async function callOpenRouterChat(
   model: string,
   messages: ChatMessage[],
@@ -227,6 +321,14 @@ async function handleChat(
         if (provider === "groq") {
           if (!env.GROQ_API_KEY) throw new Error("GROQ_API_KEY missing");
           content = await callGroqChat(model, messages, env.GROQ_API_KEY);
+        } else if (provider === "sambanova") {
+          if (!env.SAMBANOVA_API_KEY)
+            throw new Error("SAMBANOVA_API_KEY missing");
+          content = await callSambaNovaChat(
+            model,
+            messages,
+            env.SAMBANOVA_API_KEY,
+          );
         } else if (provider === "cerebras") {
           if (!env.CEREBRAS_API_KEY)
             throw new Error("CEREBRAS_API_KEY missing");
@@ -235,6 +337,12 @@ async function handleChat(
             messages,
             env.CEREBRAS_API_KEY,
           );
+        } else if (provider === "xai") {
+          if (!env.XAI_API_KEY) throw new Error("XAI_API_KEY missing");
+          content = await callXAIChat(model, messages, env.XAI_API_KEY);
+        } else if (provider === "mistral") {
+          if (!env.MISTRAL_API_KEY) throw new Error("MISTRAL_API_KEY missing");
+          content = await callMistralChat(model, messages, env.MISTRAL_API_KEY);
         } else {
           if (!env.OPENROUTER_API_KEY)
             throw new Error("OPENROUTER_API_KEY missing");
@@ -867,7 +975,14 @@ export default {
         {
           ok: true,
           providers: {
-            chat: ["groq-8b", "groq-70b", "cerebras-70b", "openrouter-free"],
+            chat: [
+              "groq-8b",
+              "sambanova-70b",
+              "cerebras-70b",
+              "xai-grok-mini",
+              "mistral-large",
+              "openrouter-free",
+            ],
             embed: ["gemini", "cohere", "mistral"],
             stt: ["groq-whisper", "cf-workers-ai"],
             translate: ["deepl", "azure", "gemini"],
