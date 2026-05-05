@@ -74,7 +74,7 @@ export function startStt(
   onEnd?: () => void,
 ): () => void {
   const Rec = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-  
+
   if (!Rec) {
     return startWhisperStt(onResult, onError, onEnd);
   }
@@ -114,15 +114,22 @@ export function startStt(
 
   try {
     rec.start();
-  } catch {
+  } catch (err) {
+    console.warn(
+      "[speech] STT start eșuat, fallback Whisper:",
+      err instanceof Error ? err.message : String(err),
+    );
     return startWhisperStt(onResult, onError, onEnd);
   }
 
   return () => {
     try {
       rec.abort();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn(
+        "[speech] rec.abort eșuat:",
+        err instanceof Error ? err.message : String(err),
+      );
     }
   };
 }
@@ -157,7 +164,9 @@ export function startWhisperStt(
           const transcript = await transcribeAudio(audioBlob);
           onResult({ transcript, confidence: 1.0 });
         } catch (err) {
-          onError(`Eroare Whisper: ${err instanceof Error ? err.message : String(err)}`);
+          onError(
+            `Eroare Whisper: ${err instanceof Error ? err.message : String(err)}`,
+          );
         } finally {
           stream.getTracks().forEach((t) => t.stop());
           if (onEnd) onEnd();

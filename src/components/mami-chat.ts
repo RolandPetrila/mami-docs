@@ -1,5 +1,6 @@
 import { sendChat, AiGatewayError, type ChatMessage } from "../ai/client";
 import { getSystemPrompt } from "../ai/system-prompts";
+import { getRagContextForQuery } from "../ai/rag";
 import {
   isSttSupported,
   startStt,
@@ -188,7 +189,8 @@ tmpl.innerHTML = `
     padding: 2px 6px;
     border-radius: 4px;
     margin-top: 2px;
-    min-height: 28px;
+    min-height: 44px;
+    min-width: 44px;
   }
   .listen-btn:focus-visible { outline: 2px solid var(--color-primary, #2e5c8a); }
   .listen-btn:hover { text-decoration: underline; }
@@ -253,6 +255,7 @@ export class MamiChat extends HTMLElement {
   private _abortCtrl: AbortController | null = null;
   private _stopStt: (() => void) | null = null;
   private _sttActive = false;
+  private _listenBtnHandlers: Map<HTMLButtonElement, () => void> = new Map();
 
   static get observedAttributes(): string[] {
     return ["tab", "system-prompt"];
@@ -268,6 +271,17 @@ export class MamiChat extends HTMLElement {
     if (this._ready) return;
     this._ready = true;
     this._bindEvents();
+  }
+
+  disconnectedCallback(): void {
+    this._cleanupListenButtons();
+  }
+
+  private _cleanupListenButtons(): void {
+    for (const [btn, handler] of this._listenBtnHandlers) {
+      btn.removeEventListener("click", handler);
+    }
+    this._listenBtnHandlers.clear();
   }
 
   attributeChangedCallback(): void {
@@ -359,21 +373,32 @@ export class MamiChat extends HTMLElement {
     this._setBusy(true);
 
     const history: ChatMessage[] = this._messages
+      .slice(0, -1)
       .filter((m) => m.role !== "ai" || m.text !== "")
       .map((m) => ({
         role: m.role === "user" ? "user" : "assistant",
         content: m.text,
       }));
-    // Remove the sentinel we just added to history for the actual fetch
-    const msgs: ChatMessage[] = history.slice(0, -1);
-    // The last user message
-    msgs.push({ role: "user", content: text });
+    const msgs: ChatMessage[] = [...history, { role: "user", content: text }];
+
+    let systemWithContext = this._systemPrompt;
+    try {
+      const ragCtx = await getRagContextForQuery(text);
+      if (ragCtx) {
+        systemWithContext += `\n\nContext din documentele utilizatorului (folosește dacă e relevant pentru întrebare):\n${ragCtx}`;
+      }
+    } catch (err) {
+      console.warn(
+        "[mami-chat] RAG context skipped:",
+        err instanceof Error ? err.message : String(err),
+      );
+    }
 
     this._abortCtrl = new AbortController();
     try {
       const reply = await sendChat(
         msgs,
-        this._systemPrompt,
+        systemWithContext,
         this._abortCtrl.signal,
       );
       this._addMessage({ role: "ai", text: reply });
@@ -436,7 +461,7 @@ export class MamiChat extends HTMLElement {
       listenBtn.className = "listen-btn";
       listenBtn.textContent = "🔊 Ascultă";
       listenBtn.setAttribute("aria-label", "Ascultă răspunsul cu voce");
-      listenBtn.addEventListener("click", () => {
+      const handler = (): void => {
         stopSpeaking();
         const roFound = speak(msg.text);
         if (!roFound) {
@@ -444,7 +469,9 @@ export class MamiChat extends HTMLElement {
             "Instalează pachetul vocal Română din setări pentru voce naturală.",
           );
         }
-      });
+      };
+      listenBtn.addEventListener("click", handler);
+      this._listenBtnHandlers.set(listenBtn, handler);
       wrap.appendChild(listenBtn);
     }
 
@@ -555,6 +582,7 @@ export class MamiChat extends HTMLElement {
 
   // Public — clear conversation
   clear(): void {
+    this._cleanupListenButtons();
     this._messages = [];
     this._abortCtrl?.abort();
     this._abortCtrl = null;

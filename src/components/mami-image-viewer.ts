@@ -208,7 +208,33 @@ export class MamiImageViewer extends HTMLElement {
     const bodyEl = this._sr.querySelector("#ai-dialog-body");
     if (!dialog || !bodyEl) return;
 
-    bodyEl.innerHTML = `<p style="text-align: center; color: var(--color-text-muted);">Analizez imaginea... te rog așteaptă.</p>`;
+    const setStatus = (
+      text: string,
+      color = "var(--color-text-muted)",
+    ): void => {
+      const p = document.createElement("p");
+      p.style.textAlign = "center";
+      p.style.color = color;
+      p.textContent = text;
+      bodyEl.replaceChildren(p);
+    };
+    const setOcrResult = (text: string, warning: boolean): void => {
+      bodyEl.replaceChildren();
+      if (warning) {
+        const w = document.createElement("p");
+        w.style.color = "#a05c2a";
+        w.style.fontWeight = "bold";
+        w.textContent =
+          "⚠️ Textul citit ar putea fi inexact (calitate scăzută a pozei).";
+        bodyEl.appendChild(w);
+      }
+      const out = document.createElement("p");
+      out.style.whiteSpace = "pre-wrap";
+      out.textContent = text;
+      bodyEl.appendChild(out);
+    };
+
+    setStatus("Analizez imaginea... te rog așteaptă.");
     dialog.showModal();
 
     try {
@@ -216,18 +242,21 @@ export class MamiImageViewer extends HTMLElement {
       const result = await Tesseract.recognize(img.src, "ron", {
         logger: (m: any) => {
           if (m.status === "recognizing text") {
-            bodyEl.innerHTML = `<p style="text-align: center; color: var(--color-text-muted);">Citesc textul... ${Math.round(m.progress * 100)}%</p>`;
+            setStatus(`Citesc textul... ${Math.round(m.progress * 100)}%`);
           }
         },
       });
 
-      if (result.data.confidence < 60) {
-        bodyEl.innerHTML = `<p style="color: #a05c2a; font-weight: bold;">⚠️ Textul citit ar putea fi inexact (calitate scăzută a pozei).</p><p style="white-space: pre-wrap;">${result.data.text}</p>`;
-      } else {
-        bodyEl.innerHTML = `<p style="white-space: pre-wrap;">${result.data.text}</p>`;
-      }
+      setOcrResult(result.data.text, result.data.confidence < 60);
     } catch (err) {
-      bodyEl.innerHTML = `<p style="color: #c0392b;">A apărut o eroare la citirea imaginii.</p>`;
+      console.warn(
+        "[mami-image-viewer] OCR eroare:",
+        err instanceof Error ? err.message : String(err),
+      );
+      const errP = document.createElement("p");
+      errP.style.color = "#c0392b";
+      errP.textContent = "A apărut o eroare la citirea imaginii.";
+      bodyEl.replaceChildren(errP);
     }
   }
 

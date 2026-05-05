@@ -165,3 +165,17 @@ mami-ambient-player {
   white-space: nowrap;
   border: 0;
 }
+
+/* WCAG 2.3.3 — respect user motion preference.
+   Mitigation R9: 0.01ms (not 'none') keeps semantic rendering for screen readers
+   and avoids breaking animations needed for layout (loading spinners, drawer slides). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -98,14 +98,14 @@ tmpl.innerHTML = `
     font-weight: 600;
     border-radius: 2px;
   }
-  .result-meta { font-size: 0.75rem; color: #aaa; }
+  .result-meta { font-size: 0.75rem; color: #666; }
   .delete-btn {
-    min-height: 32px;
-    min-width: 32px;
+    min-height: 44px;
+    min-width: 44px;
     padding: 0.2rem 0.5rem;
     background: transparent;
     border: none;
-    color: #bbb;
+    color: #777;
     font-size: 0.9rem;
     cursor: pointer;
     border-radius: 4px;

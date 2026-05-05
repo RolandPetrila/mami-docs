@@ -64,8 +64,11 @@ export async function sendChat(
     try {
       const body = (await resp.json()) as { error?: string };
       detail = body.error ?? "";
-    } catch {
-      // ignore parse error
+    } catch (err) {
+      console.warn(
+        "[ai/client] eroare parsare răspuns:",
+        err instanceof Error ? err.message : String(err),
+      );
     }
     throw new AiGatewayError(detail || `HTTP ${resp.status}`, resp.status);
   }

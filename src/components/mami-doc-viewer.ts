@@ -162,7 +162,7 @@ tmpl.innerHTML = `
 <dialog id="ai-dialog">
   <div class="dialog-header">
     <h3 id="ai-dialog-title">Mami AI</h3>
-    <button type="button" id="ai-dialog-close">✕</button>
+    <button type="button" id="ai-dialog-close" aria-label="Închide răspunsul">✕</button>
   </div>
   <div class="dialog-body" id="ai-dialog-body"></div>
   <div class="dialog-footer">

@@ -55,7 +55,11 @@ async function generateGemini(text: string): Promise<EmbeddingResult | null> {
     const data = (await resp.json()) as { vector?: number[] };
     if (!Array.isArray(data.vector)) return null;
     return { vector: data.vector, provider: "gemini", dim: data.vector.length };
-  } catch {
+  } catch (err) {
+    console.warn(
+      "[embeddings/gemini] eroare:",
+      err instanceof Error ? err.message : String(err),
+    );
     return null;
   }
 }
@@ -81,7 +85,11 @@ async function generateCohere(text: string): Promise<EmbeddingResult | null> {
     const data = (await resp.json()) as { vector?: number[] };
     if (!Array.isArray(data.vector)) return null;
     return { vector: data.vector, provider: "cohere", dim: data.vector.length };
-  } catch {
+  } catch (err) {
+    console.warn(
+      "[embeddings/cohere] eroare:",
+      err instanceof Error ? err.message : String(err),
+    );
     return null;
   }
 }

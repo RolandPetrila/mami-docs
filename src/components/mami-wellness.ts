@@ -192,11 +192,19 @@ tmpl.innerHTML = `
 export class MamiWellness extends HTMLElement {
   private readonly _sr: ShadowRoot;
   private _emotionVal = 0;
+  private _toastTimerId: number | null = null;
 
   constructor() {
     super();
     this._sr = this.attachShadow({ mode: "open" });
     this._sr.appendChild(tmpl.content.cloneNode(true));
+  }
+
+  disconnectedCallback(): void {
+    if (this._toastTimerId !== null) {
+      clearTimeout(this._toastTimerId);
+      this._toastTimerId = null;
+    }
   }
 
   connectedCallback(): void {
@@ -446,7 +454,11 @@ export class MamiWellness extends HTMLElement {
     if (!el) return;
     el.textContent = msg;
     el.classList.add("show");
-    setTimeout(() => el.classList.remove("show"), 2_500);
+    if (this._toastTimerId !== null) clearTimeout(this._toastTimerId);
+    this._toastTimerId = window.setTimeout(() => {
+      el.classList.remove("show");
+      this._toastTimerId = null;
+    }, 2_500);
   }
 
   private async _addWater(amount: number): Promise<void> {
@@ -571,82 +583,90 @@ export class MamiWellness extends HTMLElement {
   }
 
   private async _generatePdf(): Promise<void> {
-    const { default: jsPDF } = await import("jspdf");
-    const doc = new jsPDF();
-    const today = new Date().toLocaleDateString("ro-RO");
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const doc = new jsPDF();
+      const today = new Date().toLocaleDateString("ro-RO");
 
-    doc.setFontSize(18);
-    doc.text("Raport Medical - Mami Docs", 14, 18);
-    doc.setFontSize(10);
-    doc.text(`Generat: ${today}`, 14, 25);
+      doc.setFontSize(18);
+      doc.text("Raport Medical - Mami Docs", 14, 18);
+      doc.setFontSize(10);
+      doc.text(`Generat: ${today}`, 14, 25);
 
-    let y = 35;
-    y = this._pdfSection(
-      doc,
-      y,
-      "Semne Vitale (ultimele 14)",
-      listVitals(14),
-      (v: VitalsEntry) => {
-        const d = new Date(v.ts).toLocaleString("ro-RO", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const pulse = v.pulse ? `, puls ${v.pulse}` : "";
-        return `${d}: ${v.systolic}/${v.diastolic} mmHg${pulse}`;
-      },
-    );
+      let y = 35;
+      y = this._pdfSection(
+        doc,
+        y,
+        "Semne Vitale (ultimele 14)",
+        listVitals(14),
+        (v: VitalsEntry) => {
+          const d = new Date(v.ts).toLocaleString("ro-RO", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const pulse = v.pulse ? `, puls ${v.pulse}` : "";
+          return `${d}: ${v.systolic}/${v.diastolic} mmHg${pulse}`;
+        },
+      );
 
-    y = this._pdfSection(
-      doc,
-      y,
-      "Hidratare (ultimele 14 zile)",
-      aggregateByDay(listHydration(), 14),
-      (e: { day: string; total: number }) => {
-        return `${e.day}: ${e.total} ml`;
-      },
-    );
+      y = this._pdfSection(
+        doc,
+        y,
+        "Hidratare (ultimele 14 zile)",
+        aggregateByDay(listHydration(), 14),
+        (e: { day: string; total: number }) => {
+          return `${e.day}: ${e.total} ml`;
+        },
+      );
 
-    y = this._pdfSection(
-      doc,
-      y,
-      "Somn (ultimele 14)",
-      listSleep(14),
-      (s: SleepEntry) => {
-        const d = new Date(s.start_ts).toLocaleDateString("ro-RO");
-        return `${d}: ${s.hours}h`;
-      },
-    );
+      y = this._pdfSection(
+        doc,
+        y,
+        "Somn (ultimele 14)",
+        listSleep(14),
+        (s: SleepEntry) => {
+          const d = new Date(s.start_ts).toLocaleDateString("ro-RO");
+          return `${d}: ${s.hours}h`;
+        },
+      );
 
-    y = this._pdfSection(
-      doc,
-      y,
-      "Stare emoțională (ultimele 14)",
-      listEmotion(14),
-      (e: EmotionEntry) => {
-        const d = new Date(e.ts).toLocaleDateString("ro-RO");
-        const labels = [
-          "",
-          "foarte rău",
-          "rău",
-          "neutru",
-          "bine",
-          "foarte bine",
-        ];
-        const note = e.note ? ` — ${e.note}` : "";
-        return `${d}: ${labels[e.level]}${note}`;
-      },
-    );
+      y = this._pdfSection(
+        doc,
+        y,
+        "Stare emoțională (ultimele 14)",
+        listEmotion(14),
+        (e: EmotionEntry) => {
+          const d = new Date(e.ts).toLocaleDateString("ro-RO");
+          const labels = [
+            "",
+            "foarte rău",
+            "rău",
+            "neutru",
+            "bine",
+            "foarte bine",
+          ];
+          const note = e.note ? ` — ${e.note}` : "";
+          return `${d}: ${labels[e.level]}${note}`;
+        },
+      );
 
-    if (y === 35) {
-      doc.setFontSize(12);
-      doc.text("Nu sunt încă măsurători salvate.", 14, y + 10);
+      if (y === 35) {
+        doc.setFontSize(12);
+        doc.text("Nu sunt încă măsurători salvate.", 14, y + 10);
+      }
+
+      doc.save(`Raport_Medical_${today.replace(/\./g, "-")}.pdf`);
+      this._toast("PDF descărcat ✅");
+    } catch (err) {
+      console.warn(
+        "[mami-wellness] Eroare generare PDF:",
+        err instanceof Error ? err.message : String(err),
+      );
+      this._toast("Nu am putut genera PDF-ul. Încearcă din nou.");
     }
-
-    doc.save(`Raport_Medical_${today.replace(/\./g, "-")}.pdf`);
-    this._toast("PDF descărcat ✅");
   }
 
   private _pdfSection<T>(

@@ -104,3 +104,18 @@ export function buildRagContext(results: RagResult[]): string {
     .map((r, i) => `[Sursa ${i + 1}: ${r.docName}]\n${r.chunkText}`)
     .join("\n\n---\n\n");
 }
+
+// Mitigation R2 (Risk Register PLAN v2.1):
+// topK=3 + maxContextChars=1500 keeps token cost bounded — prevents quota exhaust
+// during long chat sessions when many documents are indexed.
+export async function getRagContextForQuery(
+  query: string,
+  topK = 3,
+  maxContextChars = 1500,
+): Promise<string> {
+  const results = await semanticSearch(query, topK);
+  const ctx = buildRagContext(results);
+  return ctx.length > maxContextChars
+    ? ctx.slice(0, maxContextChars) + "\n…[trunchiat]"
+    : ctx;
+}

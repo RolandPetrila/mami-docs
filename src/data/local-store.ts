@@ -59,7 +59,11 @@ function readArr<T>(key: string): T[] {
     const raw = localStorage.getItem(key);
     if (!raw) return [];
     return JSON.parse(raw) as T[];
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[local-store] eroare parsare ${key}:`,
+      err instanceof Error ? err.message : String(err),
+    );
     return [];
   }
 }

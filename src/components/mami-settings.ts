@@ -516,11 +516,11 @@ export class MamiSettings extends HTMLElement {
       });
     this._sr
       .querySelector("#pin-exit-admin-btn")
-      ?.addEventListener("click", () => {
+      ?.addEventListener("click", async () => {
         localStorage.setItem(STORAGE_DEVICE_ROLE, "mom");
         this._updateAdminStatus();
         this._dispatch("mami-role-change", { role: "mom" });
-        void syncDeviceRole("mom");
+        await syncDeviceRole("mom");
       });
 
     // Family sharing
