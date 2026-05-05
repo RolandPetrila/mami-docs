@@ -1,8 +1,8 @@
 # PLAN Inițiere Proiect Mami_Docs
 
 **Dată:** 2026-05-01  
-**Status:** ✅ Faza 0+1.5+2+3(parțial)+4(parțial) Complete — BLOCAT pe credențiale externe (Supabase, R2, ntfy)  
-**Versiune plan:** 1.0
+**Status:** ✅ Faza 0+1+1.5+2+3 Complete; Faza 4 quasi-completă (3 task-uri rămase blocate pe acțiuni manuale admin: `tenderness.mp3` CC0 download, backup secundar Storj/B2, go-live mama post-validare Roland). Deploy live. Lighthouse Performance 94 (2026-05-05). Worker `mami-docs-keepalive` redeployat 2026-05-05 cu 4 schedules.  
+**Versiune plan:** 1.1
 
 ---
 
