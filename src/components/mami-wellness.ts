@@ -193,6 +193,7 @@ export class MamiWellness extends HTMLElement {
   private readonly _sr: ShadowRoot;
   private _emotionVal = 0;
   private _toastTimerId: number | null = null;
+  private _aiController: AbortController | null = null;
 
   constructor() {
     super();
@@ -205,6 +206,8 @@ export class MamiWellness extends HTMLElement {
       clearTimeout(this._toastTimerId);
       this._toastTimerId = null;
     }
+    this._aiController?.abort();
+    this._aiController = null;
   }
 
   connectedCallback(): void {
@@ -434,14 +437,18 @@ export class MamiWellness extends HTMLElement {
     const patternLines = alerts.map((a) => `- ${a.message}`).join("\n");
     const prompt = `Bazat pe aceste observații privind starea de sănătate din ultimele 7 zile:\n${patternLines}\n\nOferă 3-4 sfaturi practice, concrete, în română. Concis și clar. NU da diagnostic, doar sugestii de stil de viață. Dacă datele sunt insuficiente pentru o concluzie, spune-o explicit.`;
 
+    this._aiController?.abort();
+    this._aiController = new AbortController();
     try {
       const reply = await sendChat(
         [{ role: "user", content: prompt }],
         `Ești asistent AI pentru wellness, în limba română. Ton respectuos și sincer. La incertitudine declară explicit „nu sunt sigur". Nu prescrii, nu pui diagnostic.`,
+        this._aiController.signal,
       );
       textEl.textContent = reply;
       btn.textContent = "🔄 Actualizează sfaturile";
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       textEl.textContent =
         "Nu am putut genera sfaturi. Verifică conexiunea la internet.";
       btn.textContent = "💡 Încearcă din nou";

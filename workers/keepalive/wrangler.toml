@@ -2,6 +2,10 @@ name = "mami-docs-keepalive"
 main = "index.ts"
 compatibility_date = "2024-09-02"
 
+# T9.1 — observability
+[observability]
+enabled = true
+
 [triggers]
 crons = [
   "0 2 */4 * *",   # keepalive Supabase (la 4 zile)

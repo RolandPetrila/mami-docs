@@ -27,6 +27,7 @@ tmpl.innerHTML = `
     color: var(--color-text, #1a1a2e);
     background: var(--color-bg, #eef4fa);
     position: relative;
+    contain: layout paint;
   }
   .hidden { display: none !important; }
   .drop-zone {

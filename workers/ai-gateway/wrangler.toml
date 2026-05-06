@@ -2,6 +2,10 @@ name = "mami-docs-ai"
 main = "index.ts"
 compatibility_date = "2024-09-02"
 
+# T9.1 — observability (logs + metrics în CF dashboard)
+[observability]
+enabled = true
+
 [vars]
 # Set to your Cloudflare Pages domain, e.g. "https://mami-docs.pages.dev"
 # Empty string = accept any origin (dev mode)

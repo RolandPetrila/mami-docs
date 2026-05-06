@@ -24,6 +24,7 @@ tmpl.innerHTML = `
     color: var(--color-text, #1a1a2e);
     overflow-y: auto;
     height: 100%;
+    contain: layout paint;
   }
   .header {
     display: flex;

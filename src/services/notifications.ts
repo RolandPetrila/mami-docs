@@ -54,6 +54,7 @@ export function showLocalNotification(opts: NotifyOptions): void {
       badge: "/icons/icon-192.png",
       tag: "mami-reminder",
       requireInteraction: opts.level === "critical",
+      lang: "ro",
     });
     n.onclick = () => {
       window.focus();

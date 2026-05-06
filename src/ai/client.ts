@@ -18,8 +18,6 @@ interface GatewayResponse {
   choices: GroqChoice[];
 }
 
-// Set VITE_AI_GATEWAY_URL în .env.local pentru dev (http://localhost:8787)
-// și în Cloudflare Pages env vars pentru producție
 const GATEWAY_URL =
   (import.meta.env.VITE_AI_GATEWAY_URL as string | undefined) ?? "";
 
@@ -33,23 +31,27 @@ export class AiGatewayError extends Error {
   }
 }
 
-export async function sendChat(
-  messages: ChatMessage[],
-  systemPrompt: string,
+// T9.11 — DRY helper pentru toate endpoint-urile AI Gateway.
+// Body acceptă obiect (auto-JSON) sau FormData (multipart pentru /transcribe).
+// Pe non-ok → încearcă să citească { error } din JSON pentru detail.
+async function fetchJson<T>(
+  path: string,
+  body: unknown | FormData,
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<T> {
   if (!GATEWAY_URL) {
     throw new AiGatewayError(
       "VITE_AI_GATEWAY_URL nesetat — configurează .env.local sau Pages env vars",
     );
   }
 
+  const isForm = body instanceof FormData;
   let resp: Response;
   try {
-    resp = await fetch(`${GATEWAY_URL}/chat`, {
+    resp = await fetch(`${GATEWAY_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages, systemPrompt }),
+      headers: isForm ? undefined : { "Content-Type": "application/json" },
+      body: isForm ? body : JSON.stringify(body),
       signal,
     });
   } catch (err) {
@@ -62,8 +64,8 @@ export async function sendChat(
   if (!resp.ok) {
     let detail = "";
     try {
-      const body = (await resp.json()) as { error?: string };
-      detail = body.error ?? "";
+      const errBody = (await resp.json()) as { error?: string };
+      detail = errBody.error ?? "";
     } catch (err) {
       console.warn(
         "[ai/client] eroare parsare răspuns:",
@@ -73,7 +75,19 @@ export async function sendChat(
     throw new AiGatewayError(detail || `HTTP ${resp.status}`, resp.status);
   }
 
-  const data = (await resp.json()) as GatewayResponse;
+  return (await resp.json()) as T;
+}
+
+export async function sendChat(
+  messages: ChatMessage[],
+  systemPrompt: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const data = await fetchJson<GatewayResponse>(
+    "/chat",
+    { messages, systemPrompt },
+    signal,
+  );
   const content = data.choices[0]?.message.content;
   if (typeof content !== "string") {
     throw new AiGatewayError("Răspuns invalid de la AI Gateway");
@@ -87,23 +101,11 @@ export async function translateText(
   from?: string,
   signal?: AbortSignal,
 ): Promise<string> {
-  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
-  let resp: Response;
-  try {
-    resp = await fetch(`${GATEWAY_URL}/translate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, to, from }),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new AiGatewayError(
-      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
-  const data = (await resp.json()) as { text: string };
+  const data = await fetchJson<{ text: string }>(
+    "/translate",
+    { text, to, from },
+    signal,
+  );
   return data.text;
 }
 
@@ -113,23 +115,11 @@ export async function analyzeImage(
   prompt?: string,
   signal?: AbortSignal,
 ): Promise<string> {
-  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
-  let resp: Response;
-  try {
-    resp = await fetch(`${GATEWAY_URL}/vision`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64, mimeType, prompt }),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new AiGatewayError(
-      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
-  const data = (await resp.json()) as { text: string };
+  const data = await fetchJson<{ text: string }>(
+    "/vision",
+    { imageBase64, mimeType, prompt },
+    signal,
+  );
   return data.text;
 }
 
@@ -143,23 +133,11 @@ export async function searchWeb(
   query: string,
   signal?: AbortSignal,
 ): Promise<SearchResult[]> {
-  if (!GATEWAY_URL) throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
-  let resp: Response;
-  try {
-    resp = await fetch(`${GATEWAY_URL}/search`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query }),
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new AiGatewayError(
-      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-  if (!resp.ok) throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
-  const data = (await resp.json()) as { results: SearchResult[] };
+  const data = await fetchJson<{ results: SearchResult[] }>(
+    "/search",
+    { query },
+    signal,
+  );
   return data.results ?? [];
 }
 
@@ -167,31 +145,12 @@ export async function transcribeAudio(
   audioBlob: Blob,
   signal?: AbortSignal,
 ): Promise<string> {
-  if (!GATEWAY_URL) {
-    throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
-  }
-
   const formData = new FormData();
   formData.append("file", audioBlob, "audio.webm");
-
-  let resp: Response;
-  try {
-    resp = await fetch(`${GATEWAY_URL}/transcribe`, {
-      method: "POST",
-      body: formData,
-      signal,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new AiGatewayError(
-      `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
-    );
-  }
-
-  if (!resp.ok) {
-    throw new AiGatewayError(`HTTP ${resp.status}`, resp.status);
-  }
-
-  const data = (await resp.json()) as { text: string };
+  const data = await fetchJson<{ text: string }>(
+    "/transcribe",
+    formData,
+    signal,
+  );
   return data.text;
 }
