@@ -364,29 +364,24 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 
 ### Sprint 7.A — Quick UX Wins (~8h, paralelizabile)
 
-- [ ] **T7.A.1** — Loading skeleton vizibil [LOW] [efort: MIC]
+- [x] **T7.A.1** — Loading skeleton vizibil [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.12]
-  - **De ce:** `index.html` `#app` gol 1-3s la prima încărcare → mama crede că app-ul nu funcționează
-  - **Cum:** `index.html` — înlocuiește `<div id="app"></div>` cu skeleton inline (header fake + 3 placeholder cards); `main.ts` — `document.addEventListener("mami-tabs-ready", ...)` ascunde + fallback `setTimeout(remove, 3000)`
-- [ ] **T7.A.2** 🌟 — Font size control 100/125/150% [LOW] [efort: MIC]
+  - **Cum:** `index.html` — overlay `#boot-skeleton` (position:fixed) cu header fake + 3 placeholder cards animate; `main.ts` — `document.addEventListener("mami-tabs-ready", ...)` + fallback `setTimeout(remove, 3000)`; `mami-tabs.ts` emit `mami-tabs-ready` la final connectedCallback
+- [x] **T7.A.2** 🌟 — Font size control 100/125/150% [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.13]
-  - **De ce:** ACCESIBILITATE CRITICĂ pentru utilizator ~60 ani; WCAG 1.4.4 zoom 200%
-  - **Cum:** `mami-settings.ts` — 3 butoane "A / A+ / A++"; click → `localStorage["mami-font-size"]` ("1" | "1.25" | "1.5") + `document.documentElement.style.setProperty("--font-base", ...)`; restore în `main.ts` înainte de paint
-- [ ] **T7.A.3** — Persistența conversație chat (50 mesaje localStorage) [LOW] [efort: MIC]
+  - **Cum:** `mami-settings.ts` — 3 butoane "A / A+ / A++" (`.font-btn[data-size]`) cu `aria-pressed`; click → `localStorage["mami-font-size"]` + `document.documentElement.style.setProperty("--font-base", ${18*scale}px)`; restore în `main.ts` înainte de paint (după dark mode)
+- [x] **T7.A.3** — Persistența conversație chat (50 mesaje localStorage) [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.1]
-  - **De ce:** mama pierde sfaturile primite la reload sau switch tab
-  - **Cum:** `mami-chat.ts` — `saveHistory()` la fiecare mesaj nou (slice -50, key `mami:chat-history`) + `loadHistory()` în `connectedCallback()` + buton "🗑️ Curăță" cu `confirm()`
-- [ ] **T7.A.4** 🌟 — Denumiri RO medicamente (RxNorm normalize) [LOW] [efort: MIC]
+  - **Cum:** `mami-chat.ts` — `_saveHistory()` la fiecare mesaj nou (slice -50, key `mami:chat-history`) + `_loadHistory()` în `connectedCallback()` + buton "🗑️ Curăță" floating cu `confirm()`; `clear()` șterge și din localStorage
+- [x] **T7.A.4** 🌟 — Denumiri RO medicamente (RxNorm normalize) [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.5]
-  - **De ce:** mama caută "Nurofen", "Concor", "Atoris" → 0 rezultate (RxNorm cunoaște INN/US brands); fără asta, tab-ul Medicamente e inutilizabil
-  - **Cum:** `mami-drug-checker.ts` — `RO_BRANDS: Record<string,string>` cu top 30 brand-uri RO → INN (Nurofen→Ibuprofen, Aspenter→Aspirin, Concor→Bisoprolol, Atoris→Atorvastatin etc.); `normalizeForRxNorm(input)` înainte de fetch + UI hint "căutăm sub denumirea internațională: Ibuprofen"
-- [ ] **T7.A.5** — Salvare listă permanentă medicamente [LOW] [efort: MIC]
+  - **Cum:** `mami-drug-checker.ts` — `RO_BRANDS` (60 entries: Nurofen→Ibuprofen, Concor→Bisoprolol, Atoris→Atorvastatin, Sumamed→Azithromycin, Augmentin→Amoxicillin Clavulanate, etc.); `normalizeForRxNorm()` strip dozaj + lookup; UI hint `#ro-hint` "Căutăm sub denumirea internațională: ..."; tag-ul afișat: "Nurofen (Ibuprofen)"
+- [x] **T7.A.5** — Salvare listă permanentă medicamente [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.6]
-  - **De ce:** mama re-adaugă cele 8 medicamente zilnice la fiecare sesiune
-  - **Cum:** `localStorage["mami:my-drugs"]` cu `SavedDrug[]`; buton "💾 Salvează ca lista mea"; restaurare automată în `connectedCallback` + toast "Lista ta a fost restaurată"
-- [ ] **T7.A.6** — Tranziție animată tab fade [LOW] [efort: MIC]
+  - **Cum:** `localStorage["mami:my-drugs"]`; buton "💾 Salvează ca lista mea" + buton "📂 Lista mea" (vizibil doar dacă există listă salvată); restaurare automată în `connectedCallback` cu toast "Lista ta a fost restaurată"
+- [x] **T7.A.6** — Tranziție animată tab fade [LOW] [efort: MIC]
   - **Sursa:** recomandari [Rec.11]
-  - **Cum:** `mami-tabs.ts` CSS `@keyframes tabFadeIn` 200ms; respectă `prefers-reduced-motion` (T5.14)
+  - **Cum:** `mami-tabs.ts` CSS `@keyframes tabFadeIn` 200ms; aplicat la `.panel.active` în `_refresh()` cu reflow forțat (offsetWidth) ca să restarteze animația; `@media (prefers-reduced-motion: reduce) .panel.active { animation: none }` (mitigation R9)
 
 ### Sprint 7.B — Wellness Avansat (~6h)
 
@@ -677,3 +672,4 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 | 2026-05-06 | Hotfix NEW-1 — innerHTML residual XSS                 | ✅ Completat | mami-doc-viewer.ts:389 (err.message → textContent), mami-wellness.ts:399 (alerts → DOM nodes), mami-menu.ts:196 (quote → textNode + small element). Toate user data prin DOM API safe.                                                                                                                                                                                                                                                                                                                   |
 | 2026-05-06 | Stil prompts AI — neutru, sincer, fără jargon         | ✅ Completat | Per request admin: rescris `system-prompts.ts` (5 prompts) + 3 prompts inline (mami-menu, mami-wellness, mami-doc-viewer). Eliminat „mama" / „cald" / „prietenos" / „femeie de ~60 ani". HONESTY_RULE constant: declarare explicită incertitudine. Memorie: `feedback_ton_ai_chat.md`.                                                                                                                                                                                                                   |
 | 2026-05-06 | Faza 6 partial — T6.3-T6.7 (autonom, non-HIGH)        | ✅ Completat | T6.3 PIN salt random 16B per device (regenerat la fiecare set); T6.4 rate limit KV 30 req/min/IP (mitigation R4) + KV namespace placeholder în wrangler.toml; T6.5 CORS strict (no `*` fallback, deny dacă origin nu match); T6.6 STT Whisper fallback automat la network/no-speech; T6.7 cleanup invites SQL `< now()` (era `now() - 30d`). Build verde, tests 114/115. T6.1 RLS + T6.2 CALLMEBOT rămân PENDING — confirmare admin.                                                                     |
+| 2026-05-06 | Sprint 7.A — Quick UX Wins (T7.A.1-T7.A.6)            | ✅ Completat | T7.A.1 boot skeleton overlay + `mami-tabs-ready` event + 3s fallback; T7.A.2 font size 100/125/150% (`--font-base`) cu restore în `main.ts` înainte de paint; T7.A.3 chat persist 50 mesaje + buton "🗑️ Curăță" cu `confirm()`; T7.A.4 `RO_BRANDS` 60 entries (Nurofen→Ibuprofen etc.) + `normalizeForRxNorm()` + UI hint; T7.A.5 listă salvată "💾 Salvează" + restaurare automată cu toast; T7.A.6 `tabFadeIn` 200ms cu prefers-reduced-motion fallback. Build verde, 139/139 tests pass.                  |

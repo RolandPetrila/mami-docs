@@ -12,12 +12,134 @@
     <link rel="icon" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Mami Docs</title>
+    <style>
+      @keyframes skeletonPulse {
+        0%,
+        100% {
+          opacity: 0.55;
+        }
+        50% {
+          opacity: 0.85;
+        }
+      }
+      #boot-skeleton.fading {
+        opacity: 0;
+        pointer-events: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-skeleton * {
+          animation: none !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="offline-banner" role="alert" aria-live="polite">
       Ești offline — documentele deja vizualizate sunt disponibile
     </div>
     <div id="app"></div>
+    <div
+      id="boot-skeleton"
+      aria-hidden="true"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #eef4fa;
+        color: #1a1a2e;
+        transition: opacity 0.25s ease-out;
+      "
+    >
+      <div
+        style="
+          min-height: 56px;
+          padding: 0 0.75rem;
+          background: #2e5c8a;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+        "
+      >
+        <div
+          style="
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+          "
+        >
+          ☰
+        </div>
+        <div style="flex: 1; font-weight: 600; font-size: 1.05rem">
+          Mami Docs
+        </div>
+        <div
+          style="
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+          "
+        >
+          ⚙️
+        </div>
+      </div>
+      <div
+        style="
+          flex: 1;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        "
+      >
+        <div
+          style="
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+            height: 96px;
+            animation: skeletonPulse 1.4s ease-in-out infinite;
+          "
+        ></div>
+        <div
+          style="
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+            height: 96px;
+            animation: skeletonPulse 1.4s ease-in-out infinite;
+            animation-delay: 0.2s;
+          "
+        ></div>
+        <div
+          style="
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+            height: 96px;
+            animation: skeletonPulse 1.4s ease-in-out infinite;
+            animation-delay: 0.4s;
+          "
+        ></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

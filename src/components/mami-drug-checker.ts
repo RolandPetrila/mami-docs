@@ -5,6 +5,84 @@
 // Funcționează offline parțial (cache localStorage).
 
 const RXNORM_BASE = "https://rxnav.nlm.nih.gov/REST";
+const SAVED_DRUGS_KEY = "mami:my-drugs";
+
+// T7.A.4 — Brand-uri RO comune → INN (denumire internațională recunoscută de RxNorm).
+// RxNorm cunoaște INN/brand-uri US dar nu pe cele RO; fără normalizare, căutarea
+// returnează 0 rezultate pentru cele mai uzuale medicamente folosite de pacienții RO.
+const RO_BRANDS: Record<string, string> = {
+  nurofen: "Ibuprofen",
+  paracetamol: "Acetaminophen",
+  panadol: "Acetaminophen",
+  algocalmin: "Metamizole",
+  algozone: "Metamizole",
+  aspenter: "Aspirin",
+  aspirina: "Aspirin",
+  cardioaspirina: "Aspirin",
+  thrombo: "Aspirin",
+  concor: "Bisoprolol",
+  bisoprolol: "Bisoprolol",
+  atoris: "Atorvastatin",
+  sortis: "Atorvastatin",
+  liprimar: "Atorvastatin",
+  prestarium: "Perindopril",
+  enap: "Enalapril",
+  noliprel: "Perindopril",
+  amlodipina: "Amlodipine",
+  norvasc: "Amlodipine",
+  metformin: "Metformin",
+  siofor: "Metformin",
+  glucophage: "Metformin",
+  euthyrox: "Levothyroxine",
+  letrox: "Levothyroxine",
+  thyrozol: "Thiamazole",
+  controloc: "Pantoprazole",
+  nexium: "Esomeprazole",
+  omez: "Omeprazole",
+  helicid: "Omeprazole",
+  ospamox: "Amoxicillin",
+  augmentin: "Amoxicillin Clavulanate",
+  amoksiklav: "Amoxicillin Clavulanate",
+  klacid: "Clarithromycin",
+  zinnat: "Cefuroxime",
+  ciprinol: "Ciprofloxacin",
+  azitromicina: "Azithromycin",
+  sumamed: "Azithromycin",
+  ibalgin: "Ibuprofen",
+  diclofenac: "Diclofenac",
+  voltaren: "Diclofenac",
+  ketonal: "Ketoprofen",
+  arcoxia: "Etoricoxib",
+  no_spa: "Drotaverine",
+  "no-spa": "Drotaverine",
+  nospa: "Drotaverine",
+  espumisan: "Simethicone",
+  smecta: "Diosmectite",
+  furosemid: "Furosemide",
+  furosemide: "Furosemide",
+  spironolactona: "Spironolactone",
+  digoxin: "Digoxin",
+  warfarin: "Warfarin",
+  trombostop: "Acenocoumarol",
+  sintrom: "Acenocoumarol",
+  xarelto: "Rivaroxaban",
+  eliquis: "Apixaban",
+  pradaxa: "Dabigatran",
+  clexane: "Enoxaparin",
+};
+
+function normalizeForRxNorm(input: string): {
+  query: string;
+  matched: boolean;
+} {
+  const key = input
+    .toLowerCase()
+    .trim()
+    .replace(/\s+\d+\s*(mg|g|ml|mcg|µg)\b.*$/i, "")
+    .replace(/\s+/g, "_");
+  const inn = RO_BRANDS[key] ?? RO_BRANDS[key.replace(/_/g, "")];
+  return inn ? { query: inn, matched: true } : { query: input, matched: false };
+}
 
 interface RxConcept {
   rxcui: string;
@@ -129,6 +207,49 @@ tmpl.innerHTML = `
     font-size: 0.95rem;
   }
   .suggestion-item:hover { background: #e8f0f8; }
+
+  /* T7.A.4 — hint normalizare RO → INN */
+  .ro-hint {
+    background: #e8f4ff;
+    border: 1px solid #bcd9f2;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--color-primary, #2e5c8a);
+  }
+  .ro-hint b { font-weight: 600; }
+
+  /* T7.A.5 — listă salvată (butoane + toast) */
+  .my-list-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+  .btn-secondary {
+    background: var(--color-accent-light, #f5e6d8);
+    color: var(--color-text, #1a1a2e);
+    border: 1px solid var(--color-accent, #a05c2a);
+  }
+  .btn-secondary:hover { filter: brightness(1.05); }
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2e5c8a;
+    color: #fff;
+    padding: 0.6rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .toast.visible { opacity: 1; }
 </style>
 
 <div class="header-bar">
@@ -144,12 +265,18 @@ tmpl.innerHTML = `
       <button class="btn btn-primary" id="add-btn">Adaugă</button>
     </div>
     <div id="suggestions" class="suggestions" style="display:none"></div>
+    <div id="ro-hint" class="ro-hint" style="display:none"></div>
     <div id="drug-list" style="margin-top:0.5rem"></div>
+    <div class="my-list-row">
+      <button class="btn btn-secondary" id="save-list-btn" type="button" aria-label="Salvează lista mea de medicamente">💾 Salvează ca lista mea</button>
+      <button class="btn btn-secondary" id="load-list-btn" type="button" aria-label="Restaurează lista mea de medicamente" style="display:none">📂 Lista mea</button>
+    </div>
     <div class="disclaimer">
       ⚠️ Această funcție oferă informații generale din baze de date publice (RxNorm, openFDA).
       Nu înlocuiește sfatul medicului sau farmacistului. Consultați întotdeauna un specialist.
     </div>
   </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <div class="card" id="interaction-card" style="display:none">
     <h3>Interacțiuni detectate</h3>
@@ -169,6 +296,7 @@ export class MamiDrugChecker extends HTMLElement {
   private readonly _sr: ShadowRoot;
   private _drugs: RxConcept[] = [];
   private _searchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private _toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     super();
@@ -178,6 +306,7 @@ export class MamiDrugChecker extends HTMLElement {
 
   connectedCallback(): void {
     this._wire();
+    this._restoreSavedListIfPresent();
   }
 
   private _wire(): void {
@@ -189,6 +318,7 @@ export class MamiDrugChecker extends HTMLElement {
     input?.addEventListener("input", () => {
       if (this._searchTimeout) clearTimeout(this._searchTimeout);
       const q = input.value.trim();
+      this._showRoHint(q);
       if (q.length < 3) {
         this._hideSuggestions();
         return;
@@ -207,6 +337,36 @@ export class MamiDrugChecker extends HTMLElement {
     addBtn?.addEventListener("click", () => {
       void this._addCurrentInput();
     });
+
+    this._sr.querySelector("#save-list-btn")?.addEventListener("click", () => {
+      this._saveCurrentList();
+    });
+    this._sr.querySelector("#load-list-btn")?.addEventListener("click", () => {
+      this._loadSavedList();
+    });
+  }
+
+  private _showRoHint(input: string): void {
+    const hint = this._sr.querySelector("#ro-hint") as HTMLElement | null;
+    if (!hint) return;
+    if (!input || input.length < 3) {
+      hint.style.display = "none";
+      return;
+    }
+    const norm = normalizeForRxNorm(input);
+    if (norm.matched) {
+      hint.style.display = "block";
+      hint.replaceChildren();
+      const prefix = document.createTextNode(
+        "Căutăm sub denumirea internațională: ",
+      );
+      const b = document.createElement("b");
+      b.textContent = norm.query;
+      hint.appendChild(prefix);
+      hint.appendChild(b);
+    } else {
+      hint.style.display = "none";
+    }
   }
 
   private async _addCurrentInput(): Promise<void> {
@@ -220,9 +380,10 @@ export class MamiDrugChecker extends HTMLElement {
   }
 
   private async _searchDrugs(query: string): Promise<void> {
+    const effective = normalizeForRxNorm(query).query;
     try {
       const resp = await fetch(
-        `${RXNORM_BASE}/drugs.json?name=${encodeURIComponent(query)}`,
+        `${RXNORM_BASE}/drugs.json?name=${encodeURIComponent(effective)}`,
         { signal: AbortSignal.timeout(8000) },
       );
       if (!resp.ok) return;
@@ -277,9 +438,11 @@ export class MamiDrugChecker extends HTMLElement {
   }
 
   private async _searchAndAdd(query: string): Promise<void> {
+    const norm = normalizeForRxNorm(query);
+    const display = norm.matched ? `${query} (${norm.query})` : query;
     try {
       const resp = await fetch(
-        `${RXNORM_BASE}/rxcui.json?name=${encodeURIComponent(query)}&search=1`,
+        `${RXNORM_BASE}/rxcui.json?name=${encodeURIComponent(norm.query)}&search=1`,
         { signal: AbortSignal.timeout(8000) },
       );
       if (resp.ok) {
@@ -288,7 +451,7 @@ export class MamiDrugChecker extends HTMLElement {
         };
         const rxcui = data.idGroup?.rxnormId?.[0];
         if (rxcui) {
-          this._addDrug({ rxcui, name: query });
+          this._addDrug({ rxcui, name: display });
           return;
         }
       }
@@ -296,7 +459,7 @@ export class MamiDrugChecker extends HTMLElement {
       /* ignore */
     }
     // Fallback: add without rxcui
-    this._addDrug({ rxcui: "", name: query });
+    this._addDrug({ rxcui: "", name: display });
   }
 
   private _addDrug(drug: RxConcept): void {
@@ -428,6 +591,82 @@ export class MamiDrugChecker extends HTMLElement {
       `,
         )
         .join("");
+    }
+  }
+
+  // T7.A.5 — Salvare listă permanentă în localStorage
+  private _saveCurrentList(): void {
+    if (this._drugs.length === 0) {
+      this._showToast("Adaugă cel puțin un medicament înainte de salvare.");
+      return;
+    }
+    try {
+      localStorage.setItem(SAVED_DRUGS_KEY, JSON.stringify(this._drugs));
+      this._showToast(`✓ Lista ta (${this._drugs.length}) a fost salvată.`);
+      this._refreshLoadButtonVisibility();
+    } catch (err) {
+      console.warn(
+        "[mami-drug] save failed:",
+        err instanceof Error ? err.message : String(err),
+      );
+      this._showToast("Nu am putut salva lista.");
+    }
+  }
+
+  private _readSavedList(): RxConcept[] | null {
+    try {
+      const raw = localStorage.getItem(SAVED_DRUGS_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as RxConcept[];
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private _loadSavedList(): void {
+    const saved = this._readSavedList();
+    if (!saved) {
+      this._showToast("Nu există listă salvată.");
+      return;
+    }
+    this._drugs = saved.slice(0, 10);
+    this._renderDrugList();
+    if (this._drugs.length >= 2) void this._checkInteractions();
+    this._showToast(`Lista ta (${this._drugs.length}) restaurată.`);
+  }
+
+  private _restoreSavedListIfPresent(): void {
+    const saved = this._readSavedList();
+    this._refreshLoadButtonVisibility();
+    if (!saved || this._drugs.length > 0) return;
+    this._drugs = saved.slice(0, 10);
+    this._renderDrugList();
+    this._showToast("Lista ta a fost restaurată.");
+    if (this._drugs.length >= 2) void this._checkInteractions();
+  }
+
+  private _refreshLoadButtonVisibility(): void {
+    const btn = this._sr.querySelector("#load-list-btn") as HTMLElement | null;
+    if (btn) btn.style.display = this._readSavedList() ? "inline-flex" : "none";
+  }
+
+  private _showToast(message: string): void {
+    const toast = this._sr.querySelector("#toast") as HTMLElement | null;
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("visible");
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      toast.classList.remove("visible");
+      this._toastTimer = null;
+    }, 2400);
+  }
+
+  disconnectedCallback(): void {
+    if (this._toastTimer) {
+      clearTimeout(this._toastTimer);
+      this._toastTimer = null;
     }
   }
 }

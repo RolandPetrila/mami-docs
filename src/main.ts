@@ -43,6 +43,27 @@ if (localStorage.getItem("mami-dark") === "true") {
   document.documentElement.classList.add("dark");
 }
 
+// T7.A.2 — Restore font size before paint (accesibilitate utilizator vârstnic)
+const fontScale = localStorage.getItem("mami-font-size");
+if (fontScale === "1.25" || fontScale === "1.5") {
+  document.documentElement.style.setProperty(
+    "--font-base",
+    `${18 * Number(fontScale)}px`,
+  );
+}
+
+// T7.A.1 — Hide boot skeleton when mami-tabs is ready (event) or after 3s fallback
+function dismissBootSkeleton(): void {
+  const sk = document.getElementById("boot-skeleton");
+  if (!sk || sk.classList.contains("fading")) return;
+  sk.classList.add("fading");
+  setTimeout(() => sk.remove(), 300);
+}
+document.addEventListener("mami-tabs-ready", dismissBootSkeleton, {
+  once: true,
+});
+setTimeout(dismissBootSkeleton, 3000);
+
 // Offline/online indicator
 function updateOnlineStatus(): void {
   document.body.classList.toggle("offline", !navigator.onLine);

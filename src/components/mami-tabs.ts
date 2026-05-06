@@ -175,6 +175,15 @@ tmpl.innerHTML = `
   .tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
   .panel { display: flex; flex-direction: column; flex: 1; padding: 0; min-height: 0; height: 100%; }
   .panel > * { flex: 1; min-height: 0; }
+  /* T7.A.6 — fade-in la activarea unui tab. Respectă prefers-reduced-motion (mitigation R9). */
+  @keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .panel.active { animation: tabFadeIn 200ms ease-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .panel.active { animation: none; }
+  }
 </style>
 
 <header class="app-header">
@@ -220,6 +229,9 @@ export class MamiTabs extends HTMLElement {
     this._buildPanels();
     this._refresh();
     this._wire();
+    this.dispatchEvent(
+      new CustomEvent("mami-tabs-ready", { bubbles: true, composed: true }),
+    );
   }
 
   private _buildHeaderTabs(): void {
@@ -303,6 +315,15 @@ export class MamiTabs extends HTMLElement {
       const isActive = el.id === `panel-${this._active}`;
       (el as HTMLElement).style.display = isActive ? "flex" : "none";
       el.setAttribute("aria-hidden", String(!isActive));
+      // Trigger animation only when the panel becomes active
+      if (isActive) {
+        el.classList.remove("active");
+        // force reflow so the keyframe restarts
+        void (el as HTMLElement).offsetWidth;
+        el.classList.add("active");
+      } else {
+        el.classList.remove("active");
+      }
     });
     this._sr.querySelectorAll(".header-tab, .drawer-item").forEach((el) => {
       const tab = (el as HTMLElement).dataset["tab"] ?? "";

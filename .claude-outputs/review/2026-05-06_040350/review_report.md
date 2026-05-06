@@ -13,19 +13,19 @@ Toate modificările aprobate, build verde, 139/139 tests pass. 1 observație MED
 
 ## Sumar pe commit-uri
 
-| Hash | Categorie | Fișiere | Verdict |
-|------|-----------|---------|---------|
-| `935164e` | chore: pre-Faza 5 cleanup | 4 | ✅ |
-| `883a3b6` | feat(faza-5): hardening | 15 | ✅ |
-| `81f9a2b` | docs: jurnal Faza 5 | 4 | ✅ |
-| `d0309fa` | feat(faza-6-partial): hotfix XSS + ton AI + T6.3-7 | 10 | ✅ |
-| `e715a3c` | feat(faza-6): worker deploy + STATE_LIVE | 3 | ✅ |
-| `697e9eb` | ci: workflow worker step + KV | 2 | ✅ |
-| `aa95081` | ci: fix UTF-8 deploy bug | 1 | ✅ |
-| `7752204` | feat(T6.2): CALLMEBOT → keepalive worker | 3 | ✅ |
-| `5e9c4ce` | feat(faza-8): modernizare deps | 8 | ✅ |
-| `fc900c6` | feat(faza-9+T6.1): RLS + observability + DRY | 9 | ✅ |
-| `db43f86` | docs(faza-9-final): bifări + audit 92/100 | 4 | ✅ |
+| Hash      | Categorie                                          | Fișiere | Verdict |
+| --------- | -------------------------------------------------- | ------- | ------- |
+| `935164e` | chore: pre-Faza 5 cleanup                          | 4       | ✅      |
+| `883a3b6` | feat(faza-5): hardening                            | 15      | ✅      |
+| `81f9a2b` | docs: jurnal Faza 5                                | 4       | ✅      |
+| `d0309fa` | feat(faza-6-partial): hotfix XSS + ton AI + T6.3-7 | 10      | ✅      |
+| `e715a3c` | feat(faza-6): worker deploy + STATE_LIVE           | 3       | ✅      |
+| `697e9eb` | ci: workflow worker step + KV                      | 2       | ✅      |
+| `aa95081` | ci: fix UTF-8 deploy bug                           | 1       | ✅      |
+| `7752204` | feat(T6.2): CALLMEBOT → keepalive worker           | 3       | ✅      |
+| `5e9c4ce` | feat(faza-8): modernizare deps                     | 8       | ✅      |
+| `fc900c6` | feat(faza-9+T6.1): RLS + observability + DRY       | 9       | ✅      |
+| `db43f86` | docs(faza-9-final): bifări + audit 92/100          | 4       | ✅      |
 
 ---
 
@@ -43,6 +43,7 @@ Toate modificările aprobate, build verde, 139/139 tests pass. 1 observație MED
 - **`src/components/mami-settings.ts`** — PIN salt regenerat la fiecare `setAdminPin` (testat în `getOrCreateSalt` + `hashPin`). `await syncDeviceRole` în handler async — race condition închisă. ✅
 
 **Edge cases acoperite:**
+
 - KV unbound → bypass rate limit
 - Origin mismatch → 403 înainte de rate limit
 - CALLMEBOT secrets lipsă → 503 (nu 500)
@@ -52,6 +53,7 @@ Toate modificările aprobate, build verde, 139/139 tests pass. 1 observație MED
 ### 2. Securitate ✅ (1 observație MEDIUM)
 
 **Pozitive:**
+
 - ✅ Zero CVE după upgrade Vite 8 + plugin-pwa 1.3 (`npm audit`: 0 vulnerabilities, era 11)
 - ✅ DOMPurify 3.4.2 + mammoth 1.12.0 (5 CVE închise în Faza 5)
 - ✅ XSS OCR închis (CRITICA-1)
@@ -64,14 +66,17 @@ Toate modificările aprobate, build verde, 139/139 tests pass. 1 observație MED
 - ✅ Worker bindings: AI Gateway folosește `RATE_LIMIT_KV` + `ALLOWED_ORIGIN`; keepalive folosește `CALLMEBOT_*` + `ALLOWED_ORIGIN`
 
 **[MED-NEW] `mami-wellness.ts:531` — innerHTML cu items vitale**
+
 ```ts
 return `<li>${d}: ${v.systolic}/${v.diastolic}${pulse}</li>`;
 // ...
 box.innerHTML = `<strong>Ultimele 5 măsurători:</strong><ul>${items}</ul>`;
 ```
+
 Date sunt din storage local (numerice + Date.toLocaleString), risc XSS efectiv minim, dar inconsistent cu pattern-ul DOM API safe aplicat în restul Faza 5. **Recomandare:** convert la `replaceChildren` + `document.createElement("li")` în următoarea sesiune (efort MIC, ~10 min).
 
 **[PRE-EXISTING] Scripts secrete tracked în git:**
+
 - `workers/keepalive/set-secrets.ps1` (commit `dca70ef`, ANTERIOR sesiunii)
 - `workers/set-pages-vars.ps1` (idem)
 
@@ -81,7 +86,7 @@ Verificat: scripturile **NU conțin valori**, doar nume env vars. Hook-ul guard-
 
 - ✅ TypeScript strict + `noUncheckedIndexedAccess` păstrat
 - ✅ kebab-case fișiere componente (`mami-*.ts`)
-- ✅ ALL_CAPS pentru `STATE_LIVE.md`, `MEMORY.md`, `PLAN_*.md`
+- ✅ ALL*CAPS pentru `STATE_LIVE.md`, `MEMORY.md`, `PLAN*\*.md`
 - ✅ Vanilla Web Components cu prefix `mami-`
 - ✅ Tap targets 44×44px (WCAG 2.5.5) consistent
 - ✅ Comentarii doar pentru WHY non-evident (mitigation R2/R4/R7/R8/R9 documentate inline)
@@ -143,6 +148,7 @@ Verificat: scripturile **NU conțin valori**, doar nume env vars. Hook-ul guard-
 ## Mesaj commit (deja făcut, pentru referință)
 
 Toate cele 11 commits respectă formatul Conventional Commits:
+
 - `feat(faza-5)`, `feat(faza-6)`, `feat(faza-8)`, `feat(faza-9+T6.1)`, `feat(T6.2)`
 - `chore`, `ci`, `docs(faza-X-final)`
 

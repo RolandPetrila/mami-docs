@@ -14,7 +14,11 @@ interface Message {
   role: "user" | "ai";
   text: string;
   time: string;
+  isError?: boolean;
 }
+
+const CHAT_HISTORY_KEY = "mami:chat-history";
+const CHAT_HISTORY_LIMIT = 50;
 
 function msgId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -223,9 +227,35 @@ tmpl.innerHTML = `
   .empty-state .hint-icon { font-size: 2.5rem; }
   .empty-state .hint-text { line-height: 1.5; }
   .empty-state.hidden { display: none; }
+
+  /* T7.A.3 — Buton "Curăță conversație" */
+  .clear-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 5;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-muted, #666);
+    border: 1px solid #e0e7ef;
+    border-radius: 18px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    min-height: 36px;
+    display: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .clear-btn.visible { display: inline-flex; align-items: center; gap: 0.25rem; }
+  .clear-btn:hover { background: #f4f6f8; }
+  .clear-btn:focus-visible {
+    outline: 2px solid var(--color-primary, #2e5c8a);
+    outline-offset: 2px;
+  }
+  .messages { position: relative; }
 </style>
 
 <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversație cu AI" aria-relevant="additions">
+  <button class="clear-btn" type="button" id="clear-btn" aria-label="Șterge conversația">🗑️ Curăță</button>
   <div class="empty-state" id="empty-state" role="button" tabindex="0" aria-label="Apasă pentru a scrie un mesaj">
     <span class="hint-icon">💬</span>
     <span class="hint-text">Apasă aici sau pe<br>🎤 microfon ca să vorbești<br>cu Mami AI</span>
@@ -271,6 +301,7 @@ export class MamiChat extends HTMLElement {
     if (this._ready) return;
     this._ready = true;
     this._bindEvents();
+    this._loadHistory();
   }
 
   disconnectedCallback(): void {
@@ -347,6 +378,56 @@ export class MamiChat extends HTMLElement {
 
     // Pre-load TTS voices for faster first speak()
     void loadVoices();
+
+    // T7.A.3 — Buton curăță conversație
+    const clearBtn = this._sr.querySelector(
+      "#clear-btn",
+    ) as HTMLButtonElement | null;
+    clearBtn?.addEventListener("click", () => {
+      if (this._messages.length === 0) return;
+      if (confirm("Ștergi toată conversația cu AI?")) {
+        this.clear();
+        this._saveHistory();
+      }
+    });
+  }
+
+  private _loadHistory(): void {
+    try {
+      const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+      if (!raw) return;
+      const stored = JSON.parse(raw) as Message[];
+      if (!Array.isArray(stored) || stored.length === 0) return;
+      for (const msg of stored.slice(-CHAT_HISTORY_LIMIT)) {
+        if (
+          msg &&
+          (msg.role === "user" || msg.role === "ai") &&
+          typeof msg.text === "string"
+        ) {
+          this._messages.push(msg);
+          this._renderMessage(msg, msg.isError ?? false);
+        }
+      }
+      this._scrollToBottom();
+      this._updateEmptyState();
+    } catch (err) {
+      console.warn(
+        "[mami-chat] history load failed:",
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+
+  private _saveHistory(): void {
+    try {
+      const trimmed = this._messages.slice(-CHAT_HISTORY_LIMIT);
+      localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(trimmed));
+    } catch (err) {
+      console.warn(
+        "[mami-chat] history save failed:",
+        err instanceof Error ? err.message : String(err),
+      );
+    }
   }
 
   private async _sendFromInput(): Promise<void> {
@@ -425,11 +506,13 @@ export class MamiChat extends HTMLElement {
       role: opts.role,
       text: opts.text,
       time: new Date().toISOString(),
+      isError: opts.isError,
     };
     this._messages.push(msg);
     this._renderMessage(msg, opts.isError);
     this._scrollToBottom();
     this._updateEmptyState();
+    this._saveHistory();
   }
 
   private _renderMessage(msg: Message, isError = false): void {
@@ -515,6 +598,8 @@ export class MamiChat extends HTMLElement {
   private _updateEmptyState(): void {
     const empty = this._sr.querySelector("#empty-state") as HTMLElement | null;
     empty?.classList.toggle("hidden", this._messages.length > 0);
+    const clearBtn = this._sr.querySelector("#clear-btn") as HTMLElement | null;
+    clearBtn?.classList.toggle("visible", this._messages.length > 0);
   }
 
   // T17 — STT toggle (start/stop recording)
@@ -619,6 +704,12 @@ export class MamiChat extends HTMLElement {
       input.style.height = "auto";
     }
     if (sendBtn) sendBtn.disabled = false;
+    this._updateEmptyState();
+    try {
+      localStorage.removeItem(CHAT_HISTORY_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 }
 

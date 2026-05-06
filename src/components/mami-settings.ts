@@ -12,6 +12,7 @@ const STORAGE_VOLUME = "mami-volume";
 const STORAGE_MUTE = "mami-mute";
 const STORAGE_DARK = "mami-dark";
 const STORAGE_VOICE_RATE = "mami-voice-rate";
+const STORAGE_FONT_SIZE = "mami-font-size"; // "1" | "1.25" | "1.5"
 const STORAGE_ADMIN_PIN_HASH = "mami-admin-pin-hash";
 const STORAGE_ADMIN_PIN_SALT = "mami-admin-pin-salt";
 const STORAGE_DEVICE_ROLE = "mami-device-role"; // "mom" | "admin"
@@ -354,6 +355,30 @@ tmpl.innerHTML = `
     cursor: pointer;
   }
   .btn-primary:hover { filter: brightness(1.1); }
+
+  /* T7.A.2 — Font size control */
+  .font-size-row { display: flex; gap: 0.5rem; }
+  .font-btn {
+    flex: 1;
+    min-height: 48px;
+    border: 1.5px solid var(--color-primary, #2e5c8a);
+    background: var(--color-surface, #fff);
+    color: var(--color-primary, #2e5c8a);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .font-btn[aria-pressed="true"] {
+    background: var(--color-primary, #2e5c8a);
+    color: #fff;
+  }
+  .font-btn[data-size="1"]    { font-size: 1rem; }
+  .font-btn[data-size="1.25"] { font-size: 1.25rem; }
+  .font-btn[data-size="1.5"]  { font-size: 1.5rem; }
+  .font-btn:focus-visible {
+    outline: 2px solid var(--color-primary, #2e5c8a);
+    outline-offset: 2px;
+  }
 </style>
 
 <div class="modal" role="dialog" aria-labelledby="settings-title" aria-modal="true">
@@ -395,6 +420,15 @@ tmpl.innerHTML = `
         <option value="1.1">Rapid</option>
       </select>
       <span class="help">Cum vorbește aplicația când citește documente cu voce</span>
+    </div>
+    <div class="row">
+      <label class="field-label">Mărime text</label>
+      <div class="font-size-row" role="group" aria-label="Mărime text">
+        <button class="font-btn" type="button" data-size="1"    aria-pressed="false" aria-label="Text normal">A</button>
+        <button class="font-btn" type="button" data-size="1.25" aria-pressed="false" aria-label="Text mărit">A+</button>
+        <button class="font-btn" type="button" data-size="1.5"  aria-pressed="false" aria-label="Text foarte mare">A++</button>
+      </div>
+      <span class="help">Mărește textul pentru citire mai ușoară.</span>
     </div>
     <div class="row inline">
       <div>
@@ -500,6 +534,24 @@ export class MamiSettings extends HTMLElement {
     if (dark) dark.checked = this._readBool(STORAGE_DARK, false);
     if (rate) rate.value = String(this._readNumber(STORAGE_VOICE_RATE, 0.9));
     if (hydration) hydration.checked = isHydrationReminderEnabled();
+    this._refreshFontButtons();
+  }
+
+  private _refreshFontButtons(): void {
+    const current = localStorage.getItem(STORAGE_FONT_SIZE) ?? "1";
+    this._sr.querySelectorAll<HTMLButtonElement>(".font-btn").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(btn.dataset["size"] === current));
+    });
+  }
+
+  private _setFontSize(scale: "1" | "1.25" | "1.5"): void {
+    localStorage.setItem(STORAGE_FONT_SIZE, scale);
+    document.documentElement.style.setProperty(
+      "--font-base",
+      `${18 * Number(scale)}px`,
+    );
+    this._refreshFontButtons();
+    this._dispatch("mami-settings-font-size", { value: scale });
   }
 
   private _wire(): void {
@@ -532,6 +584,15 @@ export class MamiSettings extends HTMLElement {
     hydration?.addEventListener("change", () => {
       setHydrationReminderEnabled(hydration.checked);
       this._dispatch("mami-settings-hydration", { value: hydration.checked });
+    });
+
+    this._sr.querySelectorAll<HTMLButtonElement>(".font-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const size = btn.dataset["size"];
+        if (size === "1" || size === "1.25" || size === "1.5") {
+          this._setFontSize(size);
+        }
+      });
     });
 
     // Admin PIN logic
