@@ -1,68 +1,14 @@
-# Ghid Pas-cu-Pas — Credențiale ce trebuie obținute manual (v6 — 2026-05-07)
+# Ghid Pas-cu-Pas — Credențiale ce trebuie obținute manual (v7 — 2026-05-07)
 
-> **Versiune 6** — restrâns de la 20 la **15 servicii** care îndeplinesc **simultan** 2 criterii admin:
+> **Versiune 7** — curățat: fișierul conține DOAR cele **15 servicii pending signup manual**.
+> Status chei deja obținute → vezi `~/.api-keys/catalog.md` (rulează `verify.ps1` pentru status).
+> Servicii respinse / cu echivalent automat → mutate în `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`.
+>
+> **Criterii admin (obligatoriu simultan):**
 > 1. **Necesită semnare manuală** (signup + click "Generate API Key" — pași fizici imposibili pentru AI)
-> 2. **Au free tier LUNAR / PERMANENT** (NU trial one-shot care expiră) — așa cum a impus admin: *"daca imi ofera doar pt 30 zile nu le vreau, mie imi trebuie lunar sa fie functionale"*
->
-> **5 servicii ELIMINATE din v5 → v6** (trial one-shot fără tier permanent după): AI21 ($10/3 luni), AssemblyAI ($50 one-shot), Cartesia (signup credits), Hailuo MiniMax ($5-30 one-shot), Nebius AI Studio ($1 + paid).
->
-> **16 servicii eliminate anterior din v4 → v5** au echivalent prin chei deja deținute (Replicate / OpenRouter / HuggingFace) → mutate în memoria sistemului `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`.
+> 2. **Au free tier LUNAR / PERMANENT** (NU trial one-shot care expiră) — *"daca imi ofera doar pt 30 zile nu le vreau, mie imi trebuie lunar sa fie functionale"*
 >
 > **La fiecare serviciu am adăugat un bloc `📥 TEMPLATE` la final** — copiezi blocul, înlocuiești `<paste...>` cu valoarea reală, lipești în `~/.api-keys/INBOX.md`, scrii `proceseaza inbox` în Claude Code din `.api-keys`. Restul (Windows env var + catalog + worker secret + integrare AI Gateway) îl fac eu automat.
-
----
-
-## ✅ Status credențiale deja obținute (recap)
-
-| Cred                     | Env Var                    | Status               |
-| ------------------------ | -------------------------- | -------------------- |
-| GitHub Models PAT        | `GITHUB_MODELS_TOKEN`      | ✅ SET (93 chars)    |
-| Azure Doc Intel Key 1+2  | `AZURE_DOC_INTEL_KEY[_2]`  | ✅ SET (84/84 chars) |
-| Azure Doc Intel Endpoint | `AZURE_DOC_INTEL_ENDPOINT` | ✅ SET               |
-| CF Workers AI Token      | `CF_AI_TOKEN`              | ✅ SET (53 chars)    |
-
----
-
-## ⛔ Eliminate v5 → v6 (trial one-shot fără permanent)
-
-| Eliminat              | Motiv                                                                |
-| --------------------- | -------------------------------------------------------------------- |
-| **AI21 Studio**       | $10/3 luni → după paid pay-per-use, NU permanent                     |
-| **AssemblyAI**        | $50 credit signup ONE-SHOT → după $0.12/oră audio (paid)             |
-| **Cartesia**          | Signup credits ONE-SHOT → după paid                                  |
-| **Hailuo MiniMax**    | $5-30 free credits signup ONE-SHOT → după paid                       |
-| **Nebius AI Studio** | $1 signup + paid pay-per-use, fără free tier permanent confirmat     |
-
-**Echivalent funcțional pentru cazurile lor:**
-
-- **256K context (AI21)** → OpenRouter rotation cu modele 200K+ ctx (`anthropic/claude-3.5-sonnet:beta`, `gemini-2.0-flash-thinking`)
-- **STT ro-RO premium (AssemblyAI)** → Groq Whisper Large-v3 (free permanent, ~8% WER ro-RO; suficient pentru majoritate)
-- **TTS ultra-low latency (Cartesia)** → ElevenLabs `eleven_flash_v2_5` (deja în GHID #7, ~75ms similar)
-- **Multimodal video+voice (Hailuo)** → Luma (video) + ElevenLabs (voice) + Replicate Hunyuan/LTX
-- **Llama 405B EU GDPR (Nebius)** → OpenRouter `meta-llama/llama-3.1-405b-instruct` (cu opțiune EU routing)
-
----
-
-## ⛔ Eliminate v4 → v5 (rezolvate prin chei existente — vezi memorie sistem)
-
-| Eliminat                | Echivalent automat                                |
-| ----------------------- | ------------------------------------------------- |
-| Z.ai (Zhipu GLM)        | OpenRouter `zhipu/glm-4-plus`                     |
-| Alibaba Qwen Intl       | OpenRouter `qwen/qwen-2.5-72b` / HuggingFace      |
-| Together AI             | OpenRouter (Together oglindit)                    |
-| DeepInfra               | OpenRouter (DeepInfra oglindit)                   |
-| Pollinations.AI         | Anonim direct (no key)                            |
-| ApiFreeLLM              | Drop (verdict `[INCERT]`)                         |
-| Lambda Inference        | Replicate `meta/llama-3-70b-instruct`             |
-| Fal.ai                  | Replicate `black-forest-labs/flux-schnell`        |
-| Recraft V4              | Replicate `recraft-ai/recraft-v3-svg`             |
-| Stability AI            | Replicate `stability-ai/sdxl`                     |
-| ModelsLab               | Replicate (10k+ modele oglindite)                 |
-| Sync.so (lip sync)      | Replicate `cjwbw/wav2lip` / `sync-labs/sync-labs` |
-| Tripo AI (3D)           | Replicate `camenduru/triposr`                     |
-| TensorPix (upscale vid) | Replicate `nateraw/video-real-esrgan`             |
-| Cutout Pro              | Replicate `cjwbw/rembg` + `tencentarc/gfpgan`     |
-| LALAL.AI                | Replicate `cjwbw/voicefixer`                      |
 
 ---
 
@@ -799,4 +745,4 @@ Reka (US), Voyage (US), ElevenLabs (US), Hume (US), Resend (US), Sentry (EU/US),
 
 ---
 
-**Versiune ghid:** 6.0 | **Data:** 2026-05-07 | **Sursă:** v5 (20) → v6 (15 cu free tier permanent/lunar; 5 eliminate one-shot trial)
+**Versiune ghid:** 7.0 | **Data:** 2026-05-07 | **Sursă:** v6 (15 servicii) → v7 (curățat: secțiuni status & istoric eliminări mutate în memorie sistem; rămân doar cele 15 servicii pending signup)
