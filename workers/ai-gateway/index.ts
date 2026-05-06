@@ -1,7 +1,7 @@
 // Mami_Docs AI Gateway — Cloudflare Worker proxy
 // CRITIC SECURITATE: cheile API trăiesc exclusiv în Cloudflare Secrets.
 //
-// Endpoint: POST /chat          { messages[], systemPrompt? }
+// Endpoint: POST /chat          { messages[], systemPrompt?, category?: "rapid"|"frontier"|"all" }
 // Endpoint: POST /transcribe    multipart/form-data { file: Blob }
 // Endpoint: POST /embed         { text: string, provider?: "gemini"|"cohere"|"mistral" }
 // Endpoint: POST /translate     { text: string, to: string, from?: string }
@@ -10,8 +10,11 @@
 // Endpoint: POST /search        { query: string }
 // Endpoint: GET  /health        → { ok: true }
 //
-// Fallback chains (ADR D4 + 2026-05-06 extension):
+// Fallback chains (ADR D4 + 2026-05-06 extension + 2026-05-07 category routing):
 //   Chat:      Groq 8B → SambaNova 70B → Cerebras 70B → xAI Grok-3-mini → Mistral Large → GitHub Models → OpenRouter :free
+//              Body opțional `category="rapid"` (doar Groq/SambaNova/Cerebras/OpenRouter free)
+//              sau `category="frontier"` (xAI Grok / Mistral Large / GitHub gpt-4o-mini).
+//              Default = toate (fallback complet). Reflectă `memory/routing_decision_trees.md`.
 //   Embed:     Gemini gemini-embedding-001 → Cohere multilingual-v3 → Mistral embed
 //   STT:       Groq Whisper → CF Workers AI Whisper
 //   Translate: DeepL → Azure Translator → Gemini Flash
@@ -125,26 +128,58 @@ const BRAVE_API = "https://api.search.brave.com/res/v1/web/search";
 const TAVILY_API = "https://api.tavily.com/search";
 
 // Chain order: rapid → puternic → frontier → safety net
+// Categoria reflectă routing_decision_trees.md (memory): "rapid" = LLM Open-source rapid,
+// "frontier" = LLM Frontier pentru cazuri complexe (medical, contextual, raționament).
+// Client poate cere category="frontier" pentru lookup medical / drug interactions /
+// întrebări complexe. Default (no category) = toate cu fallback complet.
 // SambaNova testat 939ms latency pe Llama 3.3-70B (3-7x mai rapid decât Groq 70B).
-// xAI Grok-3-mini = frontier-class pentru cazuri complexe (medical, contextual).
-// Mistral Large = 1B tokens/lună gratuit, redundanță suplimentară.
+// xAI Grok-3-mini = frontier-class. Mistral Large = 1B tokens/lună gratuit.
 const CHAT_PROVIDERS = [
-  { id: "groq-8b", model: "llama-3.1-8b-instant", provider: "groq" },
+  {
+    id: "groq-8b",
+    model: "llama-3.1-8b-instant",
+    provider: "groq",
+    category: "rapid",
+  },
   {
     id: "sambanova-70b",
     model: "Meta-Llama-3.3-70B-Instruct",
     provider: "sambanova",
+    category: "rapid",
   },
-  { id: "cerebras-70b", model: "llama3.3-70b", provider: "cerebras" },
-  { id: "xai-grok-mini", model: "grok-3-mini", provider: "xai" },
-  { id: "mistral-large", model: "mistral-large-latest", provider: "mistral" },
-  { id: "github-gpt4o-mini", model: "openai/gpt-4o-mini", provider: "github" },
+  {
+    id: "cerebras-70b",
+    model: "llama3.3-70b",
+    provider: "cerebras",
+    category: "rapid",
+  },
+  {
+    id: "xai-grok-mini",
+    model: "grok-3-mini",
+    provider: "xai",
+    category: "frontier",
+  },
+  {
+    id: "mistral-large",
+    model: "mistral-large-latest",
+    provider: "mistral",
+    category: "frontier",
+  },
+  {
+    id: "github-gpt4o-mini",
+    model: "openai/gpt-4o-mini",
+    provider: "github",
+    category: "frontier",
+  },
   {
     id: "openrouter-free",
     model: "meta-llama/llama-3.1-8b-instruct:free",
     provider: "openrouter",
+    category: "rapid",
   },
 ] as const;
+
+type ChatCategory = "rapid" | "frontier" | "all";
 
 const circuit = new Map<string, CircuitState>();
 
@@ -407,7 +442,11 @@ async function callOpenRouterChat(
 }
 
 async function handleChat(
-  body: { messages: ChatMessage[]; systemPrompt?: string },
+  body: {
+    messages: ChatMessage[];
+    systemPrompt?: string;
+    category?: ChatCategory;
+  },
   env: Env,
   cors: Record<string, string>,
 ): Promise<Response> {
@@ -417,7 +456,22 @@ async function handleChat(
 
   let lastError = "no provider available";
 
-  for (const { id, model, provider } of CHAT_PROVIDERS) {
+  const providers =
+    body.category === "rapid"
+      ? CHAT_PROVIDERS.filter((p) => p.category === "rapid")
+      : body.category === "frontier"
+        ? CHAT_PROVIDERS.filter((p) => p.category === "frontier")
+        : CHAT_PROVIDERS;
+
+  if (providers.length === 0) {
+    return jsonResp(
+      { error: `No providers for category=${body.category}` },
+      400,
+      cors,
+    );
+  }
+
+  for (const { id, model, provider } of providers) {
     if (isOpen(id)) {
       console.warn(`[skip] circuit open id=${id}`);
       continue;
@@ -499,8 +553,13 @@ async function handleChat(
 }
 
 // T7.E.1 — Streaming chat (Groq doar; fallback la /chat non-stream e responsabilitatea clientului).
+// Field `category` acceptat forward-compat cu /chat dar ignorat aici (streaming = Groq fixed).
 async function handleChatStream(
-  body: { messages: ChatMessage[]; systemPrompt?: string },
+  body: {
+    messages: ChatMessage[];
+    systemPrompt?: string;
+    category?: ChatCategory;
+  },
   env: Env,
   cors: Record<string, string>,
 ): Promise<Response> {
@@ -1376,7 +1435,11 @@ export default {
         return jsonResp({ error: "messages[] required" }, 400, cors);
       }
       return handleChat(
-        body as { messages: ChatMessage[]; systemPrompt?: string },
+        body as {
+          messages: ChatMessage[];
+          systemPrompt?: string;
+          category?: ChatCategory;
+        },
         env,
         cors,
       );
@@ -1390,7 +1453,11 @@ export default {
         return jsonResp({ error: "messages[] required" }, 400, cors);
       }
       return handleChatStream(
-        body as { messages: ChatMessage[]; systemPrompt?: string },
+        body as {
+          messages: ChatMessage[];
+          systemPrompt?: string;
+          category?: ChatCategory;
+        },
         env,
         cors,
       );

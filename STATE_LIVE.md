@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-06 by Opus 4.7 (Sprint 7.A + 7.B + 7.C + 7.D + 7.E + Faza 9 reziduuri)
-**Status:** Faze 0-9 + Sprint 7 cod COMPLETE. Lighthouse production: Performance **92** / Accessibility **96** / Best Practices **100** / SEO 91. 9 tab-uri (Chat, Sănătate, Tratament 💊, Notițe 📝, Memo Voce 🎙️, Bibliotecă 📚, Galerie, Meniu, Interacțiuni). 13 web components. SSE streaming AI activ. Husky pre-commit blochează commit cu erori TS/teste. Coverage thresholds 70/70/60/70 active. **PENDING admin manual:** T6.1 SQL prod (test staging FIRST), T6.2 secrets keepalive (`wrangler secret put CALLMEBOT_API_KEY`), T10.3 TEST_CHECKLIST telefon, T10.5 go-live mama, Backup Storj/B2 (lipsă credențiale).
+**Ultimul update:** 2026-05-07 by Opus 4.7 (cleanup chei + GHID v6 + routing tree + a11y 44px)
+**Status:** Faze 0-9 + Sprint 7 cod COMPLETE. Lighthouse production: Performance **92** / Accessibility **96** / Best Practices **100** / SEO 91. 9 tab-uri (Chat, Sănătate, Tratament 💊, Notițe 📝, Memo Voce 🎙️, Bibliotecă 📚, Galerie, Meniu, Interacțiuni). 13 web components. SSE streaming AI activ. Husky pre-commit blochează commit cu erori TS/teste. Coverage thresholds 70/70/60/70 active. **PENDING admin manual:** T6.1 SQL prod (test staging FIRST), T10.3 TEST_CHECKLIST telefon, T10.5 go-live mama, Backup Storj/B2 (lipsă credențiale), GHID v6 signup 15 servicii (Reka/Voyage/Hume/Resend/Sentry/etc. — vezi `docs/GHID_CREDENTIALE_LIPSA.md`).
 
 ## Workflow Testare (CRITIC)
 
@@ -35,6 +35,17 @@
 - ✅ 120 mesaje rotative greetings.ts
 - ✅ mami-doc-viewer + mami-image-viewer + mami-audio-player + mami-search
 - ✅ Offline indicator + SW update banner
+
+### Sesiunea 2026-05-07 (Opus 4.7) — cleanup chei + routing automation:
+
+- ✅ **GHID v6** (`docs/GHID_CREDENTIALE_LIPSA.md`, 802 linii) — restrâns 36 → 15 servicii cu free tier permanent/lunar real (eliminate AI21/AssemblyAI/Cartesia/Hailuo/Nebius — toate trial one-shot)
+- ✅ **Test 4 chei expirate**: DEEPSEEK 402 epuizat (eliminat din env+master+catalog), MAKE 200 OK pe eu2 (păstrat), PLANTID 36/50 active, PLANTNET OK
+- ✅ **routing_decision_trees.md** în memorie sistem — primary→fallback per categorie (LLM/embed/search/STT/TTS/image/video/3D/OCR/translation/plant ID livadă/emotion/email/DB)
+- ✅ **Auto-routing rule** în `CLAUDE.md` proiect — consult tree obligatoriu înainte de orice apel AI + auto-update tree la add/remove cheie
+- ✅ **Catalog cleanup confuzii A1-A5**: GITHUB_TOKEN clarificat (gh CLI not LLM), CLOUDFLARE_API_TOKEN (full admin) vs CF_AI_TOKEN (least-priv), SCALEWAY pair credential, Google Gemini consolidat (Doc AI + Translate + Imagen 3 same key)
+- ✅ **A11y fix 6 tap targets** 36px → 44px WCAG (mama touch): mami-chat (clear+export), mami-doc-library (filter), mami-notes (filter+search), mami-wellness (btn-link)
+- ✅ Commits: `2c7ec47` (GHID v5) → `ff6ed64` (GHID v6 + routing tree) → `cc2002a` (a11y)
+- ✅ **Wrangler secrets verificat**: keepalive 8 SET (Telegram + Supabase + ntfy + Groq), ai-gateway 17 SET (DEEPSEEK eliminat propagat)
 
 ### NOU local (necomis — gata de commit):
 
@@ -167,13 +178,17 @@ Toate cerințele admin sunt în `info_chat.txt` (16 runde Q&A). Spec-ul `PROIECT
 ### Neimplementate (necesită credențiale externe — admin manual):
 
 1. **Supabase** — pgvector activat, tabele schema SQL, RLS, device_role backend, Family sharing
-2. **R2 bucket** (`mami-docs-backup`) + deploy `workers/keepalive` cu secrete reale
-3. **ntfy.sh topic mama** — AMÂNAT pe termen nedefinit (admin va activa la cerere)
-4. **Firebase FCM** — sărit deliberat (ntfy + Telegram suficient când va fi nevoie)
-5. **Test pe telefon real mama** — instalare PWA când admin decide (ntfy/CallMeBot rămân deferre)
-6. **Lighthouse ≥90** — audit PWA, Performance, Accessibility
-7. **Documentație utilizator finală** pentru mama (simplu, cu poze, fără termeni tehnici)
-8. **Backup secundar** (Storj/Backblaze B2) — opțional
+2. **GHID v6 signup** — 15 servicii cu free tier permanent (Reka/Voyage/Hume/Resend/Sentry/Neon/Leonardo/Ideogram/Firefly/Luma/Fish Audio/D-ID/Meshy/Perplexity/ElevenLabs) — admin semnează când dorește, integrare în AI Gateway după
+3. **Test pe telefon real mama** — instalare PWA când admin decide (ntfy/CallMeBot rămân deferre)
+4. **Documentație utilizator finală** pentru mama (simplu, cu poze, fără termeni tehnici)
+5. **Backup secundar** (Storj/Backblaze B2) — opțional
+
+### REZOLVATE 2026-05-07 (verificate explicit):
+
+- ✅ **Wrangler secrets keepalive** — toate 8 SET (Telegram + Supabase + ntfy + Groq + AI_GATEWAY_URL). CallMeBot e URL-based (no key needed), nu necesită secret.
+- ✅ **R2 bucket + keepalive worker** — deploy LIVE, backup nocturn 02:00 UTC funcțional
+- ✅ **Lighthouse ≥90** — Performance 92, Accessibility 96, Best Practices 100, SEO 91
+- ✅ **Firebase FCM** — sărit deliberat (ntfy + Telegram + CallMeBot suficient)
 
 ### Faza 4 completă (2026-05-05):
 
