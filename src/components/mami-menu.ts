@@ -193,7 +193,13 @@ export class MamiMenu extends HTMLElement {
   private _showQuote(): void {
     const q = getDailyQuote();
     const el = this._sr.querySelector("#quote-area");
-    if (el) el.innerHTML = `"${q.text}" <br><small>— ${q.author}</small>`;
+    if (!el) return;
+    el.replaceChildren();
+    el.appendChild(document.createTextNode(`"${q.text}" `));
+    el.appendChild(document.createElement("br"));
+    const small = document.createElement("small");
+    small.textContent = `— ${q.author}`;
+    el.appendChild(small);
   }
 
   private _renderWeek(): void {
@@ -289,11 +295,13 @@ export class MamiMenu extends HTMLElement {
     if (content)
       content.innerHTML = `<div class="generating"><div class="spinner"></div><p>Generez meniu... câteva secunde</p></div>`;
 
-    const systemPrompt = `Ești un nutriționist prietenos care creează meniuri săptămânale echilibrate pentru o doamnă de ~60 de ani din România. Meniurile trebuie să fie:
-- Tradiționale românești și mediteraneene
+    const systemPrompt = `Ești asistent nutrițional în limba română. Generezi meniuri săptămânale echilibrate.
+Constrângeri:
+- Mese tradiționale românești și mediteraneene
 - Echilibrate nutritiv (proteină, legume, carbohidrați complecși)
-- Simple de preparat (max 30 min)
-- Potrivite pentru persoana de vârstă mijlocie (nu foarte picante, ușor digerabile)
+- Maxim 30 minute de preparare per masă
+- Ușor digerabile, nu foarte picante
+La rețete sau combinații despre care nu ai date sigure, evită să le incluzi.
 Răspunde STRICT în format JSON valid, fără text în afara JSON-ului.`;
 
     const userMsg = `Generează un meniu săptămânal complet pentru zilele: Luni, Marți, Miercuri, Joi, Vineri, Sâmbătă, Duminică.

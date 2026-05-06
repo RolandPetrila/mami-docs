@@ -13,6 +13,7 @@ const STORAGE_MUTE = "mami-mute";
 const STORAGE_DARK = "mami-dark";
 const STORAGE_VOICE_RATE = "mami-voice-rate";
 const STORAGE_ADMIN_PIN_HASH = "mami-admin-pin-hash";
+const STORAGE_ADMIN_PIN_SALT = "mami-admin-pin-salt";
 const STORAGE_DEVICE_ROLE = "mami-device-role"; // "mom" | "admin"
 const STORAGE_FAMILY_GROUP = "mami-family-group"; // { groupId, inviteCode, role }
 
@@ -159,13 +160,35 @@ async function leaveFamilyGroup(): Promise<boolean> {
   return true;
 }
 
-// Simple hash: not cryptographic — just PIN obfuscation in localStorage
-async function hashPin(pin: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode("mami:" + pin);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-  return Array.from(new Uint8Array(hashBuffer))
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  const len = hex.length / 2;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++) out[i] = parseInt(hex.substr(i * 2, 2), 16);
+  return out;
+}
+
+function getOrCreateSalt(): Uint8Array {
+  const stored = localStorage.getItem(STORAGE_ADMIN_PIN_SALT);
+  if (stored) return hexToBytes(stored);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  localStorage.setItem(STORAGE_ADMIN_PIN_SALT, bytesToHex(salt));
+  return salt;
+}
+
+// SHA-256(salt || "mami:" || pin) — salt 16B random per device, prevents rainbow tables
+async function hashPin(pin: string, salt: Uint8Array): Promise<string> {
+  const pinBytes = new TextEncoder().encode("mami:" + pin);
+  const combined = new Uint8Array(salt.length + pinBytes.length);
+  combined.set(salt, 0);
+  combined.set(pinBytes, salt.length);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  return bytesToHex(new Uint8Array(hashBuffer));
 }
 
 export function getDeviceRole(): DeviceRole {
@@ -181,11 +204,15 @@ export function isAdminMode(): boolean {
 async function verifyPin(pin: string): Promise<boolean> {
   const stored = localStorage.getItem(STORAGE_ADMIN_PIN_HASH);
   if (!stored) return false;
-  return (await hashPin(pin)) === stored;
+  const salt = getOrCreateSalt();
+  return (await hashPin(pin, salt)) === stored;
 }
 
 async function setAdminPin(pin: string): Promise<void> {
-  localStorage.setItem(STORAGE_ADMIN_PIN_HASH, await hashPin(pin));
+  // Regenerate salt on every PIN set so the hash changes even with the same pin
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  localStorage.setItem(STORAGE_ADMIN_PIN_SALT, bytesToHex(salt));
+  localStorage.setItem(STORAGE_ADMIN_PIN_HASH, await hashPin(pin, salt));
 }
 
 function hasPinSet(): boolean {

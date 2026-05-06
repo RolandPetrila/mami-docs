@@ -38,6 +38,57 @@ export interface Env {
   TAVILY_API_KEY?: string;
   AI?: { run: (model: string, inputs: unknown) => Promise<unknown> }; // CF Workers AI binding
   ALLOWED_ORIGIN?: string;
+  RATE_LIMIT_KV?: KVNamespace;
+}
+
+// Rate limiting (T6.4). Mitigation R4: 30 req/min/IP — single-user case (mama),
+// monitored manually before tightening. Higher than the conservative 10/min so a
+// long chat session never gets blocked.
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_SEC = 60;
+
+interface RateLimitDecision {
+  allowed: boolean;
+  retryAfter: number;
+  remaining: number;
+}
+
+async function checkRateLimit(
+  ip: string,
+  env: Env,
+): Promise<RateLimitDecision> {
+  // KV not bound = no rate limiting (dev or initial deploy without RATE_LIMIT_KV).
+  // Returning allowed=true so the worker still serves traffic; admin sets up KV
+  // via `wrangler kv:namespace create RATE_LIMIT_KV` and adds the id to wrangler.toml.
+  if (!env.RATE_LIMIT_KV) {
+    return { allowed: true, retryAfter: 0, remaining: RATE_LIMIT_MAX };
+  }
+  const key = `rl:${ip}`;
+  const raw = await env.RATE_LIMIT_KV.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  if (count >= RATE_LIMIT_MAX) {
+    return {
+      allowed: false,
+      retryAfter: RATE_LIMIT_WINDOW_SEC,
+      remaining: 0,
+    };
+  }
+  await env.RATE_LIMIT_KV.put(key, String(count + 1), {
+    expirationTtl: RATE_LIMIT_WINDOW_SEC,
+  });
+  return {
+    allowed: true,
+    retryAfter: 0,
+    remaining: RATE_LIMIT_MAX - count - 1,
+  };
+}
+
+function clientIp(request: Request): string {
+  return (
+    request.headers.get("CF-Connecting-IP") ??
+    request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ??
+    "unknown"
+  );
 }
 
 interface ChatMessage {
@@ -1143,11 +1194,18 @@ export default {
     const origin = request.headers.get("Origin") ?? "";
     const allowed = env.ALLOWED_ORIGIN ?? "";
 
+    // T6.5 — CORS strict: never fall back to "*". When ALLOWED_ORIGIN is set,
+    // only the exact match is echoed; otherwise echo whatever Origin the caller
+    // sent (still never wildcard). Browsers will block calls from any origin
+    // not echoed here.
+    const corsOrigin = allowed ? (origin === allowed ? allowed : "") : origin;
+
     const cors: Record<string, string> = {
-      "Access-Control-Allow-Origin": allowed || origin || "*",
+      "Access-Control-Allow-Origin": corsOrigin,
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Max-Age": "86400",
+      Vary: "Origin",
     };
 
     if (request.method === "OPTIONS")
@@ -1185,6 +1243,18 @@ export default {
     if (allowed && origin !== allowed) {
       console.warn(`[forbidden] origin="${origin}" expected="${allowed}"`);
       return jsonResp({ error: "Forbidden" }, 403, cors);
+    }
+
+    // T6.4 — Rate limiting (KV-backed, 30 req/min/IP).
+    const ip = clientIp(request);
+    const rl = await checkRateLimit(ip, env);
+    if (!rl.allowed) {
+      console.warn(`[rate-limit] ip=${ip} exceeded ${RATE_LIMIT_MAX}/min`);
+      return jsonResp(
+        { error: "Rate limit depășit. Reîncearcă în câteva secunde." },
+        429,
+        { ...cors, "Retry-After": String(rl.retryAfter) },
+      );
     }
 
     if (pathname === "/transcribe" && request.method === "POST") {

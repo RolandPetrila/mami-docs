@@ -322,22 +322,22 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
   - **Sursa:** audit [HIGH-1] — notifications.ts:12-14
   - **De ce:** `VITE_CALLMEBOT_API_KEY` public în bundle → apeluri voce neautorizate posibile
   - **Cum:** keepalive worker adaugă endpoint `POST /notify` (auth via Origin + JWT); client trimite la worker, worker apelează CallMeBot cu key din `wrangler secret put CALLMEBOT_API_KEY`; `notifications.ts` schimbă `fetch("https://api.callmebot.com/...")` în `fetch(env.WORKER_URL + "/notify")`
-- [ ] **T6.3** — PIN salt [LOW] [efort: MIC]
+- [x] **T6.3** — PIN salt [LOW] [efort: MIC]
   - **Sursa:** audit [MED-2] — mami-settings.ts:162-169
   - **De ce:** SHA-256 fără salt → rainbow table 4-8 cifre fezabilă (max 100k combinații)
   - **Cum:** la setare PIN: `salt = crypto.getRandomValues(new Uint8Array(16))` → save `localStorage["mami-pin-salt"]`; hash = SHA-256(salt || pin)
-- [ ] **T6.4** — Rate limiting AI Gateway [MEDIUM] [efort: MEDIU]
+- [x] **T6.4** — Rate limiting AI Gateway [MEDIUM] [efort: MEDIU]
   - **Sursa:** audit [MED-3]
   - **De ce:** 100+ req/sec → exhaust Groq/Mistral quota → mama rămâne fără AI
   - **Cum:** CF Workers KV counter per IP cu TTL 60s; limit 10 req/min/IP; depășire → 429 + Retry-After
-- [ ] **T6.5** — CORS strict [LOW] [efort: MIC]
+- [x] **T6.5** — CORS strict [LOW] [efort: MIC]
   - **Sursa:** audit [MED-1] — ai-gateway/index.ts:962
   - **Cum:** dacă `origin` nu în whitelist → `403 Forbidden` (în loc de fallback `Access-Control-Allow-Origin: *`)
-- [ ] **T6.6** — STT fallback Whisper conectat [MEDIUM] [efort: MEDIU]
+- [x] **T6.6** — STT fallback Whisper conectat [MEDIUM] [efort: MEDIU]
   - **Sursa:** audit [MED-6, MED-7] — mami-chat.ts
   - **De ce:** `transcribeAudio()` există în client.ts dar nu e invocat la eșec Web Speech
   - **Cum:** la catch STT (în `_toggleStt`/`startStt`), dacă error e "not-supported" sau "no-speech" → înregistrează cu MediaRecorder 30s → `transcribeAudio(blob, signal)` → afișează transcript
-- [ ] **T6.7** — family_sharing.sql cleanup invites [LOW] [efort: MIC]
+- [x] **T6.7** — family_sharing.sql cleanup invites [LOW] [efort: MIC]
   - **Sursa:** audit [MED-11]
   - **Cum:** SQL — `< now() - interval '30 days'` → `< now()` (invitația expirată în 7 zile se șterge imediat, nu după 30+7=37 zile)
 
@@ -674,3 +674,6 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 | 2026-05-06 | PLAN v2.0 — integrare audit/improve/imbunatatiri      | ✅ Completat | Adăugate Faze 5-10 (71 task-uri noi) cu surse din `.claude-outputs/`; tenderness.mp3 marcat ✅ (era blocked învechit); MED-10 mami-ambient-player confirmat fals positive (Grep import în main.ts)                                                                                                                                                                                                                                                                                                       |
 | 2026-05-06 | PLAN v2.1 — sequential thinking refinement            | ✅ Completat | Adăugate: DoD global + per fază (gate-uri obligatorii), 8 dependențe critice cross-phase, estimări cumulate (~95-130h total), Risk Register top 10 cu mitigation; consolidat T5.1+T5.2 într-un singur commit                                                                                                                                                                                                                                                                                             |
 | 2026-05-06 | Faza 5 — Hardening Securitate & Calitate (T5.0-T5.18) | ✅ Completat | Audit 58 → 80/100 (+22). Închise 6/7 CRITICA + 5/9 HIGH + 6/12 MEDIUM. CVE: DOMPurify 3.4.2, mammoth 1.12.0. WCAG AA: 44px tap targets, contrast #666/#777, prefers-reduced-motion. Funcțional: RAG integrat în chat (mitigation R2: topK=3, maxChars=1500), system prompts wellness/menu/medicamente/gallery cu disclaimer medical. Mitigation R1+R2+R9 aplicate. Build verde, 114/115 tests pass, GH Actions deploy 883a3b6 success. Raport: `.claude-outputs/audit/2026-05-06_025339/audit_report.md` |
+| 2026-05-06 | Hotfix NEW-1 — innerHTML residual XSS                 | ✅ Completat | mami-doc-viewer.ts:389 (err.message → textContent), mami-wellness.ts:399 (alerts → DOM nodes), mami-menu.ts:196 (quote → textNode + small element). Toate user data prin DOM API safe.                                                                                                                                                                                                                                                                                                                  |
+| 2026-05-06 | Stil prompts AI — neutru, sincer, fără jargon         | ✅ Completat | Per request admin: rescris `system-prompts.ts` (5 prompts) + 3 prompts inline (mami-menu, mami-wellness, mami-doc-viewer). Eliminat „mama" / „cald" / „prietenos" / „femeie de ~60 ani". HONESTY_RULE constant: declarare explicită incertitudine. Memorie: `feedback_ton_ai_chat.md`.                                                                                                                                                                                                                   |
+| 2026-05-06 | Faza 6 partial — T6.3-T6.7 (autonom, non-HIGH)        | ✅ Completat | T6.3 PIN salt random 16B per device (regenerat la fiecare set); T6.4 rate limit KV 30 req/min/IP (mitigation R4) + KV namespace placeholder în wrangler.toml; T6.5 CORS strict (no `*` fallback, deny dacă origin nu match); T6.6 STT Whisper fallback automat la network/no-speech; T6.7 cleanup invites SQL `< now()` (era `now() - 30d`). Build verde, tests 114/115. T6.1 RLS + T6.2 CALLMEBOT rămân PENDING — confirmare admin.                                                                     |

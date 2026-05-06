@@ -175,7 +175,9 @@ BEGIN
 END $$;
 CREATE INDEX IF NOT EXISTS photos_meta_archived_at_idx ON photos_meta(archived_at);
 
--- 10. Cleanup automat: invitații expirate >30 zile (rulează la backup zilnic)
+-- 10. Cleanup automat: invitații expirate (rulează la backup zilnic).
+-- T6.7 fix (audit MED-11): șterge imediat ce expires_at a trecut, nu după 30 zile suplimentare.
+-- Membrii deja conectați NU sunt afectați (gardați de NOT EXISTS).
 CREATE OR REPLACE FUNCTION cleanup_expired_invites()
 RETURNS INT
 LANGUAGE plpgsql
@@ -185,7 +187,7 @@ DECLARE
 BEGIN
   DELETE FROM family_groups
   WHERE expires_at IS NOT NULL
-    AND expires_at < now() - interval '30 days'
+    AND expires_at < now()
     AND NOT EXISTS (SELECT 1 FROM family_members WHERE family_members.group_id = family_groups.id);
   GET DIAGNOSTICS v_deleted = ROW_COUNT;
   RETURN v_deleted;

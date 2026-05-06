@@ -359,7 +359,7 @@ export class MamiDocViewer extends HTMLElement {
       prompt = `Sumarizează următorul document în exact 3 puncte esențiale, clare și ușor de înțeles:\n\n${text.substring(0, 5000)}`;
     } else if (action === "explica") {
       titleEl.textContent = "🔍 Explică mai simplu";
-      prompt = `Explică următorul text într-un limbaj foarte simplu, clar și cald, ca pentru o persoană care nu are cunoștințe tehnice (evită cuvintele grele):\n\n${text.substring(0, 1500)}`;
+      prompt = `Explică următorul text într-un limbaj simplu, clar, fără termeni tehnici sau cuvinte rare. Dacă o parte din text e ambiguă sau pe care nu o poți explica sigur, spune-o explicit.\n\n${text.substring(0, 1500)}`;
     } else if (action === "traduce") {
       titleEl.textContent = "🌍 Traducere în Română";
       prompt = `Traduce următorul text în limba română (păstrează sensul și fii exact):\n\n${text.substring(0, 1500)}`;
@@ -386,7 +386,10 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
       const { parse: mdParse } = await import("marked");
       bodyEl.innerHTML = DOMPurify.sanitize(mdParse(response) as string);
     } catch (err) {
-      bodyEl.innerHTML = `<p class="error-msg">A apărut o eroare: ${err instanceof Error ? err.message : String(err)}</p>`;
+      const errP = document.createElement("p");
+      errP.className = "error-msg";
+      errP.textContent = `A apărut o eroare: ${err instanceof Error ? err.message : String(err)}`;
+      bodyEl.replaceChildren(errP);
     }
   }
 

@@ -90,24 +90,33 @@ export function startStt(
     if (r) onResult({ transcript: r.transcript, confidence: r.confidence });
   };
 
+  // T6.6 — fallback Whisper la erori tranzitorii (network, no-speech).
+  // Permisiuni refuzate / hardware lipsă rămân terminale (Whisper nu rezolvă).
+  let whisperHandle: (() => void) | null = null;
+  const TRANSIENT_ERRORS = new Set([
+    "network",
+    "no-speech",
+    "language-not-supported",
+  ]);
+
   rec.onerror = (event: SpeechRecognitionErrorEvent) => {
-    // If native fails due to network or language, we could fallback,
-    // but for now, just show error or let user try again.
     const MAP: Record<string, string> = {
       "no-speech": "Nicio voce detectată. Vorbește mai aproape de microfon.",
       "not-allowed":
         "Permisiunea microfonului a fost refuzată. Activează-o din browser.",
       "audio-capture": "Microfonul nu poate fi accesat.",
       network: "Eroare de rețea la recunoașterea vocală.",
-      aborted: "", // user-cancelled, don't show error
+      aborted: "",
     };
-    const msg = MAP[event.error] ?? `Eroare STT: ${event.error}`;
-    if (msg && event.error !== "network") {
-      onError(msg);
-    } else if (event.error === "network") {
-      // Fallback to whisper on network error could be done here, but requires managing state.
-      onError("Eroare de rețea. Vom încerca serviciul alternativ.");
+    if (TRANSIENT_ERRORS.has(event.error)) {
+      console.info(
+        `[speech] native STT eroare tranzitorie '${event.error}', fallback Whisper`,
+      );
+      whisperHandle = startWhisperStt(onResult, onError, onEnd);
+      return;
     }
+    const msg = MAP[event.error] ?? `Eroare STT: ${event.error}`;
+    if (msg) onError(msg);
   };
 
   if (onEnd) rec.onend = onEnd;
@@ -131,6 +140,8 @@ export function startStt(
         err instanceof Error ? err.message : String(err),
       );
     }
+    whisperHandle?.();
+    whisperHandle = null;
   };
 }
 

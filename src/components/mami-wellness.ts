@@ -396,18 +396,19 @@ export class MamiWellness extends HTMLElement {
     card.style.display = "block";
     if (aiCard) aiCard.style.display = "block";
 
-    alertsEl.innerHTML = alerts
-      .map(
-        (a) => `<div style="
-        padding: 0.6rem 0.75rem;
-        border-radius: 8px;
-        margin-bottom: 0.5rem;
-        background: ${a.type === "warning" ? "#fff3e0" : "#e8f5e9"};
-        border-left: 4px solid ${a.type === "warning" ? "#e67e22" : "#27ae60"};
-        font-size: 0.9rem;
-      ">${a.message}</div>`,
-      )
-      .join("");
+    alertsEl.replaceChildren();
+    for (const a of alerts) {
+      const div = document.createElement("div");
+      div.style.padding = "0.6rem 0.75rem";
+      div.style.borderRadius = "8px";
+      div.style.marginBottom = "0.5rem";
+      div.style.fontSize = "0.9rem";
+      const isWarn = a.type === "warning";
+      div.style.background = isWarn ? "#fff3e0" : "#e8f5e9";
+      div.style.borderLeft = `4px solid ${isWarn ? "#e67e22" : "#27ae60"}`;
+      div.textContent = a.message;
+      alertsEl.appendChild(div);
+    }
   }
 
   private async _getAiSuggestions(): Promise<void> {
@@ -431,12 +432,12 @@ export class MamiWellness extends HTMLElement {
     );
 
     const patternLines = alerts.map((a) => `- ${a.message}`).join("\n");
-    const prompt = `Bazat pe aceste observații privind starea mea de sănătate din ultimele 7 zile:\n${patternLines}\n\nOferă-mi 3-4 sfaturi practice, calde și concrete în română. Fii scurt și încurajator. NU da diagnostic, doar sugestii de stil de viață.`;
+    const prompt = `Bazat pe aceste observații privind starea de sănătate din ultimele 7 zile:\n${patternLines}\n\nOferă 3-4 sfaturi practice, concrete, în română. Concis și clar. NU da diagnostic, doar sugestii de stil de viață. Dacă datele sunt insuficiente pentru o concluzie, spune-o explicit.`;
 
     try {
       const reply = await sendChat(
         [{ role: "user", content: prompt }],
-        "Ești un asistent de wellness prietenos care vorbește în română cu o femeie de ~60 ani. Fii cald, simplu și practic.",
+        `Ești asistent AI pentru wellness, în limba română. Ton respectuos și sincer. La incertitudine declară explicit „nu sunt sigur". Nu prescrii, nu pui diagnostic.`,
       );
       textEl.textContent = reply;
       btn.textContent = "🔄 Actualizează sfaturile";

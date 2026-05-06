@@ -9,3 +9,11 @@ ALLOWED_ORIGIN = "https://mami-docs.pages.dev"
 
 # GROQ_API_KEY must be set via:  wrangler secret put GROQ_API_KEY
 # DO NOT add secret values to this file
+
+# T6.4 — Rate limiting per IP (30 req/min). Create with:
+#   wrangler kv:namespace create RATE_LIMIT_KV
+# then paste the returned id below and re-deploy. Until then the worker serves
+# without rate limiting (KV unbound = bypass — see checkRateLimit).
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "<paste-id-from-wrangler-kv-create>"
