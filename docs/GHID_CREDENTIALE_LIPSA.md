@@ -1,248 +1,107 @@
-# Ghid Pas-cu-Pas — Credențiale AI/Apps Gratuite Noi (v3 — 2026-05-06)
+# Ghid Pas-cu-Pas — Credențiale ce trebuie obținute manual (v5 — 2026-05-06)
 
-> **Versiune 3** — extins de la 8 la **20 servicii** (LLM + Speech + Image + Email + Monitoring + DB). Acoperire largă a stack-ului tipic dezvoltare AI/web modern, toate cu free tier semnificativ.
+> **Versiune 5** — restrâns de la 36 la **20 servicii** care **necesită semnare manuală** (signup + click "Generate API Key" pe site-ul lor — pași fizici imposibili pentru AI).
 >
-> **Surse:** `API_de_adaugat.md` (TOP 10 LLM v1) + research web 2026-05 pentru #9-20 (Perplexity/Voyage/Nebius/Lambda/AssemblyAI/ElevenLabs/Cartesia/Fal/Hume/Resend/Sentry/Neon)
+> **16 servicii eliminate** au echivalent prin chei deja deținute (Replicate / OpenRouter / HuggingFace) → mutate în memoria sistemului `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`. Le execut automat fără setup nou.
+>
+> **La fiecare serviciu am adăugat un bloc `📥 TEMPLATE` la final** — copiezi blocul, înlocuiești `<paste...>` cu valoarea reală, lipești în `~/.api-keys/INBOX.md`, deschizi Claude Code în `.api-keys` și rulezi `proceseaza inbox`. Restul (Windows env var + catalog + worker secret + integrare AI Gateway) îl fac eu automat.
 
 ---
 
-## ✅ Status v1 — credențiale obținute (2026-05-06)
+## ✅ Status v1 — credențiale deja obținute (recap)
 
-Recap rapid din v1 (toate setate în Windows env + worker secrets `mami-docs-ai`):
-
-| Cred v1                  | Env Var                      | Status               | Notes                                    |
-| ------------------------ | ---------------------------- | -------------------- | ---------------------------------------- |
-| GitHub Models PAT        | `GITHUB_MODELS_TOKEN`        | ✅ SET (93 chars)    | gpt-4o-mini fallback chat live           |
-| Azure Doc Intel Key      | `AZURE_DOC_INTEL_KEY` + `_2` | ✅ SET (84/84 chars) | resource `mami-docs-docintel` westeurope |
-| Azure Doc Intel Endpoint | `AZURE_DOC_INTEL_ENDPOINT`   | ✅ SET               | folosit prin worker `/ocr-document`      |
-| CF Workers AI Token      | `CF_AI_TOKEN`                | ✅ SET (53 chars)    | scope dedicat `Workers AI:Read`          |
+| Cred                     | Env Var                    | Status               |
+| ------------------------ | -------------------------- | -------------------- |
+| GitHub Models PAT        | `GITHUB_MODELS_TOKEN`      | ✅ SET (93 chars)    |
+| Azure Doc Intel Key 1+2  | `AZURE_DOC_INTEL_KEY[_2]`  | ✅ SET (84/84 chars) |
+| Azure Doc Intel Endpoint | `AZURE_DOC_INTEL_ENDPOINT` | ✅ SET               |
+| CF Workers AI Token      | `CF_AI_TOKEN`              | ✅ SET (53 chars)    |
 
 ---
 
-## ⛔ Excluse din v2 (motivate)
+## ⛔ Eliminate din v5 (rezolvate cu chei existente — vezi memorie sistem)
 
-| #   | Provider  | Motiv excludere                                                          |
-| --- | --------- | ------------------------------------------------------------------------ |
-| 9   | Replicate | **Deja deținut** — `REPLICATE_API_TOKEN` SET (40 chars)                  |
-| 10  | Chutes.AI | **Friction mare** — necesită Bittensor wallet; verdict user `[MEDIOCRU]` |
+| Eliminat                | Echivalent automat                                |
+| ----------------------- | ------------------------------------------------- |
+| Z.ai (Zhipu GLM)        | OpenRouter `zhipu/glm-4-plus` / `glm-4-air`       |
+| Alibaba Qwen Intl       | OpenRouter `qwen/qwen-2.5-72b` / HuggingFace      |
+| Together AI             | OpenRouter (Together oglindit majoritar)          |
+| DeepInfra               | OpenRouter (DeepInfra oglindit)                   |
+| Pollinations.AI         | Anonim direct (no key)                            |
+| ApiFreeLLM              | Drop (verdict `[INCERT]`)                         |
+| Lambda Inference        | Replicate `meta/llama-3-70b-instruct`             |
+| Fal.ai                  | Replicate `black-forest-labs/flux-schnell`        |
+| Recraft V4              | Replicate `recraft-ai/recraft-v3-svg`             |
+| Stability AI            | Replicate `stability-ai/sdxl` + `sd3.5`           |
+| ModelsLab               | Replicate (10k+ modele oglindite)                 |
+| Sync.so (lip sync)      | Replicate `cjwbw/wav2lip` / `sync-labs/sync-labs` |
+| Tripo AI (3D)           | Replicate `camenduru/triposr`                     |
+| TensorPix (upscale vid) | Replicate `nateraw/video-real-esrgan`             |
+| Cutout Pro              | Replicate `cjwbw/rembg` + `tencentarc/gfpgan`     |
+| LALAL.AI                | Replicate `cjwbw/voicefixer`                      |
 
----
-
-## 🆕 TOP 20 AI / Apps de adăugat (sortate după categorie + valoare)
-
-### LLM / Inference (12)
-
-| Prio     | Provider              | Free tier                                     | Card? | Verdict             | Env var propus                  |
-| -------- | --------------------- | --------------------------------------------- | ----- | ------------------- | ------------------------------- |
-| ⭐⭐ #1  | **Z.ai (Zhipu GLM)**  | GLM-4.7-Flash + 4.5-Flash **PERMANENT**       | NU    | RECOMANDAT          | `ZAI_API_KEY`                   |
-| ⭐⭐ #2  | **Alibaba Qwen Intl** | 1M+1M tokens/90 zile per model                | NU    | RECOMANDAT          | `DASHSCOPE_API_KEY`             |
-| ⭐⭐ #3  | **Reka AI**           | $10 **RECURRING LUNAR** (unic!)               | NU    | RELEVANT (unic)     | `REKA_API_KEY`                  |
-| ⭐ #4    | **AI21 Studio**       | $10 / 3 luni, **256K context**                | NU    | RELEVANT (long-ctx) | `AI21_API_KEY`                  |
-| ⭐ #5    | **Together AI**       | $1–25 credit signup, 200+ modele OS           | NU    | RELEVANT            | `TOGETHER_API_KEY`              |
-| ⭐ #6    | **DeepInfra**         | $5 credit signup, Llama/Qwen/Mistral          | NU    | RELEVANT            | `DEEPINFRA_API_KEY`             |
-| 🆓 #7    | **Pollinations.AI**   | GPT-5/Claude/Gemini proxy **fără signup**     | NU    | FALLBACK PREMIUM    | `POLLINATIONS_TOKEN` (opțional) |
-| ⚠ #8     | **ApiFreeLLM**        | "Forever free, no token limits" (`[INCERT]`)  | NU    | RELEVANT            | `APIFREELLM_TOKEN`              |
-| ⭐⭐ #9  | **Perplexity API**    | $5 credit + Sonar models **gratis nelimitat** | NU    | RECOMANDAT (search) | `PERPLEXITY_API_KEY`            |
-| ⭐⭐ #10 | **Voyage AI**         | **200M tokens** embed/luna gratis             | NU    | RECOMANDAT (embed)  | `VOYAGE_API_KEY`                |
-| ⭐ #11   | **Nebius AI Studio**  | $1 + Llama 3.3 405B / DeepSeek-R1 free tier   | NU    | RELEVANT            | `NEBIUS_API_KEY`                |
-| ⭐ #12   | **Lambda Inference**  | $5 credit signup, OpenAI-compat, GPU pe edge  | NU    | RELEVANT            | `LAMBDA_API_KEY`                |
-
-### Speech / Audio (3)
-
-| Prio     | Provider       | Free tier                                       | Card? | Verdict             | Env var propus       |
-| -------- | -------------- | ----------------------------------------------- | ----- | ------------------- | -------------------- |
-| ⭐⭐ #13 | **AssemblyAI** | $50 credit signup + STT multilingv ro-RO        | NU    | RECOMANDAT (STT)    | `ASSEMBLYAI_API_KEY` |
-| ⭐⭐ #14 | **ElevenLabs** | 10k chars/lună gratis **PERMANENT** + voci RO   | NU    | RECOMANDAT (TTS)    | `ELEVENLABS_API_KEY` |
-| ⭐ #15   | **Cartesia**   | Free tier Sonic-2 ultra-low-latency TTS (~75ms) | NU    | RELEVANT (TTS edge) | `CARTESIA_API_KEY`   |
-
-### Image / Multimodal (2)
-
-| Prio     | Provider    | Free tier                                        | Card? | Verdict              | Env var propus |
-| -------- | ----------- | ------------------------------------------------ | ----- | -------------------- | -------------- |
-| ⭐ #16   | **Fal.ai**  | Flux Schnell free tier + $10 signup, image rapid | NU    | RELEVANT (image gen) | `FAL_API_KEY`  |
-| ⭐⭐ #17 | **Hume AI** | Emotion AI free dev tier (voice/face emotion)    | NU    | UNIC (wellness mama) | `HUME_API_KEY` |
-
-### Infrastructure / Apps (3)
-
-| Prio     | Provider          | Free tier                                      | Card? | Verdict                | Env var propus      |
-| -------- | ----------------- | ---------------------------------------------- | ----- | ---------------------- | ------------------- |
-| ⭐⭐ #18 | **Resend**        | 3000 emails/lună + 100/zi gratis **PERMANENT** | NU    | RECOMANDAT (email)     | `RESEND_API_KEY`    |
-| ⭐⭐ #19 | **Sentry**        | 5k errors + 10k transactions/lună free         | NU    | RECOMANDAT (error mon) | `SENTRY_DSN`        |
-| ⭐ #20   | **Neon Postgres** | 500MB DB + branching **gratis PERMANENT**      | NU    | RELEVANT (DB alt)      | `NEON_DATABASE_URL` |
+> Workflow auto-execute pentru toate cele de mai sus → `system_no_key_services.md` (memorie). Spui *"fă-mi un logo"* → eu aleg automat provider-ul potrivit din chei existente, fac apelul, salvez fișierul.
 
 ---
 
-## 1. Z.ai (Zhipu GLM) — RECOMANDAT ⭐⭐
+## 🆕 TOP 20 servicii — necesită signup manual
+
+| Cat              | #     | Provider         | Free tier                      | Env var propus                            |
+| ---------------- | ----- | ---------------- | ------------------------------ | ----------------------------------------- |
+| **LLM**          | 1     | Reka AI          | $10 RECURRING LUNAR            | `REKA_API_KEY`                            |
+|                  | 2     | AI21 Studio      | $10 / 3 luni, 256K ctx         | `AI21_API_KEY`                            |
+|                  | 3     | Perplexity       | $5 + Sonar gratis nelimitat    | `PERPLEXITY_API_KEY`                      |
+|                  | 4     | Voyage AI        | 200M tokens/lună embed         | `VOYAGE_API_KEY`                          |
+|                  | 5     | Nebius AI Studio | $1 + Llama 405B free (EU)      | `NEBIUS_API_KEY`                          |
+| **Speech**       | 6     | AssemblyAI       | $50 credit (~16h ro-RO STT)    | `ASSEMBLYAI_API_KEY`                      |
+|                  | 7     | ElevenLabs       | 10k chars/lună permanent       | `ELEVENLABS_API_KEY`                      |
+|                  | 8     | Cartesia         | TTS sub 75ms (signup credits)  | `CARTESIA_API_KEY`                        |
+| **Multimodal**   | 9     | Hume AI          | 10k min/lună emotion analysis  | `HUME_API_KEY`                            |
+| **Email**        | 10    | Resend           | 3000 emails/lună permanent     | `RESEND_API_KEY`                          |
+| **Monitoring**   | 11    | Sentry           | 5k errors + 10k tx/lună        | `SENTRY_DSN`                              |
+| **DB**           | 12    | Neon Postgres    | 500MB + branching permanent    | `NEON_DATABASE_URL`                       |
+| **Image**        | 13    | Leonardo.AI      | 1500-2250 imagini/lună         | `LEONARDO_API_KEY`                        |
+|                  | 14    | Ideogram         | 1200 imagini/lună (text-best)  | `IDEOGRAM_API_KEY`                        |
+|                  | 15    | Adobe Firefly    | 25 credits/lună commercial     | `FIREFLY_CLIENT_ID` + `FIREFLY_CLIENT_SECRET` |
+| **Video**        | 16    | Luma Dream Mach. | 30 video gens/lună             | `LUMA_API_KEY`                            |
+|                  | 17    | Hailuo MiniMax   | $5-30 credits + multimodal     | `MINIMAX_API_KEY` + `MINIMAX_GROUP_ID`    |
+| **Audio**        | 18    | Fish Audio       | Free permanent + 2M voci RO    | `FISHAUDIO_API_KEY`                       |
+| **Talking head** | 19    | D-ID             | 5 min video/lună               | `DID_API_KEY`                             |
+| **3D**           | 20    | Meshy AI         | 200 credits/lună permanent     | `MESHY_API_KEY`                           |
+
+**Timp total semnare manuală:** ~75 min pentru toate 20 (~3-5 min fiecare).
+
+---
+
+## 📥 Workflow standard (după ce obții o cheie)
+
+1. Copiezi blocul `TEMPLATE` de la finalul serviciului
+2. Înlocuiești `<paste...>` cu valoarea reală obținută de pe site-ul furnizorului
+3. Lipești blocul în `C:\Users\ALIENWARE\.api-keys\INBOX.md` (poți pune mai multe odată)
+4. Deschizi Claude Code în `C:\Users\ALIENWARE\.api-keys\` și scrii `proceseaza inbox`
+5. **Eu fac restul automat:**
+   - Adaug în master file
+   - Setez Windows User env var
+   - Regenerez `catalog.md`
+   - (Pentru integrare în Mami_Docs AI Gateway) anunță-mă într-o sesiune `Mami_Docs` și integrez fallback-ul / endpoint-ul nou
+
+---
+
+## 1. Reka AI ⭐⭐ — $10 RECURRING LUNAR (UNIC)
 
 ### Ce câștigi
 
-- **GLM-4.7-Flash** + **GLM-4.5-Flash** GRATIS PERMANENT (nu trial, nu expiră)
-- Modele frontier-class chinezești cu performanță apropiată GPT-4o pentru cost zero
-- OpenAI-compatible API (drop-in replacement în chain-uri existente)
-- Credite signup adiționale pentru modele non-Flash (GLM-4.7, GLM-4.5)
-
-### Prerequisites
-
-- Cont Z.ai ([signup](https://z.ai/) — necesită email + verificare; număr de telefon poate fi solicitat dacă semnezi cu IP din afara Chinei)
-- ⚠ **GDPR considerare** — servere China; pentru date medicale Mami_Docs **NU folosi** (per ADR exclus DeepSeek pe același motiv). OK pentru cazuri non-personale (rețete generice, traducere meniu, etc.).
-
-### Pași pas-cu-pas (~5 min)
-
-1. **Deschide** [z.ai signup](https://z.ai/) → click **Sign Up** (colț dreapta sus)
-2. **Înregistrează** cu email Google/GitHub/email custom
-3. **Verifică email** — primești link click activare
-4. **Login** → mergi la [API Keys](https://z.ai/manage-apikey/apikey-list) (sau `Console → API Keys`)
-5. **Create API Key** → name `claude-code-mami-docs` → **Generate**
-6. **Copiază** valoarea (`<token>`) — **APARE DOAR O DATĂ**, dacă pierzi regenerezi
-
-### Persistare valoare
-
-Editează `C:\Users\ALIENWARE\.api-keys\INBOX.md` cu Format 3:
-
-```markdown
-### Z.ai Zhipu GLM
-
-- **Key:** <paste>
-- **Env Var:** ZAI_API_KEY
-- **Tip:** LLM Multi-Model (GLM-4.x)
-- **Limita:** GLM-4.x-Flash gratis permanent + credite signup pentru tier mai mare
-- **Base URL:** https://api.z.ai/api/paas/v4/chat/completions
-- **Note:** OpenAI-compatible. ⚠ servere China, NU pentru date medicale (GDPR risk).
-```
-
-Apoi `proceseaza inbox` în sesiune Claude Code din `~/.api-keys/`.
-
-### Test imediat
-
-```powershell
-$body = @{
-  model = "glm-4-flash"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-  max_tokens = 5
-} | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://api.z.ai/api/paas/v4/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:ZAI_API_KEY"; "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-Output: `choices[0].message.content` = `"OK"`
-
-### Note
-
-- Rate limit Flash: ~30 RPM gratis (rezonabil)
-- Modelele Flash sunt model "small" optimizat — pentru raționament complex, folosește credite signup pe `glm-4-plus`
-- Rotation: nu necesită; revoke manual dacă scapă
-
-### Link-uri rapide
-
-- 🔧 [API Keys](https://z.ai/manage-apikey/apikey-list)
-- 📚 [Documentație Z.ai](https://docs.z.ai/)
-- 📊 [Console](https://z.ai/manage-apikey)
-
----
-
-## 2. Alibaba Qwen International (Model Studio) — RECOMANDAT ⭐⭐
-
-### Ce câștigi
-
-- **1M tokens input + 1M tokens output / 90 zile per model** (Qwen-Max, Qwen-Plus, Qwen-Turbo, Qwen2.5-Coder, etc.)
-- 256K context maxim pe `qwen-plus`
-- OpenAI-compatible API
-- International endpoint (`-intl`) → fără VPN/restricție geo
-
-### Prerequisites
-
-- Cont Alibaba Cloud International ([signup](https://www.alibabacloud.com/account) — emails simplu, NU card pentru free tier)
-- ⚠ **GDPR considerare** — Alibaba International servere în Singapore/SUA (mai bine decât China mainland), dar pentru date medicale evaluează riscul. OK pentru workload non-personal.
-
-### Pași pas-cu-pas (~7 min)
-
-1. **Deschide** [Alibaba Cloud signup](https://www.alibabacloud.com/account)
-2. **Click** Sign Up → folosește email/Google
-3. **Activate Account** — primești email cu link
-4. **Deschide** [Model Studio Console](https://modelstudio.console.alibabacloud.com/)
-5. **Top-right** → click profil → `API-KEY` (sau direct [API-KEY page](https://modelstudio.console.alibabacloud.com/?tab=model#/api-key))
-6. **Create New API Key** → confirm
-7. **Copy** valoarea (`sk-...`) — **APARE DOAR O DATĂ**
-
-### Persistare
-
-INBOX.md Format 3:
-
-```markdown
-### Alibaba Qwen International
-
-- **Key:** <paste>
-- **Env Var:** DASHSCOPE_API_KEY
-- **Tip:** LLM Multi-Model (Qwen family)
-- **Limita:** 1M input + 1M output tokens/90 zile per model (Qwen-Max/Plus/Turbo/Coder)
-- **Base URL:** https://dashscope-intl.aliyuncs.com/compatible-mode/v1
-- **Note:** OpenAI-compatible. International endpoint. 256K ctx pe qwen-plus.
-```
-
-### Test imediat
-
-```powershell
-$body = @{
-  model = "qwen-plus"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-  max_tokens = 5
-} | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:DASHSCOPE_API_KEY"; "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-### Note
-
-- Free tier per model — dacă consumi 1M pe Qwen-Plus, **alte modele rămân disponibile**
-- După 90 zile, free tier se resetează automat dacă rămâi cu zero spent
-- Rate limit: ~60 RPM gratis pe modelele cele mai mari
-
-### Link-uri rapide
-
-- 🔧 [API Keys](https://modelstudio.console.alibabacloud.com/?tab=model#/api-key)
-- 📚 [First API call docs](https://www.alibabacloud.com/help/en/model-studio/first-api-call-to-qwen)
-- 📊 [Usage dashboard](https://modelstudio.console.alibabacloud.com/?tab=usage)
-
----
-
-## 3. Reka AI — RELEVANT unic ⭐⭐ ($10 LUNAR RECURRING!)
-
-### Ce câștigi
-
-- **$10 RECURRING LUNAR (resetabil)** — singurul din listă cu credit care se reîncarcă automat
-- Modele Reka Core (frontier multimodal) + Reka Flash (rapid)
-- Suport multimodal: text + imagine + video + audio (modele specializate cross-modal)
+- **$10 RECURRING LUNAR (resetabil)** — singurul cu credit care se reîncarcă lunar
+- Modele Reka Core (frontier multimodal) + Reka Flash (rapid) + Reka Edge
+- Multimodal real: text + imagine + video + audio understanding
 - API OpenAI-compatible
 
-### Prerequisites
+### Pași (~4 min)
 
-- Cont Reka ([signup](https://platform.reka.ai/) — email + verificare, fără card)
-
-### Pași pas-cu-pas (~4 min)
-
-1. **Deschide** [Reka platform signup](https://platform.reka.ai/)
-2. **Click** Sign Up → continuă cu Google/email
-3. **Verifică email** → click link activare
-4. **Login** → meniu lateral `Settings` → `API Keys` (sau direct [API Keys](https://platform.reka.ai/apikeys))
-5. **Generate New Key** → name `claude-code-mami` → **Create**
-6. **Copy** (`reka_...`) — **DOAR O DATĂ**
-
-### Persistare
-
-INBOX.md:
-
-```markdown
-### Reka AI
-
-- **Key:** <paste>
-- **Env Var:** REKA_API_KEY
-- **Tip:** LLM Multimodal Frontier
-- **Limita:** $10 RECURRING LUNAR (reset automat fiecare lună)
-- **Base URL:** https://api.reka.ai/v1/chat
-- **Note:** Multimodal text+image+video+audio. Modele: reka-core, reka-flash, reka-edge.
-```
+1. [Reka platform signup](https://platform.reka.ai/) → continuă cu Google/email
+2. Verifică email → click link activare
+3. **Settings → API Keys** ([direct](https://platform.reka.ai/apikeys)) → **Generate New Key**
+4. Name `claude-code-mami` → **Create** → **Copy** valoarea (`reka_...`) — **DOAR O DATĂ**
 
 ### Test imediat
 
@@ -252,60 +111,49 @@ $body = @{
   messages = @(@{ role = "user"; content = @(@{ type = "text"; text = "Reply OK" }) })
 } | ConvertTo-Json -Depth 5
 Invoke-RestMethod -Method POST -Uri "https://api.reka.ai/v1/chat" `
-    -Headers @{ "X-Api-Key" = $env:REKA_API_KEY; "Content-Type" = "application/json" } `
-    -Body $body
+    -Headers @{ "X-Api-Key" = $env:REKA_API_KEY; "Content-Type" = "application/json" } -Body $body
 ```
 
 ### Note
 
-- **CRITIC**: $10/lună e suficient pentru ~5,000 mesaje pe Reka Flash sau ~1,000 mesaje pe Reka Core — **resetabil**, deci poate fi sustainable long-term ca fallback
+- $10/lună ≈ ~5,000 mesaje pe Reka Flash sau ~1,000 pe Reka Core
+- Resetabil lunar → sustainable long-term ca fallback
 - Rate limit: 60 RPM gratis
-- Suport multimodal real (image/video/audio understanding) — util pentru extensii future Mami_Docs
 
-### Link-uri rapide
+### Link-uri
 
-- 🔧 [API Keys](https://platform.reka.ai/apikeys)
-- 📚 [Reka docs](https://docs.reka.ai/)
-- 📊 [Usage](https://platform.reka.ai/usage)
+- 🔧 [API Keys](https://platform.reka.ai/apikeys) | 📚 [Docs](https://docs.reka.ai/) | 📊 [Usage](https://platform.reka.ai/usage)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Reka AI
+
+- **Key:** <paste_reka_key_here>
+- **Env Var:** REKA_API_KEY
+- **Tip:** LLM Multimodal Frontier
+- **Limita:** $10 RECURRING LUNAR (reset automat fiecare lună)
+- **Base URL:** https://api.reka.ai/v1/chat
+- **Note:** Multimodal text+image+video+audio. Modele: reka-core, reka-flash, reka-edge.
+```
 
 ---
 
-## 4. AI21 Studio — RELEVANT long-context ⭐ (256K)
+## 2. AI21 Studio ⭐ — 256K context long-document
 
 ### Ce câștigi
 
 - **$10 free credit / 3 luni** (~10M tokens echivalent)
-- **Jamba 1.5 Large** și **Jamba 1.5 Mini** — arhitectură Mamba+Transformer hibrid
-- **256K context window** — printre cele mai mari pe free tier
-- Util pentru documente lungi (rețete medicale lungi, contracte, jurnale wellness extensive)
+- **Jamba 1.5 Large** + **Jamba 1.5 Mini** — arhitectură Mamba+Transformer hibrid
+- **256K context** — printre cele mai mari pe free tier
+- Util pentru rețete medicale lungi, contracte, jurnale wellness extensive
 
-### Prerequisites
+### Pași (~3 min)
 
-- Cont AI21 ([signup](https://studio.ai21.com/) — email simplu, NU card)
-
-### Pași pas-cu-pas (~3 min)
-
-1. **Deschide** [AI21 Studio signup](https://studio.ai21.com/sign-up)
-2. **Sign up** cu email sau Google
-3. **Verifică email** → activare
-4. **Login** → header dropdown nume → `Settings` (sau direct [API Key page](https://studio.ai21.com/account/api-key))
-5. Cheia e **deja generată** automat la signup → **Copy**
-6. (Opțional) Regenerate dacă vrei o cheie nouă
-
-### Persistare
-
-INBOX.md:
-
-```markdown
-### AI21 Studio
-
-- **Key:** <paste>
-- **Env Var:** AI21_API_KEY
-- **Tip:** LLM Long-Context (Jamba family)
-- **Limita:** $10 credit / 3 luni; după → costuri standard
-- **Base URL:** https://api.ai21.com/studio/v1
-- **Note:** Jamba 1.5 Large/Mini. 256K context window. Util pentru documente lungi.
-```
+1. [AI21 signup](https://studio.ai21.com/sign-up) → email/Google
+2. Verifică email → activare
+3. Header dropdown nume → `Settings` → [API Key page](https://studio.ai21.com/account/api-key)
+4. Cheia e **deja generată** automat la signup → **Copy**
 
 ### Test imediat
 
@@ -316,325 +164,47 @@ $body = @{
   max_tokens = 5
 } | ConvertTo-Json
 Invoke-RestMethod -Method POST -Uri "https://api.ai21.com/studio/v1/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:AI21_API_KEY"; "Content-Type" = "application/json" } `
-    -Body $body
+    -Headers @{ Authorization = "Bearer $env:AI21_API_KEY"; "Content-Type" = "application/json" } -Body $body
 ```
 
 ### Note
 
 - După $10 consumat → blocare clean (nu surprize de cost)
-- Mini suficient pentru chat normal; Large pentru context lung (>32K tokens)
 - Rate limit: 100 RPM gratis
 
-### Link-uri rapide
+### Link-uri
 
-- 🔧 [API Key](https://studio.ai21.com/account/api-key)
-- 📚 [Docs](https://docs.ai21.com/)
-- 📊 [Usage](https://studio.ai21.com/account/usage)
+- 🔧 [API Key](https://studio.ai21.com/account/api-key) | 📚 [Docs](https://docs.ai21.com/) | 📊 [Usage](https://studio.ai21.com/account/usage)
 
----
-
-## 5. Together AI — RELEVANT ⭐ (200+ modele open-source)
-
-### Ce câștigi
-
-- **$1–25 credit signup** (variază; tipic $5)
-- **200+ modele open-source** — Llama 3.3 70B/405B, Qwen 2.5, Mistral, DeepSeek-R1, Flux, Stable Diffusion
-- Inferență rapidă (~70-200 tokens/sec)
-- OpenAI-compatible API + dedicated endpoints multimodal
-
-### Prerequisites
-
-- Cont Together ([signup](https://api.together.ai/signin) — email/Google, fără card pentru signup)
-
-### Pași pas-cu-pas (~3 min)
-
-1. **Deschide** [Together AI signup](https://api.together.ai/signin)
-2. **Sign up** cu email/Google/GitHub
-3. **Verifică email** → click link
-4. **Login** → header dreapta sus avatar → `Settings → API Keys` (sau [API Keys](https://api.together.ai/settings/api-keys))
-5. Cheia e generată automat la signup → **Copy** (`<token>`)
-6. (Opțional) Create New Key cu nume separat per proiect
-
-### Persistare
-
-INBOX.md:
+### 📥 TEMPLATE — completare credențiale
 
 ```markdown
-### Together AI
+### AI21 Studio
 
-- **Key:** <paste>
-- **Env Var:** TOGETHER_API_KEY
-- **Tip:** LLM Multi-Model OS + Vision + Image Gen
-- **Limita:** $1-25 credit signup, apoi pay-per-use
-- **Base URL:** https://api.together.xyz/v1
-- **Note:** 200+ modele open-source. Llama 3.3 405B, Qwen 2.5, DeepSeek-R1, Flux. OpenAI-compatible.
+- **Key:** <paste_ai21_key_here>
+- **Env Var:** AI21_API_KEY
+- **Tip:** LLM Long-Context (Jamba family)
+- **Limita:** $10 credit / 3 luni
+- **Base URL:** https://api.ai21.com/studio/v1
+- **Note:** Jamba 1.5 Large/Mini. 256K context window. Util pentru documente lungi.
 ```
-
-### Test imediat
-
-```powershell
-$body = @{
-  model = "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-  max_tokens = 5
-} | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://api.together.xyz/v1/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:TOGETHER_API_KEY"; "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-### Note
-
-- Multe modele au sufixe `-Free` care nu consumă credit (rate-limited dar gratuit)
-- Pentru `405B` model, `-Turbo` quantizat e suficient pentru majoritatea cazurilor
-- Rate limit free: 60 RPM (sufficient pentru folosire normală)
-
-### Link-uri rapide
-
-- 🔧 [API Keys](https://api.together.ai/settings/api-keys)
-- 📚 [Docs](https://docs.together.ai/docs/)
-- 📊 [Models catalog](https://api.together.ai/models)
 
 ---
 
-## 6. DeepInfra — RELEVANT ⭐ ($5 free + modele OS)
-
-### Ce câștigi
-
-- **$5 credit signup** (~10M tokens pe Llama 70B)
-- **Llama 3.3, Qwen 2.5, Mistral, Phi-4, DeepSeek-V3** — open-source mainstream
-- Pricing competitiv post-trial (~$0.20/1M tokens)
-- OpenAI-compatible API
-
-### Prerequisites
-
-- Cont DeepInfra ([signup](https://deepinfra.com/login) — GitHub/Google/email, fără card pentru signup)
-
-### Pași pas-cu-pas (~3 min)
-
-1. **Deschide** [DeepInfra login/signup](https://deepinfra.com/login)
-2. **Sign Up** cu GitHub/Google
-3. (Auto-login după autorizare)
-4. **Mergi la** [API Keys page](https://deepinfra.com/dash/api_keys)
-5. **Create New Token** → name `claude-code-mami` → **Create**
-6. **Copy** (`<token>`)
-
-### Persistare
-
-INBOX.md:
-
-```markdown
-### DeepInfra
-
-- **Key:** <paste>
-- **Env Var:** DEEPINFRA_API_KEY
-- **Tip:** LLM Multi-Model OS
-- **Limita:** $5 credit signup, pay-per-use după
-- **Base URL:** https://api.deepinfra.com/v1/openai
-- **Note:** Llama/Qwen/Mistral/Phi-4. OpenAI-compatible.
-```
-
-### Test imediat
-
-```powershell
-$body = @{
-  model = "meta-llama/Meta-Llama-3.1-70B-Instruct"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-  max_tokens = 5
-} | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://api.deepinfra.com/v1/openai/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:DEEPINFRA_API_KEY"; "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-### Note
-
-- Latency tipic 200-500ms pentru Llama 70B (rapid)
-- Rate limit: 200 RPM gratis
-- $5 → ~10M tokens pe Llama 70B sau ~50M pe modele 8B
-
-### Link-uri rapide
-
-- 🔧 [API Keys](https://deepinfra.com/dash/api_keys)
-- 📚 [Docs](https://deepinfra.com/docs/deep_infra_api)
-- 📊 [Usage](https://deepinfra.com/dash/usage)
-
----
-
-## 7. Pollinations.AI — FALLBACK PREMIUM 🆓 (FĂRĂ SIGNUP!)
-
-### Ce câștigi
-
-- **GPT-5 / Claude / Gemini proxy GRATIS FĂRĂ SIGNUP** — cea mai unică propunere din listă
-- Folosește direct prin URL/API fără autentificare (anonim) cu rate limit moderat
-- Cu signup gratuit obții token pentru rate limit higher tier
-- Folositor ca **safety net ultim** când toate celelalte providere eșuează
-
-### Prerequisites
-
-- **NICIUNUL** pentru tier anonim
-- (Opțional) Cont Pollinations ([signup](https://enter.pollinations.ai/) — pentru token authenticated cu rate limit higher)
-
-### Pași pas-cu-pas
-
-#### Variantă A — fără signup (anonim, rate limit moderat) — 0 minute
-
-Direct, fără cont:
-
-```powershell
-# Anonim — niciun token necesar
-Invoke-RestMethod -Uri "https://text.pollinations.ai/openai" -Method POST `
-    -Headers @{ "Content-Type" = "application/json" } `
-    -Body (@{ model = "openai"; messages = @(@{role="user"; content="Reply OK"}) } | ConvertTo-Json)
-```
-
-#### Variantă B — cu token (rate limit higher tier) — ~3 min
-
-1. **Deschide** [enter.pollinations.ai](https://enter.pollinations.ai/)
-2. **Sign Up** — email simplu sau GitHub
-3. Mergi la **Dashboard → API Tokens** (sau secțiunea de generare token)
-4. **Create token** → **Copy**
-
-### Persistare (doar pentru variantă B)
-
-INBOX.md:
-
-```markdown
-### Pollinations.AI
-
-- **Key:** <paste_token_optional>
-- **Env Var:** POLLINATIONS_TOKEN
-- **Tip:** LLM Proxy (GPT-5/Claude/Gemini)
-- **Limita:** Anonim = rate limit moderat; cu token = higher tier
-- **Base URL:** https://text.pollinations.ai/openai
-- **Note:** Funcționează FĂRĂ token (anonim). Token = rate limit upgrade. Util ca safety net.
-```
-
-### Test imediat (anonim — fără env var)
-
-```powershell
-$body = @{
-  model = "openai"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-} | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://text.pollinations.ai/openai" `
-    -Headers @{ "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-### Note
-
-- **Modele disponibile** (anonim): `openai` (GPT proxy), `claude`, `gemini`, `mistral` — pollinations multiplexează
-- ⚠ **Calitate variabilă** — provider e proxy, latency și availability depind de upstream
-- ⚠ **GDPR** — cererile trec prin server-ele Pollinations; nu folosi pentru date personale sensibile
-- Rate limit anonim: ~10-30 RPM (variază); cu token: ~100 RPM
-
-### Link-uri rapide
-
-- 🔧 [Signup token](https://enter.pollinations.ai/)
-- 📚 [APIDOCS GitHub](https://github.com/pollinations/pollinations/blob/main/APIDOCS.md)
-- 📊 [Status](https://status.pollinations.ai/)
-
----
-
-## 8. ApiFreeLLM — RELEVANT (stabilitate `[INCERT]`)
-
-### Ce câștigi
-
-- **"Forever free, no token limits"** — promisiune mare; stabilitate `[INCERT]` per verdict user
-- Util ca **fallback ultim ultim** când totul cade
-- API simplu, OpenAI-like
-
-### Prerequisites
-
-- Cont ApiFreeLLM ([signup](https://apifreellm.com/) — email simplu, fără card)
-
-### Pași pas-cu-pas (~3 min)
-
-1. **Deschide** [apifreellm.com](https://apifreellm.com/)
-2. **Click** Sign Up / Get Started
-3. **Înregistrează** cu email
-4. **Verifică email** → click link activare
-5. **Login** → secțiunea `API Keys` sau `Dashboard → Tokens`
-6. **Generate token** → **Copy**
-
-### Persistare
-
-INBOX.md:
-
-```markdown
-### ApiFreeLLM
-
-- **Key:** <paste>
-- **Env Var:** APIFREELLM_TOKEN
-- **Tip:** LLM Multi-Model (incert quality)
-- **Limita:** "Forever free, no token limits" (verdict stabilitate INCERT)
-- **Base URL:** https://apifreellm.com/api/...
-- **Note:** Folosit ca safety net ultim. NU baza dependențe critice pe el.
-```
-
-### Test imediat
-
-```powershell
-# Verifică docs.apifreellm.com pentru endpoint exact (API documentation)
-$body = @{
-  model = "default"
-  messages = @(@{ role = "user"; content = "Reply OK" })
-} | ConvertTo-Json
-# Endpoint TBD din docs:
-Invoke-RestMethod -Method POST -Uri "https://apifreellm.com/api/v1/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:APIFREELLM_TOKEN"; "Content-Type" = "application/json" } `
-    -Body $body
-```
-
-### Note
-
-- ⚠ **Stabilitate incertă** — verifică [docs](https://www.apifreellm.com/docs) pentru endpoint exact înainte de integrare
-- ⚠ **Quality unknown** — testează cu use-case real înainte de a integra în chain critic
-- NU folosi ca primary; NU folosi pentru date sensibile
-- Rotation: la suspiciune de leak
-
-### Link-uri rapide
-
-- 🔧 [Signup](https://apifreellm.com/)
-- 📚 [Docs](https://www.apifreellm.com/docs)
-- 📊 (Dashboard variază — verifică după signup)
-
----
-
-## 9. Perplexity API — RECOMANDAT search-grounded ⭐⭐
+## 3. Perplexity API ⭐⭐ — search-grounded medical lookup
 
 ### Ce câștigi
 
 - **Modele Sonar** (small/large) cu **search web încorporat** — răspunsuri cu citations live
-- **$5 credit signup** + Sonar small **gratis NELIMITAT** pentru free tier
+- **$5 credit signup** + **Sonar small gratis NELIMITAT**
 - Util pentru drug interaction lookup în Mami_Docs (RxNorm + medical literature search)
-
-### Prerequisites
-
-- Cont Perplexity ([signup](https://www.perplexity.ai/) — Google/email, fără card pentru API tier)
 
 ### Pași (~3 min)
 
-1. [Perplexity API Settings](https://www.perplexity.ai/settings/api)
-2. **Generate API Key** → copy (`pplx-...`)
-3. (Opțional) Setup billing dacă vrei modelele Sonar Pro după consumarea creditului
+1. [Perplexity signup](https://www.perplexity.ai/) → Google/email
+2. [API Settings](https://www.perplexity.ai/settings/api) → **Generate API Key** → copy (`pplx-...`)
 
-### Persistare INBOX.md
-
-```markdown
-### Perplexity API
-
-- **Key:** <paste>
-- **Env Var:** PERPLEXITY_API_KEY
-- **Tip:** LLM Search-Grounded
-- **Limita:** $5 credit + sonar-small gratis nelimitat
-- **Base URL:** https://api.perplexity.ai/chat/completions
-- **Note:** Răspunsuri cu citations din web. Util pentru lookup medical/factual real-time.
-```
-
-### Test
+### Test imediat
 
 ```powershell
 $body = @{ model = "sonar"; messages = @(@{ role = "user"; content = "Ce e paracetamolul?" }) } | ConvertTo-Json
@@ -644,51 +214,45 @@ Invoke-RestMethod -Method POST -Uri "https://api.perplexity.ai/chat/completions"
 
 ### Note
 
-- Sonar small = grounded în web search live (folosește Brave Search backend)
+- Sonar small = grounded în web search live (Brave backend)
 - Latency: 2-5s (include search round-trip)
 - Rate limit: 50 req/min free tier
 
 ### Link-uri
 
-- 🔧 [API Keys](https://www.perplexity.ai/settings/api)
-- 📚 [Docs](https://docs.perplexity.ai/)
-- 📊 [Usage](https://www.perplexity.ai/settings/api)
+- 🔧 [API Keys](https://www.perplexity.ai/settings/api) | 📚 [Docs](https://docs.perplexity.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Perplexity API
+
+- **Key:** <paste_pplx_key_here>
+- **Env Var:** PERPLEXITY_API_KEY
+- **Tip:** LLM Search-Grounded
+- **Limita:** $5 credit + sonar-small gratis nelimitat
+- **Base URL:** https://api.perplexity.ai/chat/completions
+- **Note:** Răspunsuri cu citations din web. Util pentru lookup medical/factual real-time.
+```
 
 ---
 
-## 10. Voyage AI — RECOMANDAT embeddings ⭐⭐
+## 4. Voyage AI ⭐⭐ — embeddings best-in-class 2026
 
 ### Ce câștigi
 
-- **200M tokens/lună gratis PERMANENT** pe `voyage-3` (cele mai bune embedding-uri din 2026, scor MTEB top-3)
-- Recomandat oficial de Anthropic ca embedding provider preferat
-- Multilingv (RO support nativ excellent), context 32K
-- Înlocuiește/complementează Cohere/Gemini embed în chain-ul Mami_Docs RAG
-
-### Prerequisites
-
-- Cont Voyage ([signup](https://dash.voyageai.com/) — email, fără card)
+- **200M tokens/lună GRATIS PERMANENT** pe `voyage-3`
+- Cele mai bune embedding-uri 2026 (scor MTEB top-3) — recomandat oficial Anthropic
+- Multilingv RO nativ excellent, context 32K
+- Înlocuiește/complementează Cohere/Gemini embed în chain RAG Mami_Docs
 
 ### Pași (~3 min)
 
-1. [Voyage Dashboard signup](https://dash.voyageai.com/)
+1. [Voyage Dashboard](https://dash.voyageai.com/) → email signup
 2. Email verification → login
 3. **API Keys** sectiune → **Create Key** → copy (`pa-...`)
 
-### Persistare INBOX.md
-
-```markdown
-### Voyage AI
-
-- **Key:** <paste>
-- **Env Var:** VOYAGE_API_KEY
-- **Tip:** Embeddings + Reranking
-- **Limita:** 200M tokens/luna gratis (voyage-3 / voyage-3-lite)
-- **Base URL:** https://api.voyageai.com/v1
-- **Note:** Cele mai bune embedding-uri 2026 (recomandat de Anthropic). Multilingv RO. 32K ctx.
-```
-
-### Test
+### Test imediat
 
 ```powershell
 $body = @{ input = @("Salut mami"); model = "voyage-3-lite" } | ConvertTo-Json
@@ -698,51 +262,46 @@ Invoke-RestMethod -Method POST -Uri "https://api.voyageai.com/v1/embeddings" `
 
 ### Note
 
-- `voyage-3` = 1024-dim vector (high quality, default)
-- `voyage-3-lite` = 512-dim (mai rapid, suficient pentru majoritatea cazurilor)
-- `voyage-multilingual-2` = optimizat pentru limbi non-EN
+- `voyage-3` = 1024-dim (default high quality)
+- `voyage-3-lite` = 512-dim (rapid, suficient pentru majoritatea)
+- `voyage-multilingual-2` = optimizat non-EN
 - Are și **rerank API** (`rerank-2`) pentru îmbunătățire RAG post-search
 
 ### Link-uri
 
-- 🔧 [API Keys](https://dash.voyageai.com/api-keys)
-- 📚 [Docs](https://docs.voyageai.com/)
-- 📊 [Usage](https://dash.voyageai.com/usage)
+- 🔧 [API Keys](https://dash.voyageai.com/api-keys) | 📚 [Docs](https://docs.voyageai.com/) | 📊 [Usage](https://dash.voyageai.com/usage)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Voyage AI
+
+- **Key:** <paste_voyage_key_here>
+- **Env Var:** VOYAGE_API_KEY
+- **Tip:** Embeddings + Reranking
+- **Limita:** 200M tokens/luna gratis (voyage-3 / voyage-3-lite)
+- **Base URL:** https://api.voyageai.com/v1
+- **Note:** Cele mai bune embedding-uri 2026 (recomandat Anthropic). Multilingv RO. 32K ctx.
+```
 
 ---
 
-## 11. Nebius AI Studio — RELEVANT ⭐ ($1 + Llama 405B free)
+## 5. Nebius AI Studio ⭐ — Llama 405B EU GDPR-compliant
 
 ### Ce câștigi
 
-- **$1 credit signup** + acces gratuit la **Llama 3.3 405B Instruct**, **DeepSeek-R1**, Qwen 2.5 72B
-- Inferență rapidă (servere EU — GDPR-compliant)
+- **$1 credit signup** + acces gratuit la **Llama 3.3 405B**, **DeepSeek-R1**, Qwen 2.5 72B
+- Servere EU (Frankfurt) → **GDPR-compliant** pentru date personale Mami_Docs
 - OpenAI-compatible API
-
-### Prerequisites
-
-- Cont Nebius ([signup](https://nebius.com/services/studio) — email/Google, NU card pentru free)
+- Throughput excellent: 50-100 tokens/sec pe Llama 70B
 
 ### Pași (~3 min)
 
-1. [Nebius Studio signup](https://studio.nebius.com/)
+1. [Nebius Studio](https://studio.nebius.com/) → email signup
 2. Verifică email → login
 3. Header → `Settings → API Keys` → **Create Key** → copy
 
-### Persistare
-
-```markdown
-### Nebius AI Studio
-
-- **Key:** <paste>
-- **Env Var:** NEBIUS_API_KEY
-- **Tip:** LLM Multi-Model (frontier OS)
-- **Limita:** $1 signup + free tier Llama 3.3 405B / DeepSeek-R1
-- **Base URL:** https://api.studio.nebius.ai/v1
-- **Note:** Servere EU (GDPR OK). OpenAI-compatible. Llama 405B BF16 precizie maximă.
-```
-
-### Test
+### Test imediat
 
 ```powershell
 $body = @{ model = "meta-llama/Llama-3.3-70B-Instruct"; messages = @(@{ role = "user"; content = "Reply OK" }); max_tokens = 5 } | ConvertTo-Json
@@ -752,96 +311,66 @@ Invoke-RestMethod -Method POST -Uri "https://api.studio.nebius.ai/v1/chat/comple
 
 ### Note
 
-- EU-hosted = GDPR-OK pentru date personale (mama)
-- Throughput excellent: 50-100 tokens/sec pe Llama 70B
+- EU-hosted = GDPR-OK pentru date mama (single din top fără DeepSeek/Z.ai/Qwen care sunt în Asia)
 - Rate limit: 600 req/oră free tier
 
 ### Link-uri
 
-- 🔧 [API Keys](https://studio.nebius.com/settings/api-keys)
-- 📚 [Docs](https://docs.nebius.com/studio/inference/api)
-- 📊 [Usage](https://studio.nebius.com/billing)
+- 🔧 [API Keys](https://studio.nebius.com/settings/api-keys) | 📚 [Docs](https://docs.nebius.com/studio/inference/api)
 
----
-
-## 12. Lambda Inference — RELEVANT ⭐ ($5 credit + GPU edge)
-
-### Ce câștigi
-
-- **$5 credit signup** pentru `Llama 3.3 70B Instruct`, `Hermes 3` (modele OSS premium)
-- Lambda Labs e provider GPU originar — inferență pe edge cu latență joasă
-- OpenAI-compatible API
-
-### Prerequisites
-
-- Cont Lambda ([signup](https://cloud.lambdalabs.com/sign-up) — email + password)
-
-### Pași (~3 min)
-
-1. [Lambda Cloud signup](https://cloud.lambdalabs.com/sign-up)
-2. Email verification → login
-3. **API → API Keys** → **Generate Key** → copy
-
-### Persistare
+### 📥 TEMPLATE — completare credențiale
 
 ```markdown
-### Lambda Inference
+### Nebius AI Studio
 
-- **Key:** <paste>
-- **Env Var:** LAMBDA_API_KEY
-- **Tip:** LLM Inference (GPU edge)
-- **Limita:** $5 credit signup
-- **Base URL:** https://api.lambdalabs.com/v1
-- **Note:** Llama 3.3 70B + Hermes 3. OpenAI-compatible. GPU edge low latency.
+- **Key:** <paste_nebius_key_here>
+- **Env Var:** NEBIUS_API_KEY
+- **Tip:** LLM Multi-Model (frontier OS, EU-hosted)
+- **Limita:** $1 signup + free tier Llama 3.3 405B / DeepSeek-R1
+- **Base URL:** https://api.studio.nebius.ai/v1
+- **Note:** Servere EU (GDPR OK). OpenAI-compatible. Llama 405B BF16 precizie maximă.
 ```
-
-### Test
-
-```powershell
-$body = @{ model = "llama3.3-70b-instruct-fp8"; messages = @(@{ role = "user"; content = "Reply OK" }); max_tokens = 5 } | ConvertTo-Json
-Invoke-RestMethod -Method POST -Uri "https://api.lambdalabs.com/v1/chat/completions" `
-    -Headers @{ Authorization = "Bearer $env:LAMBDA_API_KEY"; "Content-Type" = "application/json" } -Body $body
-```
-
-### Note
-
-- Latency: 200-400ms pentru Llama 70B FP8
-- Best pentru workload care cere GPU dedicat (custom fine-tune via Lambda Cloud)
-- $5 ≈ 10M tokens output Llama 70B
-
-### Link-uri
-
-- 🔧 [API Keys](https://cloud.lambdalabs.com/api-keys)
-- 📚 [Docs](https://docs.lambdalabs.com/cloud/inference-api/)
-- 📊 [Billing](https://cloud.lambdalabs.com/billing)
 
 ---
 
-## 13. AssemblyAI — RECOMANDAT STT ⭐⭐
+## 6. AssemblyAI ⭐⭐ — STT premium ro-RO
 
 ### Ce câștigi
 
 - **$50 credit signup** (~16h audio transcript pe `Universal-2`)
-- **Speech-to-Text best-in-class** cu suport ro-RO + diarization (cine vorbește) + sentiment
-- Webhooks pentru transcripts async, batch processing
-- Util ca **fallback ULTRA-quality** pentru Mami_Docs Whisper chain (mama înregistrează jurnal vocal)
-
-### Prerequisites
-
-- Cont AssemblyAI ([signup](https://www.assemblyai.com/dashboard/signup) — email, fără card)
+- **STT best-in-class ro-RO** + diarization (cine vorbește) + sentiment
+- Webhooks async pentru transcripts batch
+- ~5% WER pe RO (vs Whisper Large-v3: ~8% WER)
 
 ### Pași (~3 min)
 
-1. [AssemblyAI signup](https://www.assemblyai.com/dashboard/signup)
+1. [AssemblyAI signup](https://www.assemblyai.com/dashboard/signup) → email
 2. Email verification → onboarding
-3. Dashboard → cheia e generată automat → **Copy** (sau `Account → API Key`)
+3. Dashboard → cheia generată automat → **Copy** (sau `Account → API Key`)
 
-### Persistare
+### Test imediat (cu sample audio public)
+
+```powershell
+$body = @{ audio_url = "https://storage.googleapis.com/aai-web-samples/news.mp3"; language_code = "ro" } | ConvertTo-Json
+Invoke-RestMethod -Method POST -Uri "https://api.assemblyai.com/v2/transcript" `
+    -Headers @{ authorization = $env:ASSEMBLYAI_API_KEY; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- $50 ≈ 16h audio = mama poate înregistra 30 min/zi pentru ~32 zile
+- Pricing post-credit: $0.12/oră Universal-2
+
+### Link-uri
+
+- 🔧 [API Key](https://www.assemblyai.com/app/api-keys) | 📚 [Docs](https://www.assemblyai.com/docs/)
+
+### 📥 TEMPLATE — completare credențiale
 
 ```markdown
 ### AssemblyAI
 
-- **Key:** <paste>
+- **Key:** <paste_assemblyai_key_here>
 - **Env Var:** ASSEMBLYAI_API_KEY
 - **Tip:** STT Best-in-Class
 - **Limita:** $50 credit signup (~16h audio Universal-2)
@@ -849,62 +378,24 @@ Invoke-RestMethod -Method POST -Uri "https://api.lambdalabs.com/v1/chat/completi
 - **Note:** Suport ro-RO + diarization + sentiment + summary. Webhooks async.
 ```
 
-### Test (necesită fișier audio — folosește un sample public)
-
-```powershell
-$body = @{ audio_url = "https://storage.googleapis.com/aai-web-samples/news.mp3"; language_code = "ro" } | ConvertTo-Json
-$resp = Invoke-RestMethod -Method POST -Uri "https://api.assemblyai.com/v2/transcript" `
-    -Headers @{ authorization = $env:ASSEMBLYAI_API_KEY; "Content-Type" = "application/json" } -Body $body
-Write-Host "Transcript ID: $($resp.id) | Status: $($resp.status)"
-```
-
-### Note
-
-- Calitate top: ~5% WER pe RO (Whisper Large-v3: ~8% WER)
-- $50 = 16h audio = mama poate înregistra 30 min/zi pentru ~32 zile
-- Pricing post-credit: $0.12/oră audio Universal-2
-
-### Link-uri
-
-- 🔧 [API Key](https://www.assemblyai.com/app/api-keys)
-- 📚 [Docs](https://www.assemblyai.com/docs/)
-- 📊 [Usage](https://www.assemblyai.com/app/usage)
-
 ---
 
-## 14. ElevenLabs — RECOMANDAT TTS ⭐⭐
+## 7. ElevenLabs ⭐⭐ — TTS premium voci RO
 
 ### Ce câștigi
 
-- **10.000 caractere/lună GRATIS PERMANENT** (~10 minute audio TTS lunar)
-- **Voci ro-RO native** de calitate premium (mult superior Web Speech API)
-- Voice cloning (clonezi vocea ta în 1 minut audio)
-- Util pentru **mesaje vocale personalizate către mama** (ex: vocea lui Roland citindu-i meniu zilnic)
-
-### Prerequisites
-
-- Cont ElevenLabs ([signup](https://elevenlabs.io/sign-up) — email/Google)
+- **10.000 caractere/lună GRATIS PERMANENT** (~10 min audio TTS lunar)
+- **Voci ro-RO native** premium (mult superior Web Speech API)
+- Voice cloning din 1 minut audio
+- Util pentru mesaje vocale personalizate către mama (vocea lui Roland citindu-i meniu)
 
 ### Pași (~3 min)
 
-1. [ElevenLabs signup](https://elevenlabs.io/sign-up)
-2. Email verification → onboarding (skip plan paid, alege Free)
-3. **Profile dropdown (right top) → API Keys** → **Create New Secret Key** → copy
+1. [ElevenLabs signup](https://elevenlabs.io/sign-up) → email/Google
+2. Email verification → onboarding (skip plan paid → alege Free)
+3. **Profile (right top) → API Keys** → **Create New Secret Key** → copy
 
-### Persistare
-
-```markdown
-### ElevenLabs
-
-- **Key:** <paste>
-- **Env Var:** ELEVENLABS_API_KEY
-- **Tip:** TTS Premium
-- **Limita:** 10.000 chars/luna gratis (free PERMANENT)
-- **Base URL:** https://api.elevenlabs.io/v1
-- **Note:** Voci ro-RO native. Voice cloning 1-min sample. Util pentru personalizare mesaje mama.
-```
-
-### Test (returnează audio binary — salvează în fișier)
+### Test imediat (returnează audio binary)
 
 ```powershell
 $body = @{ text = "Salut mama, e ora 8, ia pastila galbenă"; model_id = "eleven_multilingual_v2" } | ConvertTo-Json
@@ -914,50 +405,44 @@ Invoke-WebRequest -Method POST -Uri "https://api.elevenlabs.io/v1/text-to-speech
 
 ### Note
 
-- Voice ID `EXAVITQu4vr4xnSDxMaL` = Sarah (default RO support); pentru voce custom clonezi în UI
-- Free tier 10k chars/lună = ~50 mesaje scurte (200 chars fiecare) sau ~10 min audio
-- Pentru mesaje cu vocea lui Roland: înregistrezi 1 min audio curat → upload în Voice Lab → primești voice_id
+- Voice ID `EXAVITQu4vr4xnSDxMaL` = Sarah (default RO support)
+- 10k chars/lună = ~50 mesaje scurte sau ~10 min audio
+- Pentru voce custom Roland: înregistrezi 1 min audio curat → upload Voice Lab → primești voice_id
 
 ### Link-uri
 
-- 🔧 [API Keys](https://elevenlabs.io/app/settings/api-keys)
-- 📚 [Docs](https://elevenlabs.io/docs)
-- 📊 [Usage](https://elevenlabs.io/app/subscription)
+- 🔧 [API Keys](https://elevenlabs.io/app/settings/api-keys) | 📚 [Docs](https://elevenlabs.io/docs)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### ElevenLabs
+
+- **Key:** <paste_elevenlabs_key_here>
+- **Env Var:** ELEVENLABS_API_KEY
+- **Tip:** TTS Premium
+- **Limita:** 10.000 chars/luna gratis (free PERMANENT)
+- **Base URL:** https://api.elevenlabs.io/v1
+- **Note:** Voci ro-RO native. Voice cloning 1-min sample. Util pentru personalizare mesaje mama.
+```
 
 ---
 
-## 15. Cartesia — RELEVANT TTS ultra-low latency ⭐
+## 8. Cartesia ⭐ — TTS ultra-low latency conversațional
 
 ### Ce câștigi
 
-- **Sonic-2** = TTS sub 75ms latency (cel mai rapid din lume 2026)
+- **Sonic-2** = TTS sub 75ms latency (cel mai rapid 2026)
 - Free tier credite signup + voci pre-built
-- Util pentru **TTS conversațional real-time** (răspunsuri AI rostite la mama în <100ms)
-
-### Prerequisites
-
-- Cont Cartesia ([signup](https://play.cartesia.ai/) — email/Google)
+- Util pentru TTS conversațional real-time (răspunsuri AI rostite la mama în <100ms)
 
 ### Pași (~3 min)
 
-1. [Cartesia signup](https://play.cartesia.ai/sign-up)
+1. [Cartesia signup](https://play.cartesia.ai/sign-up) → email/Google
 2. Email verification → playground
 3. **Profile → API Keys** → **Create Key** → copy
 
-### Persistare
-
-```markdown
-### Cartesia
-
-- **Key:** <paste>
-- **Env Var:** CARTESIA_API_KEY
-- **Tip:** TTS Ultra-Low-Latency
-- **Limita:** Free tier signup credits
-- **Base URL:** https://api.cartesia.ai/v1
-- **Note:** Sonic-2 sub 75ms. Stream audio. Folosit pentru TTS conversational real-time.
-```
-
-### Test
+### Test imediat
 
 ```powershell
 $body = @{ model_id = "sonic-2"; transcript = "Salut mama"; voice = @{ mode = "id"; id = "<VOICE_ID>" }; output_format = @{ container = "wav"; encoding = "pcm_f32le"; sample_rate = 44100 } } | ConvertTo-Json -Depth 5
@@ -967,99 +452,66 @@ Invoke-WebRequest -Method POST -Uri "https://api.cartesia.ai/tts/bytes" `
 
 ### Note
 
-- Cei mai rapizi TTS din 2026 (Sonic-2 < 75ms time-to-first-byte)
-- Excellent pentru voice agents conversaționali (turn-taking natural)
-- Pricing post-free: $0.05/1M chars (printre cei mai ieftini)
+- Sonic-2 < 75ms time-to-first-byte → excellent voice agents conversaționali
+- Pricing post-free: $0.05/1M chars
 
 ### Link-uri
 
-- 🔧 [API Keys](https://play.cartesia.ai/keys)
-- 📚 [Docs](https://docs.cartesia.ai/)
-- 📊 [Usage](https://play.cartesia.ai/usage)
+- 🔧 [API Keys](https://play.cartesia.ai/keys) | 📚 [Docs](https://docs.cartesia.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Cartesia
+
+- **Key:** <paste_cartesia_key_here>
+- **Env Var:** CARTESIA_API_KEY
+- **Tip:** TTS Ultra-Low-Latency
+- **Limita:** Free tier signup credits
+- **Base URL:** https://api.cartesia.ai/v1
+- **Note:** Sonic-2 sub 75ms. Stream audio. Folosit pentru TTS conversational real-time.
+```
 
 ---
 
-## 16. Fal.ai — RELEVANT image generation ⭐
+## 9. Hume AI ⭐⭐ — Emotion AI UNIC pentru Wellness mama
 
 ### Ce câștigi
 
-- **$10 credit signup** + Flux Schnell free tier
-- Generare imagini ultra-rapidă (Flux Schnell = ~1 sec)
-- Modele: Flux Pro/Dev/Schnell, SD3.5, Stable Cascade, Recraft
-- Util pentru **ilustrații povești seara** sau **avatar mama personalizat** în Mami_Docs
-
-### Prerequisites
-
-- Cont Fal.ai ([signup](https://fal.ai/login) — GitHub/Google/email)
+- **Emotion AI unic** — detectează emoții din voce (38 categorii) + expresii faciale + text sentiment
+- **Free dev tier** ~10.000 minute audio analysis/lună
+- Util ULTRA-relevant pentru Mami_Docs Wellness — detectează automat dispoziția mamei când înregistrează jurnal vocal
+- Empathic Voice Interface (EVI) — chat conversational care răspunde la emoția user-ului
 
 ### Pași (~3 min)
 
-1. [Fal.ai signup](https://fal.ai/login)
-2. Auth via GitHub (recomandat)
-3. **Dashboard → API Keys** → **Add Key** → copy (`<token>`)
+1. [Hume signup](https://platform.hume.ai/sign-up) → email
+2. Email verification → onboarding (alege "Build with Hume APIs")
+3. **API Keys** → **Create new key** → copy
 
-### Persistare
-
-```markdown
-### Fal.ai
-
-- **Key:** <paste>
-- **Env Var:** FAL_API_KEY
-- **Tip:** Image Generation
-- **Limita:** $10 credit + Flux Schnell free tier
-- **Base URL:** https://fal.run
-- **Note:** Flux Schnell ~1s/imagine. Util pentru ilustrații povești mama.
-```
-
-### Test
+### Test imediat
 
 ```powershell
-$body = @{ prompt = "o pisica cu palarie rosie"; image_size = "square_hd" } | ConvertTo-Json
-$resp = Invoke-RestMethod -Method POST -Uri "https://fal.run/fal-ai/flux/schnell" `
-    -Headers @{ Authorization = "Key $env:FAL_API_KEY"; "Content-Type" = "application/json" } -Body $body
-Write-Host "Image URL: $($resp.images[0].url)"
+$body = @{ models = @{ prosody = @{} }; transcription = @{ language = "ro" }; urls = @("https://hume-tutorials.s3.amazonaws.com/faces.zip") } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method POST -Uri "https://api.hume.ai/v0/batch/jobs" `
+    -Headers @{ "X-Hume-Api-Key" = $env:HUME_API_KEY; "Content-Type" = "application/json" } -Body $body
 ```
 
 ### Note
 
-- Flux Schnell free tier = ~1000 imagini/lună (sufficient pentru hobby)
-- Webhooks pentru long jobs async
-- Suport video (LTX-Video) + audio (TTS) în model catalog
+- **Use-case Mami_Docs:** mama spune "azi mă simt rău" → Hume detectează `Sadness:0.7, Anxiety:0.5` → admin Roland primește alertă cu prioritate ridicată
+- 38 emoții detectate (vs 7 standard) — granularitate utilă pentru pattern detection wellness
 
 ### Link-uri
 
-- 🔧 [API Keys](https://fal.ai/dashboard/keys)
-- 📚 [Docs](https://fal.ai/docs)
-- 📊 [Usage](https://fal.ai/dashboard/usage)
+- 🔧 [API Keys](https://platform.hume.ai/settings/keys) | 📚 [Docs](https://dev.hume.ai/docs/)
 
----
-
-## 17. Hume AI — UNIC emotion analysis ⭐⭐
-
-### Ce câștigi
-
-- **Emotion AI** unic — detectează emoții din voce (38 categorii) + expresii faciale (vision) + text sentiment
-- **Free dev tier** ~10.000 minute audio analysis/lună
-- Util ULTRA-relevant pentru Mami_Docs Wellness — **detectează automat dispoziția mamei** când înregistrează jurnal vocal (tristețe / anxietate / bucurie etc.)
-- Empathic Voice Interface (EVI) — chat conversational care răspunde la emoția user-ului
-
-### Prerequisites
-
-- Cont Hume ([signup](https://platform.hume.ai/sign-up) — email)
-
-### Pași (~3 min)
-
-1. [Hume signup](https://platform.hume.ai/sign-up)
-2. Email verification → onboarding (alege "Build with Hume APIs")
-3. **API Keys page** → **Create new key** → copy (`<key>`)
-4. (Opțional) Pentru EVI: **Config → Create voice config** cu voce custom
-
-### Persistare
+### 📥 TEMPLATE — completare credențiale
 
 ```markdown
 ### Hume AI
 
-- **Key:** <paste>
+- **Key:** <paste_hume_key_here>
 - **Env Var:** HUME_API_KEY
 - **Tip:** Emotion AI (Voice/Face/Text)
 - **Limita:** ~10k min audio/luna dev tier
@@ -1067,64 +519,25 @@ Write-Host "Image URL: $($resp.images[0].url)"
 - **Note:** Detectie emotii din voce mama (relevant Wellness). 38 categorii sentiment.
 ```
 
-### Test
-
-```powershell
-$body = @{ models = @{ prosody = @{} }; transcription = @{ language = "ro" }; urls = @("https://hume-tutorials.s3.amazonaws.com/faces.zip") } | ConvertTo-Json -Depth 5
-$resp = Invoke-RestMethod -Method POST -Uri "https://api.hume.ai/v0/batch/jobs" `
-    -Headers @{ "X-Hume-Api-Key" = $env:HUME_API_KEY; "Content-Type" = "application/json" } -Body $body
-Write-Host "Job ID: $($resp.job_id)"
-```
-
-### Note
-
-- **Use-case Mami_Docs:** mama spune "azi mă simt rău" → Hume detectează `Sadness:0.7, Anxiety:0.5` → admin Roland primește alertă cu prioritate ridicată
-- 38 emoții detectate (vs 7 standard) — granularitate utilă pentru pattern detection wellness
-- EVI pentru chat empatic real-time (alternative la chat-ul text-based)
-
-### Link-uri
-
-- 🔧 [API Keys](https://platform.hume.ai/settings/keys)
-- 📚 [Docs](https://dev.hume.ai/docs/)
-- 📊 [Playground](https://platform.hume.ai/playground)
-
 ---
 
-## 18. Resend — RECOMANDAT email ⭐⭐
+## 10. Resend ⭐⭐ — Email API modern
 
 ### Ce câștigi
 
 - **3000 emails/lună + 100/zi GRATIS PERMANENT** (free tier real, nu trial)
 - API modern (TypeScript-first), Markdown / React Email support
 - Domain custom verificat în 5 minute (DKIM/SPF auto)
-- Util pentru **alerte admin Roland** (storage 80%, errors, weekly digest mama)
-
-### Prerequisites
-
-- Cont Resend ([signup](https://resend.com/signup) — email/GitHub)
-- (Opțional) Domeniu propriu pentru `from: noreply@<domeniu>.com` (altfel folosești `onboarding@resend.dev`)
+- Util pentru alerte admin Roland (storage 80%, errors, weekly digest mama)
 
 ### Pași (~5 min cu domeniu / 3 min fără)
 
-1. [Resend signup](https://resend.com/signup)
+1. [Resend signup](https://resend.com/signup) → email/GitHub
 2. Email verification → onboarding
 3. **API Keys → Create API Key** → permission `Sending access` → copy (`re_...`)
 4. (Opțional cu domeniu custom) **Domains → Add Domain** → adaugă DNS records (DKIM/SPF) → wait verify
 
-### Persistare
-
-```markdown
-### Resend
-
-- **Key:** <paste>
-- **Env Var:** RESEND_API_KEY
-- **Tip:** Email API Modern
-- **Limita:** 3000 emails/luna + 100/zi PERMANENT
-- **Base URL:** https://api.resend.com
-- **Note:** From: onboarding@resend.dev (default) sau noreply@<domeniu> dacă verificat. Markdown/React.
-```
-
-### Test
+### Test imediat
 
 ```powershell
 $body = @{ from = "onboarding@resend.dev"; to = @("petrilarolly@gmail.com"); subject = "Test Mami_Docs"; html = "<p>Salut Roland!</p>" } | ConvertTo-Json
@@ -1135,51 +548,45 @@ Invoke-RestMethod -Method POST -Uri "https://api.resend.com/emails" `
 ### Note
 
 - Folosește pentru: alerte storage 80%, weekly digest wellness mama, error reports
-- Combinare cu Telegram Bot existent (deja în Mami_Docs) → multi-channel admin notifications
+- Combinare cu Telegram Bot existent → multi-channel admin notifications
 - Webhook events pentru bounce/spam tracking
 
 ### Link-uri
 
-- 🔧 [API Keys](https://resend.com/api-keys)
-- 📚 [Docs](https://resend.com/docs/introduction)
-- 📊 [Usage](https://resend.com/dashboard)
+- 🔧 [API Keys](https://resend.com/api-keys) | 📚 [Docs](https://resend.com/docs/introduction)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Resend
+
+- **Key:** <paste_resend_key_here>
+- **Env Var:** RESEND_API_KEY
+- **Tip:** Email API Modern
+- **Limita:** 3000 emails/luna + 100/zi PERMANENT
+- **Base URL:** https://api.resend.com
+- **Note:** From: onboarding@resend.dev (default) sau noreply@<domeniu> dacă verificat. Markdown/React.
+```
 
 ---
 
-## 19. Sentry — RECOMANDAT error monitoring ⭐⭐
+## 11. Sentry ⭐⭐ — Error monitoring + performance
 
 ### Ce câștigi
 
 - **5.000 errors + 10.000 transactions performance/lună GRATIS** (Developer plan)
 - Source maps + breadcrumbs + release tracking + Slack/Telegram alerts
-- Critical pentru **stabilitate Mami_Docs production** (mama deschide PWA, ceva pică, primești instant alertă cu stack trace exact)
+- Critical pentru stabilitate Mami_Docs production
 - Suport Vite plugin oficial + Cloudflare Workers SDK
-
-### Prerequisites
-
-- Cont Sentry ([signup](https://sentry.io/signup/) — email/Google/GitHub)
 
 ### Pași (~5 min)
 
-1. [Sentry signup](https://sentry.io/signup/)
+1. [Sentry signup](https://sentry.io/signup/) → email/Google/GitHub
 2. **Create new project** → platform: `JavaScript (Vite)` sau `Cloudflare Workers`
-3. **Project name:** `mami-docs` → **Create**
+3. Project name: `mami-docs` → **Create**
 4. Sentry afișează DSN (`https://<key>@o<orgid>.ingest.sentry.io/<projectid>`) → **Copy**
 
-### Persistare
-
-```markdown
-### Sentry
-
-- **Key:** <paste_DSN>
-- **Env Var:** SENTRY_DSN
-- **Tip:** Error Monitoring + Performance
-- **Limita:** 5k errors + 10k transactions/luna gratis
-- **Base URL:** (DSN-specific)
-- **Note:** Vite plugin official. CF Workers SDK. Project: mami-docs.
-```
-
-### Test (în cod Vite frontend)
+### Test în cod Vite frontend
 
 ```javascript
 import * as Sentry from "@sentry/browser";
@@ -1187,57 +594,48 @@ Sentry.init({ dsn: import.meta.env.VITE_SENTRY_DSN });
 Sentry.captureException(new Error("Test from Mami_Docs setup"));
 ```
 
-Verifică în [Sentry Issues](https://sentry.io/organizations/_/issues/) că eroarea apare.
-
 ### Note
 
-- Setup Vite: `npm install @sentry/vite-plugin --save-dev` + config în `vite.config.ts`
-- Setup CF Worker: `import { Sentry } from "@sentry/cloudflare"` (SDK separat)
-- Free tier suficient pentru ~50 users activi (Mami_Docs are 1-2)
-- Combinare cu existing logger din `ai-gateway` worker → toate erorile centralizate
+- Setup Vite: `npm install @sentry/vite-plugin --save-dev` + config `vite.config.ts`
+- Setup CF Worker: `import { Sentry } from "@sentry/cloudflare"`
+- Free tier suficient pentru ~50 users activi
 
 ### Link-uri
 
-- 🔧 [Create project](https://sentry.io/organizations/_/projects/new/)
-- 📚 [Docs Vite](https://docs.sentry.io/platforms/javascript/guides/vite/) | [Docs CF Workers](https://docs.sentry.io/platforms/javascript/guides/cloudflare/)
-- 📊 [Issues dashboard](https://sentry.io/issues/)
+- 🔧 [Create project](https://sentry.io/organizations/_/projects/new/) | 📚 [Docs Vite](https://docs.sentry.io/platforms/javascript/guides/vite/) | [CF Workers](https://docs.sentry.io/platforms/javascript/guides/cloudflare/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Sentry
+
+- **Key:** <paste_sentry_DSN_here>
+- **Env Var:** SENTRY_DSN
+- **Tip:** Error Monitoring + Performance
+- **Limita:** 5k errors + 10k transactions/luna gratis
+- **Base URL:** (DSN-specific)
+- **Note:** Vite plugin official. CF Workers SDK. Project: mami-docs.
+```
 
 ---
 
-## 20. Neon Postgres — RELEVANT DB alternativ ⭐ (500MB free permanent)
+## 12. Neon Postgres ⭐ — DB serverless 500MB permanent
 
 ### Ce câștigi
 
 - **500MB DB + 100h compute + branching git-like GRATIS PERMANENT**
 - Postgres 16 cu pgvector pre-instalat
 - **Scale-to-zero** (zero cost când inactiv)
-- Util ca **fallback Supabase** sau pentru **dev/preview branches** Mami_Docs
-
-### Prerequisites
-
-- Cont Neon ([signup](https://console.neon.tech/signup) — GitHub/Google/email)
+- Util ca fallback Supabase sau pentru dev/preview branches Mami_Docs
 
 ### Pași (~3 min)
 
-1. [Neon signup](https://console.neon.tech/signup)
+1. [Neon signup](https://console.neon.tech/signup) → GitHub/Google/email
 2. **Create your first project** → name `mami-docs-dev` → region `Frankfurt (eu-central-1)`
 3. Postgres version `16` → **Create project**
-4. Dashboard afișează **Connection string** → copy (`postgresql://<user>:<pass>@<host>/<db>`)
+4. Dashboard → **Connection string** → copy (`postgresql://<user>:<pass>@<host>/<db>`)
 
-### Persistare
-
-```markdown
-### Neon Postgres
-
-- **Key:** <paste_connection_string>
-- **Env Var:** NEON_DATABASE_URL
-- **Tip:** Postgres Serverless
-- **Limita:** 500MB + 100h compute/luna gratis PERMANENT
-- **Base URL:** (în connection string)
-- **Note:** Postgres 16 + pgvector. Branching git-like. Scale-to-zero. Frankfurt EU.
-```
-
-### Test (necesită psql instalat sau folosește Node.js cu `pg`)
+### Test imediat
 
 ```powershell
 psql $env:NEON_DATABASE_URL -c "SELECT version();"
@@ -1245,262 +643,500 @@ psql $env:NEON_DATABASE_URL -c "SELECT version();"
 
 ### Note
 
-- **Branching unic:** creezi branch DB pentru dev/staging fără cost extra (vs Supabase care necesită proiecte separate)
+- Branching unic: branch DB pentru dev/staging fără cost extra
 - Compute pause după 5 min inactivitate (cold start ~500ms)
-- pgvector pre-instalat (`CREATE EXTENSION vector;`) — direct embedding-uri RAG
-- Combinare cu Mami_Docs: branch `mami-docs-staging` pentru testare migration-uri înainte de prod
+- pgvector pre-instalat (`CREATE EXTENSION vector;`)
 
 ### Link-uri
 
-- 🔧 [Create project](https://console.neon.tech/app/projects)
-- 📚 [Docs](https://neon.tech/docs)
-- 📊 [Console](https://console.neon.tech/)
+- 🔧 [Create project](https://console.neon.tech/app/projects) | 📚 [Docs](https://neon.tech/docs)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Neon Postgres
+
+- **Key:** <paste_neon_connection_string_here>
+- **Env Var:** NEON_DATABASE_URL
+- **Tip:** Postgres Serverless
+- **Limita:** 500MB + 100h compute/luna gratis PERMANENT
+- **Base URL:** (în connection string)
+- **Note:** Postgres 16 + pgvector. Branching git-like. Scale-to-zero. Frankfurt EU.
+```
 
 ---
 
-## 📋 Sumar acțiuni admin (max 60 min total pentru toate 20)
+## 13. Leonardo.AI ⭐⭐⭐ — image gen 1500-2250/lună
 
-| #   | Provider         | Timp estimat | Link tap-direct                                                              | Prioritate adăugare             |
-| --- | ---------------- | ------------ | ---------------------------------------------------------------------------- | ------------------------------- |
-| 1   | Z.ai             | 5 min        | [API Keys](https://z.ai/manage-apikey/apikey-list)                           | ⭐⭐ Imediat                    |
-| 2   | Alibaba Qwen     | 7 min        | [API Keys](https://modelstudio.console.alibabacloud.com/?tab=model#/api-key) | ⭐⭐ Imediat                    |
-| 3   | Reka AI          | 4 min        | [API Keys](https://platform.reka.ai/apikeys)                                 | ⭐⭐ Imediat (recurring lunar!) |
-| 4   | AI21             | 3 min        | [API Key](https://studio.ai21.com/account/api-key)                           | ⭐ Long-context                 |
-| 5   | Together AI      | 3 min        | [API Keys](https://api.together.ai/settings/api-keys)                        | ⭐ Catalog mare                 |
-| 6   | DeepInfra        | 3 min        | [API Keys](https://deepinfra.com/dash/api_keys)                              | ⭐ Latency bună                 |
-| 7   | Pollinations     | 0-3 min      | (anonim funcționează direct)                                                 | 🆓 Safety net                   |
-| 8   | ApiFreeLLM       | 3 min        | [Signup](https://apifreellm.com/)                                            | ⚠ Cu rezerve                    |
-| 9   | Perplexity API   | 3 min        | [API](https://www.perplexity.ai/settings/api)                                | ⭐⭐ Search-grounded medical    |
-| 10  | Voyage AI        | 3 min        | [Dashboard](https://dash.voyageai.com/)                                      | ⭐⭐ Embed best 2026            |
-| 11  | Nebius AI        | 3 min        | [Studio](https://studio.nebius.com/)                                         | ⭐ Llama 405B EU GDPR           |
-| 12  | Lambda Inference | 3 min        | [Cloud](https://cloud.lambdalabs.com/sign-up)                                | ⭐ GPU edge $5                  |
-| 13  | AssemblyAI       | 3 min        | [Signup](https://www.assemblyai.com/dashboard/signup)                        | ⭐⭐ STT $50 ro-RO              |
-| 14  | ElevenLabs       | 3 min        | [Signup](https://elevenlabs.io/sign-up)                                      | ⭐⭐ TTS RO 10k chars/lună      |
-| 15  | Cartesia         | 3 min        | [Playground](https://play.cartesia.ai/sign-up)                               | ⭐ TTS sub 75ms                 |
-| 16  | Fal.ai           | 3 min        | [Signup](https://fal.ai/login)                                               | ⭐ Image gen $10 + Flux         |
-| 17  | Hume AI          | 3 min        | [Platform](https://platform.hume.ai/sign-up)                                 | ⭐⭐ Emotion AI Wellness mama   |
-| 18  | Resend           | 3 min        | [Signup](https://resend.com/signup)                                          | ⭐⭐ Email 3k/lună permanent    |
-| 19  | Sentry           | 5 min        | [Signup](https://sentry.io/signup/)                                          | ⭐⭐ Error monitoring           |
-| 20  | Neon Postgres    | 3 min        | [Signup](https://console.neon.tech/signup)                                   | ⭐ DB alt 500MB permanent       |
+### Ce câștigi
 
-**Recomandarea mea de ordine:**
+- **150 tokens/zi (~1500-2250 imagini/lună)** — direct cel mai generos free tier
+- Modele: Phoenix, Lucid Origin, Flux Dev — stiluri PhotoReal unice
+- Brand consistency tools (Elements, characters, style references)
 
-1. **Pornește cu #1, #2, #3** (cele 3 ⭐⭐) — valoare maximă, free permanent / recurring / unic
-2. **Continuă cu #4, #5, #6** dacă ai timp — diversitate modele OS + long-context
-3. **#7 Pollinations** îl adaugi la sfârșit (sau folosești anonim direct fără token) — safety net
-4. **#8 ApiFreeLLM** — opțional, doar dacă vrei un strat ultim incert
+### Pași (~3 min)
+
+1. [Leonardo signup](https://app.leonardo.ai/auth/signup) → email/Google
+2. Verifică email → activare
+3. **Settings → API Keys** ([direct](https://app.leonardo.ai/settings/api-keys)) → **Create**
+4. Copy (`<token>`)
+
+### Test imediat
+
+```powershell
+$body = @{ height = 512; width = 512; modelId = "1e60896f-3c26-4296-8060-9e2fc9e1bc7b"; prompt = "a cute cat with red hat" } | ConvertTo-Json
+Invoke-RestMethod -Method POST -Uri "https://cloud.leonardo.ai/api/rest/v1/generations" `
+    -Headers @{ Authorization = "Bearer $env:LEONARDO_API_KEY"; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- 150 tokens/zi = aproximativ 15-20 imagini standard sau 5-6 PhotoReal
+- Model PhotoReal e unic (nu există pe Replicate cu aceeași calitate)
+
+### Link-uri
+
+- 🔧 [API Keys](https://app.leonardo.ai/settings/api-keys) | 📚 [Docs](https://docs.leonardo.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Leonardo.AI
+
+- **Key:** <paste_leonardo_key_here>
+- **Env Var:** LEONARDO_API_KEY
+- **Tip:** Image Generation Premium
+- **Limita:** 150 tokens/zi (~1500-2250 imagini/lună)
+- **Base URL:** https://cloud.leonardo.ai/api/rest/v1
+- **Note:** Phoenix/Lucid Origin/Flux Dev. PhotoReal unic. Brand kits.
+```
+
+---
+
+## 14. Ideogram ⭐⭐⭐ — text-in-image (cel mai bun)
+
+### Ce câștigi
+
+- **10 prompts/zi × 4 imagini = ~1200/lună** direct
+- **CEL MAI BUN la text rendering în imagini** (logo cu cuvinte, postere cu text)
+- Imposibil de matchat de SDXL/Flux la text accuracy
+- Ideogram 2.0 + Magic Prompt
+
+### Pași (~3 min)
+
+1. [Ideogram login](https://ideogram.ai/login) → Google
+2. [API Manage](https://ideogram.ai/manage-api) → **Create API Key**
+3. Copy
+
+### Test imediat
+
+```powershell
+$body = @{ image_request = @{ prompt = "Logo cu text 'Mami Docs' pe fundal albastru"; aspect_ratio = "ASPECT_1_1"; model = "V_2" } } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method POST -Uri "https://api.ideogram.ai/generate" `
+    -Headers @{ "Api-Key" = $env:IDEOGRAM_API_KEY; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- Excelent pentru: logo cu text, postere, infografice, screenshots cu text
+- 10 prompts/zi × 4 imagini = 40 imagini/zi gratis
+
+### Link-uri
+
+- 🔧 [API Manage](https://ideogram.ai/manage-api) | 📚 [Docs](https://developer.ideogram.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Ideogram
+
+- **Key:** <paste_ideogram_key_here>
+- **Env Var:** IDEOGRAM_API_KEY
+- **Tip:** Image Generation (text-in-image best)
+- **Limita:** 10 prompts/zi × 4 imagini = ~1200/lună
+- **Base URL:** https://api.ideogram.ai
+- **Note:** CEL MAI BUN la text rendering. Logo, postere cu text, infografice.
+```
+
+---
+
+## 15. Adobe Firefly ⭐ — commercial-safe brand assets
+
+### Ce câștigi
+
+- **25 generative credits/lună** (gratis cu Adobe ID free)
+- **Commercial-safe** — antrenat doar pe Adobe Stock + public domain (zero risc copyright)
+- SEPARATE de `ADOBE_API_KEY` existent (PDF/Acrobat) — proiect Firefly diferit
+- Util pentru asseturi UI Mami_Docs care pot fi folosite comercial fără frică
+
+### Pași (~5 min)
+
+1. [Firefly](https://firefly.adobe.com/) → login cu Adobe ID (free)
+2. [Developer Console](https://developer.adobe.com/console/projects) → **Create new project**
+3. **Add API → Firefly API** → autorize → genereaza JWT credentials
+4. Salvezi `Client ID` + `Client Secret`
+
+### Test imediat (necesită schimb JWT → access_token)
+
+```powershell
+$tokenBody = "client_id=$env:FIREFLY_CLIENT_ID&client_secret=$env:FIREFLY_CLIENT_SECRET&grant_type=client_credentials&scope=openid,AdobeID,session,additional_info,read_organizations,firefly_api,ff_apis"
+$tokenResp = Invoke-RestMethod -Method POST -Uri "https://ims-na1.adobelogin.com/ims/token/v3" -Body $tokenBody -Headers @{ "Content-Type" = "application/x-www-form-urlencoded" }
+# $tokenResp.access_token = bearer pentru apel Firefly
+```
+
+### Note
+
+- Refresh token la fiecare 24h (auto-renewable)
+- Single din top safe pentru asseturi care pot deveni publice (logo, materiale marketing)
+
+### Link-uri
+
+- 🔧 [Console](https://developer.adobe.com/console/projects) | 📚 [Docs](https://developer.adobe.com/firefly-services/docs/firefly-api/)
+
+### 📥 TEMPLATE — completare credențiale (DOUĂ valori)
+
+```markdown
+### Adobe Firefly
+
+- **Client ID:** <paste_firefly_client_id_here>
+- **Client Secret:** <paste_firefly_client_secret_here>
+- **Env Var:** FIREFLY_CLIENT_ID + FIREFLY_CLIENT_SECRET
+- **Tip:** Image Generation Commercial-Safe
+- **Limita:** 25 generative credits/lună
+- **Base URL:** https://firefly-api.adobe.io
+- **Note:** SEPARATE de ADOBE_API_KEY (PDF). Proiect Firefly distinct. JWT-based auth.
+```
+
+---
+
+## 16. Luma Dream Machine ⭐ — video generation 30/lună
+
+### Ce câștigi
+
+- **30 video gens/lună** 720p (5-10 sec fiecare)
+- **Best image-to-video** la calitate (mai bun decât Kling/Runway free tiers)
+- Camera motion control (orbit, zoom, pan, dolly)
+
+### Pași (~3 min)
+
+1. [Luma signup](https://lumalabs.ai/dream-machine/api) → Google/email
+2. Verifică email → onboarding
+3. [API Keys](https://lumalabs.ai/api/keys) → **Create** → copy
+
+### Test imediat
+
+```powershell
+$body = @{ prompt = "a cute cat in a sunny garden"; aspect_ratio = "16:9" } | ConvertTo-Json
+Invoke-RestMethod -Method POST -Uri "https://api.lumalabs.ai/dream-machine/v1/generations" `
+    -Headers @{ Authorization = "Bearer $env:LUMA_API_KEY"; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- Image-to-video: trimit URL imagine + prompt → video 5s
+- 30/lună = 1 video/zi suficient pentru proiecte mici
+
+### Link-uri
+
+- 🔧 [API Keys](https://lumalabs.ai/api/keys) | 📚 [Docs](https://docs.lumalabs.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Luma Dream Machine
+
+- **Key:** <paste_luma_key_here>
+- **Env Var:** LUMA_API_KEY
+- **Tip:** Video Generation (image-to-video best)
+- **Limita:** 30 video gens/lună 720p
+- **Base URL:** https://api.lumalabs.ai
+- **Note:** Camera motion control. Best i2v gratuit. 5-10 sec video.
+```
+
+---
+
+## 17. Hailuo MiniMax ⭐⭐ — video + voice + LLM unified
+
+### Ce câștigi
+
+- **Free credits signup** ($5-30 variabil + bonus phone verify)
+- **Hailuo T2V/I2V video** (calitate top, mai bun decât Luma la realistic motion)
+- **Voice cloning** unic + LLM
+- Multi-modal real într-un singur provider
+
+### Pași (~5 min)
+
+1. [International signup](https://www.minimax.io/login) → email
+2. Verify phone (opțional pentru bonus credits)
+3. [API Keys](https://www.minimax.io/user-center/basic-information/interface-key) → **Create**
+4. Salvezi `API Key` + `Group ID` (ambele necesare)
+
+### Test imediat (text-to-video)
+
+```powershell
+$body = @{ model = "video-01"; prompt = "a cat playing in a garden"; group_id = $env:MINIMAX_GROUP_ID } | ConvertTo-Json
+Invoke-RestMethod -Method POST -Uri "https://api.minimaxi.chat/v1/video_generation" `
+    -Headers @{ Authorization = "Bearer $env:MINIMAX_API_KEY"; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- Hailuo Video 01 = calitate apropiată Sora în motion realism
+- Voice cloning în 10 secunde audio sample
+- LLM `abab6.5s` = competitive cu GPT-4o
+
+### Link-uri
+
+- 🔧 [API Keys](https://www.minimax.io/user-center/basic-information/interface-key) | 📚 [Docs](https://www.minimax.io/document)
+
+### 📥 TEMPLATE — completare credențiale (DOUĂ valori)
+
+```markdown
+### Hailuo MiniMax
+
+- **API Key:** <paste_minimax_key_here>
+- **Group ID:** <paste_minimax_group_id_here>
+- **Env Var:** MINIMAX_API_KEY + MINIMAX_GROUP_ID
+- **Tip:** Multi-modal (Video + Voice + LLM)
+- **Limita:** $5-30 free credits signup + bonus phone
+- **Base URL:** https://api.minimaxi.chat/v1
+- **Note:** Hailuo T2V/I2V. Voice cloning. LLM abab6.5s. Phone verify pentru bonus.
+```
+
+---
+
+## 18. Fish Audio ⭐⭐ — TTS multi-voice (2M voci RO)
+
+### Ce câștigi
+
+- **Free permanent** + access la 2M+ voci community în 8 limbi (RO inclus)
+- Voice cloning din 10 secunde audio
+- Modele Fish Speech 1.5 + S1 — calitate apropiată ElevenLabs cu free tier mai generos
+
+### Pași (~3 min)
+
+1. [Fish Audio signup](https://fish.audio/auth/sign-up) → email/Google
+2. Verifică email → onboarding
+3. [API Keys](https://fish.audio/go-api/api-keys) → **Create** → copy
+
+### Test imediat
+
+```powershell
+$body = @{ text = "Salut mama"; reference_id = "<voice_id>"; format = "mp3" } | ConvertTo-Json
+Invoke-WebRequest -Method POST -Uri "https://api.fish.audio/v1/tts" `
+    -Headers @{ Authorization = "Bearer $env:FISHAUDIO_API_KEY"; "Content-Type" = "application/json" } -Body $body -OutFile "test.mp3"
+```
+
+### Note
+
+- Voice library 2M+ — căutați pe [fish.audio](https://fish.audio/) voci RO
+- Free permanent = sustainable long-term (vs ElevenLabs 10k chars/lună)
+- Voice cloning în 10 sec sample → unique pentru personalizare rapidă
+
+### Link-uri
+
+- 🔧 [API Keys](https://fish.audio/go-api/api-keys) | 📚 [Docs](https://docs.fish.audio/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Fish Audio
+
+- **Key:** <paste_fishaudio_key_here>
+- **Env Var:** FISHAUDIO_API_KEY
+- **Tip:** TTS Multi-Voice + Voice Cloning
+- **Limita:** Free permanent + 2M+ voci community
+- **Base URL:** https://api.fish.audio/v1
+- **Note:** Voci RO disponibile în library. Cloning din 10s sample. Fish Speech 1.5/S1.
+```
+
+---
+
+## 19. D-ID ⭐⭐ — Talking head video personalizat
+
+### Ce câștigi
+
+- **5 min video/lună GRATIS**
+- Image + audio → talking head video cu lip sync RO
+- **Use-case Mami_Docs:** poză Roland + voce ElevenLabs/Fish → mesaj video personalizat pentru mama
+- Calitate superior vs open-source (sadtalker pe Replicate are artefacte vizibile)
+
+### Pași (~3 min)
+
+1. [D-ID Studio signup](https://studio.d-id.com/) → email/Google
+2. Verifică email → onboarding (skip plan paid)
+3. [API page](https://studio.d-id.com/api) → **Create API Key** → copy
+
+### Test imediat
+
+```powershell
+$body = @{ source_url = "https://create-images-results.d-id.com/api_docs/assets/noelle.jpeg"; script = @{ type = "text"; input = "Salut mama, te iubesc!" } } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method POST -Uri "https://api.d-id.com/talks" `
+    -Headers @{ Authorization = "Basic $env:DID_API_KEY"; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- 5 min/lună = ~10 mesaje 30s sau 5 mesaje 1 min
+- Lip sync RO funcțional (calitate medie spre bună)
+- Combine cu ElevenLabs voice pentru fluxul: text → voce custom → video talking head Roland
+
+### Link-uri
+
+- 🔧 [API Page](https://studio.d-id.com/api) | 📚 [Docs](https://docs.d-id.com/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### D-ID
+
+- **Key:** <paste_did_key_here>
+- **Env Var:** DID_API_KEY
+- **Tip:** Talking Head Video (image + audio → video)
+- **Limita:** 5 min video/lună gratis
+- **Base URL:** https://api.d-id.com
+- **Note:** Lip sync RO. Use-case: poză Roland + voce ElevenLabs → mesaj video mama.
+```
+
+---
+
+## 20. Meshy AI ⭐⭐ — 3D modeling 200/lună permanent
+
+### Ce câștigi
+
+- **200 credits/lună GRATIS PERMANENT** (cel mai sustainable 3D free tier 2026)
+- Text/Image → 3D mesh (.glb / .obj / .fbx) + retexturizare
+- Auto-rigging pentru personaje
+- Util pentru: assets 3D viitor pentru app-uri secundare, prototipare rapidă
+
+### Pași (~3 min)
+
+1. [Meshy signup](https://www.meshy.ai/auth/sign-up) → email/Google
+2. Email verification → onboarding
+3. [API Settings](https://www.meshy.ai/api) → **Create API Key** → copy
+
+### Test imediat (text-to-3D preview)
+
+```powershell
+$body = @{ mode = "preview"; prompt = "a cute cartoon cat"; art_style = "realistic" } | ConvertTo-Json
+Invoke-RestMethod -Method POST -Uri "https://api.meshy.ai/openapi/v2/text-to-3d" `
+    -Headers @{ Authorization = "Bearer $env:MESHY_API_KEY"; "Content-Type" = "application/json" } -Body $body
+```
+
+### Note
+
+- 200 credits/lună = ~10-20 modele 3D simple sau ~5 complexe cu retexturare
+- Permanent, nu expiră — sustainable long-term
+
+### Link-uri
+
+- 🔧 [API](https://www.meshy.ai/api) | 📚 [Docs](https://docs.meshy.ai/)
+
+### 📥 TEMPLATE — completare credențiale
+
+```markdown
+### Meshy AI
+
+- **Key:** <paste_meshy_key_here>
+- **Env Var:** MESHY_API_KEY
+- **Tip:** 3D Modeling (Text/Image → 3D)
+- **Limita:** 200 credits/lună permanent
+- **Base URL:** https://api.meshy.ai/openapi/v2
+- **Note:** .glb/.obj/.fbx export. Auto-rigging. Sustainable long-term free.
+```
+
+---
+
+## 📋 Sumar prioritate semnare (recomandare)
+
+**Wave 1 — primele 3 (15 min, valoare maximă):**
+
+1. ⭐⭐ **Reka** — recurring lunar (singura care se reîncarcă)
+2. ⭐⭐⭐ **Ideogram** — text-in-image unic, 1200/lună
+3. ⭐⭐⭐ **Leonardo.AI** — 1500-2250 imagini/lună PhotoReal
+
+**Wave 2 — Wellness mama (15 min):**
+
+4. ⭐⭐ **Hume AI** — emotion analysis pentru jurnal vocal mama (UNIC)
+5. ⭐⭐ **AssemblyAI** — STT premium ro-RO ($50 credit)
+6. ⭐⭐ **ElevenLabs** — TTS RO native voice cloning
+
+**Wave 3 — Infrastructure (15 min):**
+
+7. ⭐⭐ **Resend** — email alerts admin
+8. ⭐⭐ **Sentry** — error monitoring production
+9. ⭐ **Neon** — DB alt branching git-like
+
+**Wave 4 — RAG + Long context (15 min):**
+
+10. ⭐⭐ **Voyage AI** — best embeddings (înlocuiește Cohere/Gemini în RAG)
+11. ⭐⭐ **Perplexity** — search-grounded medical lookup
+12. ⭐ **AI21** — 256K context jurnale lungi
+13. ⭐ **Nebius** — Llama 405B EU GDPR pentru date mama
+
+**Wave 5 — Multimedia (15 min):**
+
+14. ⭐ **Cartesia** — TTS sub 75ms voice agents
+15. ⭐ **Luma Dream Machine** — video gen 30/lună
+16. ⭐⭐ **Hailuo MiniMax** — multi-modal video+voice+LLM
+17. ⭐⭐ **Fish Audio** — TTS 2M voci permanent
+18. ⭐⭐ **D-ID** — talking head video mama
+19. ⭐⭐ **Meshy AI** — 3D modeling 200/lună permanent
+20. ⭐ **Adobe Firefly** — commercial-safe brand assets
 
 ---
 
 ## 🎯 După ce obții token-urile — proces standard
 
-Pentru fiecare cheie obținută:
-
-1. **Lipește în INBOX.md** cu Format 3 (vezi exemple per provider mai sus)
-2. **Deschide Claude Code** în `C:\Users\ALIENWARE\.api-keys\`
-3. **Spune** `proceseaza inbox` → AI procesează:
+1. **Lipești blocul `📥 TEMPLATE`** corespunzător serviciului (cu valoarea reală în loc de `<paste...>`) în `C:\Users\ALIENWARE\.api-keys\INBOX.md`
+2. **Deschizi Claude Code** în `C:\Users\ALIENWARE\.api-keys\`
+3. **Spui** `proceseaza inbox` → AI procesează:
    - Adaugă în master file
    - Setează Windows User env var
    - Regenerează `catalog.md`
    - Marchează `[PROCESAT YYYY-MM-DD]` în INBOX
 4. **Pentru integrare în Mami_Docs AI Gateway** — anunță-mă (Claude într-o sesiune Mami_Docs):
-   - Ex: _"Z.ai e setat, integrează ca fallback în chat chain"_
-   - Eu adaug funcția `callZaiChat()`, actualizez `CHAT_PROVIDERS`, deploy worker
+   - Ex: _"Reka e setat, integrează ca fallback chat după Mistral"_
+   - Eu adaug `callRekaChat()`, actualizez `CHAT_PROVIDERS`, deploy worker
 5. **Toate operațiunile sunt automatizate** — admin face DOAR pașii fizici (creare cont + click "Generate token")
 
 ---
 
-## 📊 Comparație finală — capacități acoperite cu adăugarea celor 20
+## 📊 Sumar capacități după adăugare 20 servicii
 
-### Înainte (chain chat actual mami-docs-ai)
-
-```
-groq-8b → sambanova-70b → cerebras-70b → xai-grok-mini → mistral-large → github-gpt4o-mini → openrouter-free
-(7 providere, ~7K req/zi cumulat free)
-```
-
-### După (potențial cu cele 8 noi adăugate)
-
-```
-groq-8b → sambanova-70b → cerebras-70b → xai-grok-mini → mistral-large
-  → github-gpt4o-mini → zai-glm-flash → qwen-plus → reka-flash
-  → ai21-jamba-mini → together-llama-405b → deepinfra-llama-70b
-  → pollinations-anonim → apifreellm → openrouter-free
-(15 providere, ~50K+ req/zi cumulat free, 256K ctx max, frontier+OS-mix)
-```
-
-**Beneficii cumulate:**
-
-- 🛡 **Resilience** — 15 straturi fallback (vs 7 actual) → chat chain virtual indestructibil
-- 💰 **Zero cost** — toate gratuite (cu mențiunea Reka recurring lunar)
-- 🎯 **Diversitate** — frontier (GPT-5/Grok-3-mini/Claude proxy) + OS (Llama/Qwen/DeepSeek-R1) + multimodal (Reka)
-- 📐 **Long-context** — 256K via AI21 Jamba pentru jurnale wellness extensive
-- 🌍 **Geografic split** — US (GitHub/AI21/Together/DeepInfra) + EU (Mistral) + Asia (Z.ai/Qwen) + Decentralized (Pollinations)
-
-**Mențiuni GDPR pentru date medicale Mami_Docs:**
-
-- ⛔ **NU folosi pentru date mama:** Z.ai (China), Qwen (Asia infra), Pollinations (proxy), ApiFreeLLM (incert)
-- ✅ **OK pentru date personale:** Reka, AI21, Together, DeepInfra (US/EU servers, GDPR-compliant tier)
-- ✅ **OK pentru toate:** providere existente Mami_Docs (Groq/SambaNova/Cerebras/Mistral/Cohere/Gemini)
+| Capacitate            | Înainte (existing)                                     | După adăugare 20                                 |
+| --------------------- | ------------------------------------------------------ | ------------------------------------------------ |
+| **Chat LLM frontier** | Anthropic, OpenAI, xAI, GitHub Models                  | + Reka, Perplexity, AI21, Nebius                 |
+| **Chat LLM OS**       | Groq, SambaNova, Cerebras, NVIDIA, Mistral, OpenRouter | (existing acoperă)                               |
+| **Embeddings**        | Gemini, Cohere, Mistral, Jina                          | + **Voyage** (best 2026)                         |
+| **STT**               | Groq Whisper, CF Workers AI                            | + **AssemblyAI** (~5% WER ro-RO)                 |
+| **TTS**               | Web Speech API                                         | + **ElevenLabs** + **Cartesia** + **Fish Audio** |
+| **Image gen**         | Replicate (catalog mare)                               | + **Leonardo** + **Ideogram** + **Firefly**      |
+| **Video gen**         | Replicate (LTX/Hunyuan)                                | + **Luma** + **Hailuo MiniMax**                  |
+| **Talking head**      | Replicate (sadtalker)                                  | + **D-ID** (premium quality)                     |
+| **3D**                | Replicate (TripoSR)                                    | + **Meshy** (200/lună permanent)                 |
+| **Emotion AI**        | (none)                                                 | + **Hume AI** (UNIC voice/face)                  |
+| **Email**             | Telegram + ntfy + CallMeBot                            | + **Resend** (3k/lună permanent)                 |
+| **Error monitoring**  | (log only)                                             | + **Sentry** (5k errors/lună)                    |
+| **DB Postgres**       | Supabase                                               | + **Neon** (branching)                           |
+| **Long-context**      | OpenRouter rotation                                    | + **AI21 Jamba 1.5** (256K)                      |
 
 ---
 
-**Versiune ghid:** 3.0 | **Data:** 2026-05-06 | **Sursă:** `API_de_adaugat.md` TOP 10 + research web 2026-05 (12 servicii adiționale: Perplexity/Voyage/Nebius/Lambda/AssemblyAI/ElevenLabs/Cartesia/Fal/Hume/Resend/Sentry/Neon)
+## 🛡 GDPR pentru date medicale Mami_Docs
 
-## 🎁 Bonus — Matrix capabilități acoperite (deținute + cele 20 noi)
+**✅ OK pentru date personale mama:**
 
-| Capabilitate             | Înainte (deținute existing)                                      | După adăugare 20 noi                                               |
-| ------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Chat LLM frontier**    | Anthropic, OpenAI, xAI Grok, GitHub Models                       | + Reka, Z.ai, Qwen, Perplexity (search), AI21 (256K)               |
-| **Chat LLM OS**          | Groq, SambaNova, Cerebras, NVIDIA, Mistral, OpenRouter, DeepSeek | + Together (200+), DeepInfra, Nebius, Lambda, ApiFreeLLM           |
-| **Embeddings**           | Gemini, Cohere, Mistral, Jina                                    | + **Voyage** (best-in-class 2026, 200M tokens free)                |
-| **STT**                  | Groq Whisper, CF Workers AI Whisper                              | + **AssemblyAI** (best ro-RO ~5% WER)                              |
-| **TTS**                  | Web Speech API native                                            | + **ElevenLabs** (voci RO premium), Cartesia (sub 75ms)            |
-| **Image generation**     | (none)                                                           | + **Fal.ai** (Flux Schnell ~1s/imagine)                            |
-| **Vision/OCR**           | Tesseract, Gemini, Mistral, Azure Doc Intel                      | (suficient existent)                                               |
-| **Search web**           | Brave, Tavily, Jina                                              | + Perplexity (Sonar grounded)                                      |
-| **Translate**            | DeepL ×2, Azure ×2, Gemini                                       | (suficient existent)                                               |
-| **Emotion AI**           | (none)                                                           | + **Hume AI** (38 categorii voce/față — UNIC pentru Wellness mama) |
-| **Proxy fără signup**    | (none)                                                           | + Pollinations (GPT-5/Claude/Gemini anonim)                        |
-| **Email API**            | Telegram Bot, ntfy, CallMeBot                                    | + **Resend** (3k emails/lună permanent)                            |
-| **Error monitoring**     | (none — log only)                                                | + **Sentry** (5k errors + perf tracking)                           |
-| **DB Postgres**          | Supabase                                                         | + **Neon** (500MB + branching, scale-to-zero)                      |
-| **Recurring credits**    | (none)                                                           | + **Reka** ($10 lunar resetabil — UNIC)                            |
-| **Long-context (>200K)** | OpenRouter rotation                                              | + **AI21 Jamba 1.5** (256K nativ)                                  |
+- Reka (US), AI21 (US), Nebius (EU Frankfurt), AssemblyAI (US), ElevenLabs (US), Cartesia (US)
+- Hume (US), Resend (US), Sentry (EU/US), Neon (EU Frankfurt)
+- Leonardo, Ideogram, Firefly, Luma, D-ID, Meshy (US/EU)
 
-> Pentru blueprint universal de obținere credențiale (orice serviciu, nu doar AI), vezi `~/.claude/blueprints/CREDENTIALS_ACQUISITION_GUIDE.md`.
+**⛔ NU pentru date personale mama:**
 
-
----
----
-
-## 🎨 v4 — Multimedia Generation APIs (#21-36)
-
-> 16 servicii cu API real pentru auto-generare prin terminal Claude (workflow: *"fă logo"* → AI cheamă API → fișier salvat în folder).
-
-## 21. Leonardo.AI ⭐⭐⭐ — image gen (1500+ imagini/lună)
-- 150 tokens/zi (~1500-2250 imagini/lună). Phoenix/Lucid Origin/Flux Dev models.
-- [Signup](https://app.leonardo.ai/auth/signup) → [API Keys](https://app.leonardo.ai/settings/api-keys) → Create
-- INBOX env: `LEONARDO_API_KEY` | Base: `https://cloud.leonardo.ai/api/rest/v1`
-- Docs: https://docs.leonardo.ai/
-
-## 22. Ideogram ⭐⭐⭐ — text-in-image (1200 imagini/lună)
-- 10 prompts/zi × 4 = ~1200/lună. CEL MAI BUN la text rendering în imagini (logo cu cuvinte).
-- [Signup](https://ideogram.ai/login) → [API Manage](https://ideogram.ai/manage-api) → Create
-- INBOX env: `IDEOGRAM_API_KEY` | Base: `https://api.ideogram.ai`
-- Docs: https://developer.ideogram.ai/
-
-## 23. Recraft V4 ⭐ — vector + brand (50 credits/lună)
-- 50 credits/lună. SVG nativ, brand kits. Perfect pentru iconițe Mami_Docs PWA.
-- [Signup](https://www.recraft.ai/) → [Profile API](https://www.recraft.ai/profile/api) → Generate
-- INBOX env: `RECRAFT_API_KEY` | Base: `https://external.api.recraft.ai/v1`
-- Docs: https://www.recraft.ai/docs
-
-## 24. Stability AI ⭐ — image edit (25 credits/lună)
-- 25 credits/lună. SD3.5/SDXL + bg remove + upscale 4×/8× + relighting.
-- [Signup](https://platform.stability.ai/) → [API Keys](https://platform.stability.ai/account/keys)
-- INBOX env: `STABILITY_API_KEY` | Base: `https://api.stability.ai`
-- Docs: https://platform.stability.ai/docs/api-reference
-
-## 25. ModelsLab ⭐⭐ — multi-model hub (3000 calls/lună)
-- 100 calls/zi (3000/lună). 10.000+ modele image/video/voice/3D unified.
-- [Signup](https://modelslab.com/register) → [Dashboard](https://modelslab.com/dashboard/api)
-- INBOX env: `MODELSLAB_API_KEY` | Base: `https://modelslab.com/api/v6`
-- Docs: https://docs.modelslab.com/
-
-## 26. Adobe Firefly ⭐ — commercial-safe (25 credite/lună, SEPARATE de ADOBE_API_KEY existent pentru PDF)
-- 25 generative credits/lună. Commercial-safe (Adobe Stock + public domain).
-- [Firefly](https://firefly.adobe.com/) login → [Developer Console](https://developer.adobe.com/console/projects) → Create Project → Add Firefly API → JWT
-- INBOX env: `FIREFLY_CLIENT_ID` + `FIREFLY_CLIENT_SECRET` | Base: `https://firefly-api.adobe.io`
-- Note: SEPARATE de `ADOBE_API_KEY` (PDF) existent
-- Docs: https://developer.adobe.com/firefly-services/docs/firefly-api/
-
-## 27. Luma Dream Machine ⭐ — video gen (30 generations/lună)
-- 30 video gens/lună 720p (5-10 sec). Best image-to-video. Camera motion control.
-- [Signup](https://lumalabs.ai/dream-machine/api) → [API Keys](https://lumalabs.ai/api/keys)
-- INBOX env: `LUMA_API_KEY` | Base: `https://api.lumalabs.ai`
-- Docs: https://docs.lumalabs.ai/
-
-## 28. Hailuo MiniMax ⭐⭐ — video + audio + LLM (free credits generos)
-- Free credits signup ($5-30 variabil + bonus phone verify). Hailuo T2V/I2V + voice clone + LLM.
-- [International signup](https://www.minimax.io/login) → [API Keys](https://www.minimax.io/user-center/basic-information/interface-key)
-- INBOX env: `MINIMAX_API_KEY` + `MINIMAX_GROUP_ID` | Base: `https://api.minimaxi.chat/v1`
-- Docs: https://www.minimax.io/document
-
-## 29. Fish Audio ⭐⭐ — TTS multi-voice (free permanent + 2M voci)
-- Free permanent + 2M+ voci community în 8 limbi (RO inclus). Voice cloning din 10s.
-- [Signup](https://fish.audio/auth/sign-up) → [API Keys](https://fish.audio/go-api/api-keys)
-- INBOX env: `FISHAUDIO_API_KEY` | Base: `https://api.fish.audio/v1`
-- Docs: https://docs.fish.audio/
-
-## 30. D-ID ⭐⭐ — talking head video (5 min/lună)
-- 5 min video/lună. Image+audio → talking head cu lip sync RO.
-- Use-case Mami_Docs: poză Roland + voce ElevenLabs → mesaj video pentru mama
-- [Studio signup](https://studio.d-id.com/) → [API Page](https://studio.d-id.com/api)
-- INBOX env: `DID_API_KEY` | Base: `https://api.d-id.com`
-- Docs: https://docs.d-id.com/
-
-## 31. Sync.so ⭐ — lip sync arbitrary video (free tier)
-- Free tier credits signup. Aplică lip sync pe ORICE video (vs D-ID = talking head din imagine).
-- [Signup](https://sync.so/login) → [Dashboard API Keys](https://sync.so/dashboard)
-- INBOX env: `SYNC_API_KEY` | Base: `https://api.sync.so/v2`
-- Docs: https://docs.sync.so/
-
-## 32. Tripo AI ⭐⭐ — 3D modeling (2000 + 600/zi)
-- 2000 credits signup + ~600/zi. Image/Text → 3D mesh (.glb/.obj/.fbx). Auto-rigging.
-- [Signup](https://www.tripo3d.ai/) → [API Keys](https://platform.tripo3d.ai/api-keys)
-- INBOX env: `TRIPO_API_KEY` | Base: `https://api.tripo3d.ai/v2/openapi`
-- Docs: https://platform.tripo3d.ai/docs
-
-## 33. Meshy AI ⭐⭐ — 3D + texturing (200 credits/lună permanent)
-- 200 credits/lună permanent. Text/Image → 3D + retexturizare.
-- [Signup](https://www.meshy.ai/auth/sign-up) → [API Settings](https://www.meshy.ai/api)
-- INBOX env: `MESHY_API_KEY` | Base: `https://api.meshy.ai/openapi/v2`
-- Docs: https://docs.meshy.ai/
-
-## 34. TensorPix ⭐ — video upscale (free signup credits)
-- Free credits signup. 4× upscale + denoise + colorize + slow-mo.
-- [Signup](https://tensorpix.ai/) → [Account API](https://tensorpix.ai/account/api)
-- INBOX env: `TENSORPIX_API_KEY` | Base: `https://tensorpix.ai/api/v1`
-
-## 35. Cutout Pro ⭐ — image+video edit (free trial)
-- BG remove photo+video, upscale 4×/8×, restaurare poze vechi, colorize old photos.
-- [Signup](https://www.cutout.pro/sign-up) → [API](https://www.cutout.pro/api)
-- INBOX env: `CUTOUTPRO_API_KEY` | Base: `https://www.cutout.pro/api`
-- Docs: https://www.cutout.pro/api-page/document/general-info
-
-## 36. LALAL.AI ⭐ — vocal isolation (10 min/lună)
-- 10 min audio/lună. Separă voce/instrumental/drums/bass.
-- Use-case Mami_Docs: izolare voce mama din înregistrări zgomotoase
-- [Signup](https://www.lalal.ai/) → [API page](https://www.lalal.ai/api/)
-- INBOX env: `LALALAI_API_KEY` | Base: `https://www.lalal.ai/api/`
-- Docs: https://www.lalal.ai/api/help/
+- Hailuo MiniMax (China), Fish Audio (servere mixed) → folosi DOAR pentru asseturi non-personale (logo, ilustrații generice, voice samples non-mama)
 
 ---
 
-## 📋 Sumar v4 — 16 noi (max 60 min total)
+**Versiune ghid:** 5.0 | **Data:** 2026-05-06 | **Sursă:** v4 (36 servicii) → v5 (20 cu signup necesar; 16 mutate în memoria sistemului `system_no_key_services.md` pentru auto-execute via chei existente)
 
-| # | Provider | Timp | Link tap-direct |
-|---|----------|------|-----------------|
-| 21 | Leonardo.AI | 3 min | [API Keys](https://app.leonardo.ai/settings/api-keys) |
-| 22 | Ideogram | 3 min | [API](https://ideogram.ai/manage-api) |
-| 23 | Recraft V4 | 3 min | [API](https://www.recraft.ai/profile/api) |
-| 24 | Stability AI | 3 min | [API Keys](https://platform.stability.ai/account/keys) |
-| 25 | ModelsLab | 3 min | [Dashboard](https://modelslab.com/dashboard/api) |
-| 26 | Adobe Firefly | 5 min | [Console](https://developer.adobe.com/console/projects) |
-| 27 | Luma Dream Machine | 3 min | [API Keys](https://lumalabs.ai/api/keys) |
-| 28 | Hailuo MiniMax | 5 min | [API Keys](https://www.minimax.io/user-center/basic-information/interface-key) |
-| 29 | Fish Audio | 3 min | [API Keys](https://fish.audio/go-api/api-keys) |
-| 30 | D-ID | 3 min | [API Page](https://studio.d-id.com/api) |
-| 31 | Sync.so | 3 min | [Dashboard](https://sync.so/dashboard) |
-| 32 | Tripo AI | 3 min | [API Keys](https://platform.tripo3d.ai/api-keys) |
-| 33 | Meshy AI | 3 min | [API](https://www.meshy.ai/api) |
-| 34 | TensorPix | 3 min | [API](https://tensorpix.ai/account/api) |
-| 35 | Cutout Pro | 3 min | [API](https://www.cutout.pro/api) |
-| 36 | LALAL.AI | 3 min | [API](https://www.lalal.ai/api/) |
-
----
-
-**Versiune ghid:** 4.0 | **Data:** 2026-05-06 | **Sursă:** v3 (20) + 16 multimedia (#21-36 cu API real pentru auto-execution prin terminal Claude)
-
-> **Pentru servicii FĂRĂ cheie (Pollinations) sau UI-only (NotebookLM/Suno/etc.) → vezi memorie sistem `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`**
+> **Pentru servicii FĂRĂ signup necesar (Replicate covers, Pollinations, UI-only equivalents) → vezi memorie sistem `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`. Le execut automat când îmi spui ce conținut vrei generat.**
