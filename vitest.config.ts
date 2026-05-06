@@ -16,6 +16,7 @@ export default defineConfig({
       include: [
         "src/ai/**",
         "src/data/local-store.ts",
+        "src/data/supabase.ts",
         "src/services/notifications.ts",
         "workers/**",
       ],

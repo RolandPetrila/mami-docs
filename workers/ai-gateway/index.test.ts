@@ -196,17 +196,28 @@ describe("POST /chat", () => {
   });
 
   it("returnează 503 când toți providerii eșuează", async () => {
+    // Chain de 7 provideri × MAX_RETRIES (2) × delay-uri retry — 5s timeout default e prea mic.
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("fail", { status: 500 }),
     );
     const resp = await worker.fetch(
-      req("/chat", "POST", { messages: [{ role: "user", content: "test" }] }),
-      { ...BASE_ENV, CEREBRAS_API_KEY: "k", OPENROUTER_API_KEY: "k" },
+      req("/chat", "POST", {
+        messages: [{ role: "user", content: "test" }],
+      }),
+      {
+        ...BASE_ENV,
+        SAMBANOVA_API_KEY: "k",
+        CEREBRAS_API_KEY: "k",
+        XAI_API_KEY: "k",
+        MISTRAL_API_KEY: "k",
+        GITHUB_MODELS_TOKEN: "k",
+        OPENROUTER_API_KEY: "k",
+      },
     );
     expect(resp.status).toBe(503);
     const body = (await resp.json()) as { error: string };
     expect(body.error).toContain("disponibil");
-  });
+  }, 20_000);
 });
 
 // ---- /embed ----
@@ -349,5 +360,110 @@ describe("POST /search", () => {
     };
     expect(body.provider).toBe("brave");
     expect(body.results).toHaveLength(1);
+  });
+});
+
+// ---- T6.4 Rate limiting (KV-backed) ----
+
+interface KvStore {
+  get: (k: string) => Promise<string | null>;
+  put: (k: string, v: string, opts?: unknown) => Promise<void>;
+}
+
+function makeKv(initial: Record<string, string> = {}): KvStore & {
+  store: Record<string, string>;
+} {
+  const store = { ...initial };
+  return {
+    store,
+    get: async (k: string) => store[k] ?? null,
+    put: async (k: string, v: string) => {
+      store[k] = v;
+    },
+  };
+}
+
+describe("T6.4 rate limiting", () => {
+  it("permite request când KV nu e legat (graceful fallback)", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(groqOk("ok"));
+    const resp = await worker.fetch(
+      req("/chat", "POST", { messages: [{ role: "user", content: "x" }] }),
+      BASE_ENV,
+    );
+    expect(resp.status).toBe(200);
+  });
+
+  it("permite primul request când KV legat și counter 0", async () => {
+    const kv = makeKv();
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(groqOk("ok"));
+    const resp = await worker.fetch(
+      req("/chat", "POST", { messages: [{ role: "user", content: "x" }] }),
+      // @ts-expect-error — RATE_LIMIT_KV are tipul KVNamespace în prod, mock minimal aici
+      { ...BASE_ENV, RATE_LIMIT_KV: kv },
+    );
+    expect(resp.status).toBe(200);
+    expect(Object.keys(kv.store).length).toBe(1);
+  });
+
+  it("blochează cu 429 + Retry-After când counter ≥ 30", async () => {
+    const kv = makeKv({ "rl:unknown": "30" });
+    const resp = await worker.fetch(
+      req("/chat", "POST", { messages: [{ role: "user", content: "x" }] }),
+      // @ts-expect-error — mock KV
+      { ...BASE_ENV, RATE_LIMIT_KV: kv },
+    );
+    expect(resp.status).toBe(429);
+    expect(resp.headers.get("Retry-After")).toBe("60");
+    const body = (await resp.json()) as { error: string };
+    expect(body.error).toMatch(/rate limit/i);
+  });
+
+  it("incrementează contor pe IP la fiecare request permis", async () => {
+    const kv = makeKv({ "rl:1.2.3.4": "5" });
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(groqOk("ok"));
+    const r = new Request("https://worker.example.com/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: ORIGIN,
+        "CF-Connecting-IP": "1.2.3.4",
+      },
+      body: JSON.stringify({ messages: [{ role: "user", content: "x" }] }),
+    });
+    await worker.fetch(
+      r,
+      // @ts-expect-error — mock KV
+      { ...BASE_ENV, RATE_LIMIT_KV: kv },
+    );
+    expect(kv.store["rl:1.2.3.4"]).toBe("6");
+  });
+});
+
+// ---- T6.5 CORS strict ----
+
+describe("T6.5 CORS strict", () => {
+  it("Access-Control-Allow-Origin nu mai e `*` chiar fără ALLOWED_ORIGIN", async () => {
+    const envNoOrigin = { ...BASE_ENV, ALLOWED_ORIGIN: undefined };
+    const resp = await worker.fetch(
+      new Request("https://worker.example.com/health", {
+        method: "GET",
+        headers: { Origin: "https://orice.com" },
+      }),
+      envNoOrigin,
+    );
+    expect(resp.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://orice.com",
+    );
+    expect(resp.headers.get("Access-Control-Allow-Origin")).not.toBe("*");
+  });
+
+  it("Origin match → echo allowed origin", async () => {
+    const resp = await worker.fetch(req("/health"), BASE_ENV);
+    expect(resp.headers.get("Access-Control-Allow-Origin")).toBe(ORIGIN);
+  });
+
+  it("Vary: Origin prezent în răspuns", async () => {
+    const resp = await worker.fetch(req("/health"), BASE_ENV);
+    expect(resp.headers.get("Vary")).toBe("Origin");
   });
 });
