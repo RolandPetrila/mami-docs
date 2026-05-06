@@ -35,6 +35,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # T9.3 — Cache Vite build artefacts (~25s economy per CI run)
+      - name: Cache Vite build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.vite
+            node_modules/.cache
+          key: vite-${{ runner.os }}-${{ hashFiles('vite.config.ts', 'package-lock.json') }}
+          restore-keys: |
+            vite-${{ runner.os }}-
+
       - name: Build with Vite
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}

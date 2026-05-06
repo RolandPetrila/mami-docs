@@ -20,6 +20,13 @@ export default defineConfig({
         "src/services/notifications.ts",
         "workers/**",
       ],
+      // T9.5 — Pragul minim de coverage; build CI eșuează dacă scade sub.
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
     },
   },
 });

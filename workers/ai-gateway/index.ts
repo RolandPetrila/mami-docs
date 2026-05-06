@@ -221,6 +221,32 @@ async function callGroqChat(
   return content;
 }
 
+// T7.E.1 — SSE streaming Groq → client.
+// Returnează ReadableStream care emite "data: {chunk}\n\n" + "data: [DONE]\n\n".
+async function callGroqChatStream(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<ReadableStream<Uint8Array>> {
+  const resp = await fetch(GROQ_CHAT_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      max_tokens: MAX_TOKENS,
+      stream: true,
+    }),
+  });
+  if (!resp.ok || !resp.body) {
+    throw new Error(`Groq stream HTTP ${resp.status}`);
+  }
+  return resp.body;
+}
+
 async function callCerebrasChat(
   model: string,
   messages: ChatMessage[],
@@ -470,6 +496,77 @@ async function handleChat(
     503,
     cors,
   );
+}
+
+// T7.E.1 — Streaming chat (Groq doar; fallback la /chat non-stream e responsabilitatea clientului).
+async function handleChatStream(
+  body: { messages: ChatMessage[]; systemPrompt?: string },
+  env: Env,
+  cors: Record<string, string>,
+): Promise<Response> {
+  const messages: ChatMessage[] = body.systemPrompt
+    ? [{ role: "system", content: body.systemPrompt }, ...body.messages]
+    : body.messages;
+
+  if (!env.GROQ_API_KEY) {
+    return jsonResp({ error: "Streaming nu este disponibil" }, 503, cors);
+  }
+
+  const groqProvider = CHAT_PROVIDERS.find((p) => p.provider === "groq");
+  const model = groqProvider?.model ?? "llama-3.1-8b-instant";
+
+  try {
+    const upstream = await callGroqChatStream(
+      model,
+      messages,
+      env.GROQ_API_KEY,
+    );
+
+    // Re-stream cu heartbeat keep-alive 25s pentru a evita timeout CF Workers
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
+
+    let heartbeatId: ReturnType<typeof setInterval> | null = setInterval(() => {
+      writer.write(encoder.encode(": ping\n\n")).catch(() => {});
+    }, 25_000);
+
+    (async () => {
+      try {
+        const reader = upstream.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          await writer.write(value);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await writer
+          .write(
+            encoder.encode(
+              `data: ${JSON.stringify({ error: msg })}\n\ndata: [DONE]\n\n`,
+            ),
+          )
+          .catch(() => {});
+      } finally {
+        if (heartbeatId) clearInterval(heartbeatId);
+        heartbeatId = null;
+        await writer.close().catch(() => {});
+      }
+    })().catch(() => {});
+
+    return new Response(readable, {
+      headers: {
+        ...cors,
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return jsonResp({ error: `Stream init failed: ${msg}` }, 503, cors);
+  }
 }
 
 // ---- STT ----
@@ -1279,6 +1376,20 @@ export default {
         return jsonResp({ error: "messages[] required" }, 400, cors);
       }
       return handleChat(
+        body as { messages: ChatMessage[]; systemPrompt?: string },
+        env,
+        cors,
+      );
+    }
+
+    if (pathname === "/chat-stream") {
+      if (
+        !Array.isArray((body as { messages?: unknown }).messages) ||
+        (body as { messages: unknown[] }).messages.length === 0
+      ) {
+        return jsonResp({ error: "messages[] required" }, 400, cors);
+      }
+      return handleChatStream(
         body as { messages: ChatMessage[]; systemPrompt?: string },
         env,
         cors,

@@ -1,0 +1,16 @@
+#!/bin/sh
+# T9.4 — Pre-commit gate: blochează commit cu erori TS sau teste rupte.
+
+echo "[pre-commit] tsc --noEmit..."
+npx tsc --noEmit || {
+  echo "[pre-commit] FAIL: erori TypeScript. Rulează 'npx tsc --noEmit' local pentru detalii."
+  exit 1
+}
+
+echo "[pre-commit] vitest --run (smoke)..."
+npx vitest run --silent || {
+  echo "[pre-commit] FAIL: teste rupte. Rulează 'npm test' pentru detalii."
+  exit 1
+}
+
+echo "[pre-commit] OK"

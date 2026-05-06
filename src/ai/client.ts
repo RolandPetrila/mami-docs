@@ -154,3 +154,76 @@ export async function transcribeAudio(
   );
   return data.text;
 }
+
+// T7.E.1 — SSE streaming chat. onChunk primește text incremental (chunk-by-chunk).
+// Fallback automat la /chat non-stream dacă /chat-stream eșuează.
+export async function sendChatStream(
+  messages: ChatMessage[],
+  systemPrompt: string,
+  onChunk: (chunk: string) => void,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (!GATEWAY_URL) {
+    throw new AiGatewayError("VITE_AI_GATEWAY_URL nesetat");
+  }
+  let resp: Response;
+  try {
+    resp = await fetch(`${GATEWAY_URL}/chat-stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages, systemPrompt }),
+      signal,
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
+    throw new AiGatewayError(
+      `Stream rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+
+  if (!resp.ok || !resp.body) {
+    // Fallback la non-stream
+    const fallback = await sendChat(messages, systemPrompt, signal);
+    onChunk(fallback);
+    return fallback;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let full = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buffer.indexOf("\n\n")) !== -1) {
+      const event = buffer.slice(0, nl).trim();
+      buffer = buffer.slice(nl + 2);
+      if (!event || event.startsWith(":")) continue; // heartbeat
+      const dataLine = event
+        .split("\n")
+        .find((l) => l.startsWith("data: "))
+        ?.slice(6);
+      if (!dataLine) continue;
+      if (dataLine === "[DONE]") return full;
+      try {
+        const parsed = JSON.parse(dataLine) as {
+          choices?: Array<{ delta?: { content?: string } }>;
+          error?: string;
+        };
+        if (parsed.error) throw new AiGatewayError(parsed.error);
+        const piece = parsed.choices?.[0]?.delta?.content;
+        if (piece) {
+          full += piece;
+          onChunk(piece);
+        }
+      } catch (err) {
+        if (err instanceof AiGatewayError) throw err;
+        // ignore parse errors per chunk
+      }
+    }
+  }
+  return full;
+}

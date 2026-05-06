@@ -1,4 +1,4 @@
-import { sendChat, AiGatewayError, type ChatMessage } from "../ai/client";
+import { sendChatStream, AiGatewayError, type ChatMessage } from "../ai/client";
 import { getSystemPrompt } from "../ai/system-prompts";
 import { getRagContextForQuery } from "../ai/rag";
 import {
@@ -569,24 +569,89 @@ export class MamiChat extends HTMLElement {
     }
 
     this._abortCtrl = new AbortController();
+
+    // T7.E.1 — Streaming AI response (cu fallback non-stream)
+    const placeholder: Message = {
+      id: msgId(),
+      role: "ai",
+      text: "",
+      time: new Date().toISOString(),
+    };
+    this._messages.push(placeholder);
+    const bubbleEl = this._renderStreamingPlaceholder(placeholder);
+    this._scrollToBottom();
+    this._updateEmptyState();
+
     try {
-      const reply = await sendChat(
+      const fullText = await sendChatStream(
         msgs,
         systemWithContext,
+        (chunk) => {
+          placeholder.text += chunk;
+          if (bubbleEl) {
+            bubbleEl.textContent = placeholder.text;
+            this._scrollToBottom();
+          }
+        },
         this._abortCtrl.signal,
       );
-      this._addMessage({ role: "ai", text: reply });
+      placeholder.text = fullText || placeholder.text;
+      if (bubbleEl) bubbleEl.textContent = placeholder.text;
+      this._saveHistory();
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
+      if (err instanceof DOMException && err.name === "AbortError") {
+        // Remove placeholder if user aborted before any chunk
+        if (!placeholder.text) {
+          this._messages = this._messages.filter(
+            (m) => m.id !== placeholder.id,
+          );
+          bubbleEl?.parentElement?.remove();
+        }
+        return;
+      }
       const errText =
         err instanceof AiGatewayError
           ? `Eroare AI: ${err.message}`
           : "Serviciul AI este temporar indisponibil. Încearcă din nou.";
+      // Înlocuiește placeholder-ul cu mesaj de eroare
+      this._messages = this._messages.filter((m) => m.id !== placeholder.id);
+      bubbleEl?.parentElement?.remove();
       this._addMessage({ role: "ai", text: errText, isError: true });
     } finally {
       this._setBusy(false);
       this._abortCtrl = null;
     }
+  }
+
+  // T7.E.1 — Rendering streaming bubble (returns ref to text element so we can update)
+  private _renderStreamingPlaceholder(msg: Message): HTMLElement | null {
+    const list = this._sr.querySelector("#messages") as HTMLElement | null;
+    const thinkingWrap = this._sr.querySelector(
+      "#thinking-wrap",
+    ) as HTMLElement | null;
+    if (!list) return null;
+
+    const wrap = document.createElement("div");
+    wrap.className = "bubble-wrap ai";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble ai";
+    bubble.textContent = "";
+    bubble.setAttribute("aria-label", "Mami AI:");
+    const time = document.createElement("div");
+    time.className = "bubble-time";
+    time.textContent = formatTime(msg.time);
+    time.setAttribute("aria-hidden", "true");
+
+    wrap.appendChild(bubble);
+    wrap.appendChild(time);
+
+    // Listen button — adăugat când streamul e complet (în finally implicit prin saveHistory)
+    if (thinkingWrap) {
+      list.insertBefore(wrap, thinkingWrap);
+    } else {
+      list.appendChild(wrap);
+    }
+    return bubble;
   }
 
   private _addMessage(opts: {

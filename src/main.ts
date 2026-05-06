@@ -37,6 +37,7 @@ ric(
     void import("./components/mami-menu");
     void import("./components/mami-drug-checker");
     void import("./components/mami-voice-memo");
+    void import("./components/mami-doc-library");
   },
   { timeout: 4000 },
 );
