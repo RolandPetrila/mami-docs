@@ -48,7 +48,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=mami-docs --branch=main --commit-dirty=true
+          # --commit-message ASCII evită bug CF API cu UTF-8 multi-line (cod 8000111)
+          command: pages deploy dist --project-name=mami-docs --branch=main --commit-dirty=true --commit-message="auto-deploy ${{ github.sha }}"
 
       # T6.4 — Worker AI Gateway deploy cu KV binding pentru rate limit.
       # Tokenul GH secret CLOUDFLARE_API_TOKEN trebuie să aibă scope:
