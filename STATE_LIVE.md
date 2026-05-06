@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-06 by Opus 4.7 (Faza 6 partial T6.3-T6.7 + ton AI neutru + hotfix XSS)
-**Status:** Faza 1-5 ✅; Faza 6 LOW/MEDIUM ✅ (T6.3 PIN salt, T6.4 rate limit cod, T6.5 CORS strict, T6.6 STT fallback, T6.7 invites SQL). Worker deploy: 90a2287e fără KV (rate limit cod prezent dar inactiv pe prod — token CF necesită KV write scope pentru activare). Faza 6 R-RISK HIGH (T6.1 RLS + T6.2 CALLMEBOT) — PENDING confirmare admin per task. Stil prompts AI: neutru/sincer/fără „mama"/jargon (per request admin 2026-05-06).
+**Ultimul update:** 2026-05-06 by Opus 4.7 (Faza 5+6+8+9 + T6.1 cod — audit 92/100)
+**Status:** Faze 0-9 cod COMPLETE. Audit: 58 → 80 → **92/100** (+34). npm audit: 0 vulnerabilities (era 11). Bundle precache 1475 → 670 KiB (-54%). Stack modernizat: TS 6, Vite 8, plugin-pwa 1.3, marked 18, pdfjs 5, transformers v4, @e965/xlsx. Rate limit T6.4 LIVE pe production (CF KV deployed via GH Actions cu KV write scope confirmat). CALLMEBOT mut server-side (T6.2). RLS strict device_id pregătit (T6.1 cod). Stil AI: neutru/sincer fără „mama"/jargon. **PENDING admin manual:** T6.1 SQL prod (test staging FIRST), T6.2 secrets keepalive, Faza 10 (Lighthouse phone, TEST_CHECKLIST, go-live mama).
 
 ## Workflow Testare (CRITIC)
 

@@ -1,7 +1,7 @@
 # PLAN Inițiere Proiect Mami_Docs
 
 **Dată inițială:** 2026-05-01 | **Ultimă actualizare:** 2026-05-06  
-**Status:** ✅ Faze 0+1+1.5+2+3+4+5 Complete; Faze 6-10 PENDING (sprint îmbunătățiri post-audit, derivate din `.claude-outputs/audit/`, `improve/`, `imbunatatiri/` 2026-05-06).  
+**Status:** ✅ Faze 0-9 cod COMPLETE (audit 92/100); T6.1 SQL prod + T6.2 secrets + Faza 10 PENDING admin manual (sprint îmbunătățiri post-audit, derivate din `.claude-outputs/audit/`, `improve/`, `imbunatatiri/` 2026-05-06).  
 **Versiune plan:** 2.1  
 **v2.1 (2026-05-06, sequential thinking refinement):** DoD global + per fază, 8 dependențe critice cross-phase, estimări cumulate (~95-130h), Risk Register top 10 cu mitigation, consolidare T5.1+T5.2 commit.  
 **Surse adăugate la v2.0 (2026-05-06):**
@@ -318,7 +318,7 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
     ```
   - **Pași:** (1) staging Supabase test, (2) admin rulează SQL în prod Supabase editor, (3) re-deploy worker cu device_id header, (4) test
   - **CONFIRMARE ADMIN:** OBLIGATORIE înainte de a rula SQL în prod
-- [ ] **T6.2** — CALLMEBOT key mută în keepalive worker [MEDIUM] [efort: MEDIU]
+- [x] **T6.2** — CALLMEBOT key mută în keepalive worker [MEDIUM] [efort: MEDIU]
   - **Sursa:** audit [HIGH-1] — notifications.ts:12-14
   - **De ce:** `VITE_CALLMEBOT_API_KEY` public în bundle → apeluri voce neautorizate posibile
   - **Cum:** keepalive worker adaugă endpoint `POST /notify` (auth via Origin + JWT); client trimite la worker, worker apelează CallMeBot cu key din `wrangler secret put CALLMEBOT_API_KEY`; `notifications.ts` schimbă `fetch("https://api.callmebot.com/...")` în `fetch(env.WORKER_URL + "/notify")`
@@ -478,26 +478,26 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 
 ### Task-uri Faza 8
 
-- [ ] **T8.1** — TypeScript 5.4 → 6.0.3 [LOW] [efort: MIC]
+- [x] **T8.1** — TypeScript 5.4 → 6.0.3 [LOW] [efort: MIC]
   - **Sursa:** improve [M2] — `strict: true` deja activ → low risk
   - **Cum:** `npm install typescript@6.0.3` + `npx tsc --noEmit` → 0 erori; tsconfig deja compat
-- [ ] **T8.2** — xlsx 0.18.5 → @e965/xlsx [MEDIUM] [efort: MIC]
+- [x] **T8.2** — xlsx 0.18.5 → @e965/xlsx [MEDIUM] [efort: MIC]
   - **Sursa:** improve [D3] + audit [HIGH-6] — Prototype Pollution + ReDoS
   - **De ce:** xlsx pe npm înghețat 0.18.5 (CVE GHSA-4r6h-8v6p-xvw6); SheetJS s-a mutat la `git.sheetjs.com` (non-standard)
   - **Cum:** `npm install @e965/xlsx` + replace_all import `from "xlsx"` → `from "@e965/xlsx"` (API identic); test export Excel mami-menu
-- [ ] **T8.3** — marked 12 → 18 [MEDIUM] [efort: MEDIU]
+- [x] **T8.3** — marked 12 → 18 [MEDIUM] [efort: MEDIU]
   - **Sursa:** improve [M3] — 6 majors în urmă, breaking API posibil
   - **Cum:** `npm install marked@18`; verifică opțiunile `marked({ breaks, gfm })` — API poate fi schimbat; smoke test render markdown în chat + doc-viewer (3-5 fișiere reale)
-- [ ] **T8.4** — @xenova/transformers → @huggingface/transformers v4 [MEDIUM] [efort: MEDIU]
+- [x] **T8.4** — @xenova/transformers → @huggingface/transformers v4 [MEDIUM] [efort: MEDIU]
   - **Sursa:** improve [D1] + audit [HIGH-9] — pachet abandonat 18+ luni; v4 are WebGPU + bundle -53%
   - **Cum:** `npm uninstall @xenova/transformers && npm install @huggingface/transformers`; `src/ai/embeddings.ts` schimbă import; verifică `pipeline("feature-extraction", "Xenova/multilingual-e5-small")` în v4 (API compatible v2→v3→v4); smoke test RAG end-to-end
-- [ ] **T8.5** — pdfjs-dist 4 → 5 [MEDIUM] [efort: MEDIU]
+- [x] **T8.5** — pdfjs-dist 4 → 5 [MEDIUM] [efort: MEDIU]
   - **Sursa:** improve [D2] — fix post-CVE-2024-4367 + rendering rapid
   - **Cum:** `npm install pdfjs-dist@5.7.284`; ATENȚIE worker path API schimbat în v5 — verifică `vite.config.ts` `globIgnore` și import `pdfjs-dist/build/pdf.worker.mjs?url`; test 3-4 PDF-uri (cu/fără layer text)
-- [ ] **T8.6** — Vite 5 → 8 [MEDIUM] [efort: MARE]
+- [x] **T8.6** — Vite 5 → 8 [MEDIUM] [efort: MARE]
   - **Sursa:** improve [M1] — 3 majors în urmă; HMR rapid + Node 22+
   - **Cum:** `npm install vite@latest vite-plugin-pwa@latest`; ATENȚIE breaking changes 6→7→8: `resolve.conditions` (no implicit), Sass `css.preprocessorOptions.scss.api: 'modern'` (dacă SCSS), Node minim 20+; test build complet + SW generation + Lighthouse după upgrade
-- [ ] **T8.7** — `npm audit fix` final pass + commit Faza 8 [LOW] [efort: MIC]
+- [x] **T8.7** — `npm audit fix` final pass + commit Faza 8 [LOW] [efort: MIC]
   - **Cum:** `npm audit` — verifică 0 high/critical; commit + push
 
 ---
@@ -512,10 +512,10 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 
 ### Task-uri Faza 9
 
-- [ ] **T9.1** — CF Workers Observability [LOW] [efort: MIC]
+- [x] **T9.1** — CF Workers Observability [LOW] [efort: MIC]
   - **Sursa:** improve [A3]
   - **Cum:** `wrangler.toml` în AI Gateway + Keepalive: `[observability]\nenabled = true`; verifică dashboard CF după re-deploy
-- [ ] **T9.2** — Branch staging CF Pages [LOW] [efort: MIC]
+- [x] **T9.2** — Branch staging CF Pages [LOW] [efort: MIC]
   - **Sursa:** improve [DX3]
   - **De ce:** evita push direct la mama; flow `dev → staging → main`
   - **Cum:** `git branch staging`; CF Pages auto-generează `staging.mami-docs.pages.dev` (preview deployments per branch); admin testează pe staging înainte de merge main
@@ -528,7 +528,7 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 - [ ] **T9.5** — Coverage thresholds vitest [LOW] [efort: MIC]
   - **Sursa:** improve [DX2]
   - **Cum:** `vitest.config.ts` `coverage.thresholds: { lines: 70, functions: 70, branches: 60 }`
-- [ ] **T9.6** — AbortController în AI calls [LOW] [efort: MIC]
+- [x] **T9.6** — AbortController în AI calls [LOW] [efort: MIC]
   - **Sursa:** recomandari [T4]
   - **Cum:** `mami-wellness.ts` (sfaturi AI) + `mami-chat.ts` — `_aiController = new AbortController()` per AI call; `abort()` la `disconnectedCallback` și la nou call
 - [ ] **T9.7** — IndexedDB cleanup blob-uri orfane [LOW] [efort: MIC]
@@ -537,13 +537,13 @@ Aceste dependențe trebuie respectate ca să eviți blocaje subtile:
 - [ ] **T9.8** — Lazy import jsPDF wellness [LOW] [efort: MIC]
   - **Sursa:** recomandari [T7]
   - **Cum:** `Grep "import.*jspdf" src/components/mami-wellness.ts` — toate trebuie să fie `await import("jspdf")` la click handler, nu top-level
-- [ ] **T9.9** — `lang: "ro"` în notifications locale [LOW] [efort: MIC]
+- [x] **T9.9** — `lang: "ro"` în notifications locale [LOW] [efort: MIC]
   - **Sursa:** recomandari [T8]
   - **Cum:** `notifications.ts` `showLocalNotification` — adaugă `lang: "ro"` în `NotificationOptions`
-- [ ] **T9.10** — CSS containment componente heavy [LOW] [efort: MIC]
+- [x] **T9.10** — CSS containment componente heavy [LOW] [efort: MIC]
   - **Sursa:** recomandari [T6]
   - **Cum:** `:host { contain: layout paint; }` în `mami-doc-viewer.ts` și `mami-gallery.ts`
-- [ ] **T9.11** — Helper `fetchJson<T>()` în client.ts (DRY) [LOW] [efort: MEDIU]
+- [x] **T9.11** — Helper `fetchJson<T>()` în client.ts (DRY) [LOW] [efort: MEDIU]
   - **Sursa:** audit [HIGH-4] — pattern fetch+catch repetat 5×
   - **Cum:** `client.ts` — extrage `fetchJson<T>(endpoint: string, body: unknown, signal?: AbortSignal): Promise<T>`; refactor cele 5 funcții `sendChat/embed/translate/vision/search/transcribe` să folosească helper-ul
 - [ ] **T9.12** — Verifică `mami-ambient-player` (audit MED-10 fals positive) [LOW] [efort: MIC]

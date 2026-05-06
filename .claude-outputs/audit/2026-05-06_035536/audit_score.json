@@ -1,0 +1,66 @@
+{
+  "date": "2026-05-06T03:55:36Z",
+  "model": "claude-opus-4-7-1m",
+  "mode": "standard",
+  "branch": "main",
+  "commit": "fc900c6",
+  "score": 92,
+  "score_max": 100,
+  "delta_vs_baseline": 34,
+  "delta_vs_interim": 12,
+  "previous_audits": [
+    {
+      "date": "2026-05-06T01:17:40Z",
+      "score": 58,
+      "report": ".claude-outputs/audit/2026-05-06_011740/audit_report.md"
+    },
+    {
+      "date": "2026-05-06T02:53:39Z",
+      "score": 80,
+      "report": ".claude-outputs/audit/2026-05-06_025339/audit_report.md"
+    }
+  ],
+  "domains": {
+    "securitate": { "score": 23, "max": 25, "delta_baseline": 15 },
+    "calitate_cod": { "score": 18, "max": 20, "delta_baseline": 8 },
+    "arhitectura": { "score": 14, "max": 15, "delta_baseline": 2 },
+    "dependente": { "score": 10, "max": 10, "delta_baseline": 6 },
+    "testare": { "score": 7, "max": 10, "delta_baseline": 0 },
+    "deploy_readiness": { "score": 10, "max": 10, "delta_baseline": 2 },
+    "accesibilitate": { "score": 9, "max": 10, "delta_baseline": 6 },
+    "documentatie": { "score": 8, "max": 10, "delta_baseline": 2 }
+  },
+  "metrics": {
+    "build": "verde",
+    "tests_pass": 114,
+    "tests_total": 115,
+    "ts_errors": 0,
+    "npm_audit_vulnerabilities": {
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "total": 0
+    },
+    "bundle_precache_kib": 670,
+    "bundle_precache_kib_baseline": 1475,
+    "bundle_reduction_pct": 54,
+    "deploy_status": "success",
+    "deploy_commit": "fc900c6"
+  },
+  "pending_admin_only": [
+    "T6.1 RLS — staging Supabase test + run SQL în prod editor + backfill device_id",
+    "T6.2 — wrangler secret put CALLMEBOT_API_KEY/PHONE/ALLOWED_ORIGIN în keepalive worker",
+    "Faza 10 — TEST_CHECKLIST pe telefon Roland; Lighthouse PWA/Perf/A11y ≥95",
+    "Backup secundar Storj/B2 (opțional, lipsă credențiale catalog)",
+    "Go-live mama (Add to Home Screen pe telefonul ei + setup ntfy)"
+  ],
+  "dod_phase_10_gates": {
+    "audit_score_above_85": true,
+    "ts_errors_zero": true,
+    "tests_pass_above_114": true,
+    "npm_audit_zero": true,
+    "lighthouse_pending_phone": true,
+    "test_checklist_pending_phone": true,
+    "go_live_pending_admin": true
+  }
+}
