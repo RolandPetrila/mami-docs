@@ -10,10 +10,11 @@ ALLOWED_ORIGIN = "https://mami-docs.pages.dev"
 # GROQ_API_KEY must be set via:  wrangler secret put GROQ_API_KEY
 # DO NOT add secret values to this file
 
-# T6.4 — Rate limiting per IP (30 req/min). Create with:
-#   wrangler kv:namespace create RATE_LIMIT_KV
-# then paste the returned id below and re-deploy. Until then the worker serves
-# without rate limiting (KV unbound = bypass — see checkRateLimit).
+# T6.4 — Rate limiting per IP (30 req/min via KV counter, TTL 60s).
+# Namespace creat 2026-05-06 cu `wrangler kv namespace create RATE_LIMIT_KV` (id 8e9b7ed77f1247398c8d22571238d4d0).
+# COMENTAT TEMPORAR: tokenul CF actual nu are KV write perm la deploy → activăm prin GH Actions
+# sau după ce admin regenerează tokenul cu scope „Workers KV Storage:Edit". Worker continuă fără
+# rate limit până atunci (graceful fallback în code: KV unbound = no rate limiting).
 # [[kv_namespaces]]
 # binding = "RATE_LIMIT_KV"
-# id = "<paste-id-from-wrangler-kv-create>"
+# id = "8e9b7ed77f1247398c8d22571238d4d0"

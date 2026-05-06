@@ -1,7 +1,7 @@
 # STATE LIVE — Mami_Docs (bootstrap rapid sesiune nouă)
 
-**Ultimul update:** 2026-05-06 by Opus 4.7 (Faza 5 hardening complete — audit 58→80/100)
-**Status:** Faza 1-5 implementare COMPLETĂ ✅; auto-deploy GitHub Actions ACTIV (commit 883a3b6); CVE patches DOMPurify+mammoth aplicate; WCAG AA accesibilitate; RAG integrat în chat; testare interactivă pe telefon Roland încă necesară. Faza 6 (RLS + workers) PENDING — confirmare admin per task R-RISK HIGH.
+**Ultimul update:** 2026-05-06 by Opus 4.7 (Faza 6 partial T6.3-T6.7 + ton AI neutru + hotfix XSS)
+**Status:** Faza 1-5 ✅; Faza 6 LOW/MEDIUM ✅ (T6.3 PIN salt, T6.4 rate limit cod, T6.5 CORS strict, T6.6 STT fallback, T6.7 invites SQL). Worker deploy: 90a2287e fără KV (rate limit cod prezent dar inactiv pe prod — token CF necesită KV write scope pentru activare). Faza 6 R-RISK HIGH (T6.1 RLS + T6.2 CALLMEBOT) — PENDING confirmare admin per task. Stil prompts AI: neutru/sincer/fără „mama"/jargon (per request admin 2026-05-06).
 
 ## Workflow Testare (CRITIC)
 
