@@ -15,6 +15,10 @@ export interface Env {
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_CHAT_ID?: string;
   MAMI_DOCS_BACKUP?: R2Bucket;
+  // T6.2 — CallMeBot moved server-side (era VITE_CALLMEBOT_API_KEY/VITE_PHONE_NUMBER în client).
+  CALLMEBOT_API_KEY?: string;
+  CALLMEBOT_PHONE?: string;
+  ALLOWED_ORIGIN?: string;
 }
 
 // ---- KEEPALIVE ----
@@ -561,13 +565,96 @@ async function runWeeklyMaintenance(env: Env): Promise<void> {
 
 // ---- MAIN ----
 
-export default {
-  async fetch(_request: Request, _env: Env): Promise<Response> {
+// T6.2 — POST /notify proxy for CallMeBot voice. Keeps API key server-side.
+async function handleNotify(
+  request: Request,
+  env: Env,
+  cors: Record<string, string>,
+): Promise<Response> {
+  if (!env.CALLMEBOT_API_KEY || !env.CALLMEBOT_PHONE) {
     return new Response(
-      "mami-docs-keepalive — Worker is alive (scheduled only). 4 cron triggers active.",
+      JSON.stringify({ ok: false, error: "CallMeBot not configured" }),
+      { status: 503, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
+  let body: { text?: string };
+  try {
+    body = (await request.json()) as { text?: string };
+  } catch {
+    return new Response(JSON.stringify({ ok: false, error: "Invalid JSON" }), {
+      status: 400,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+  const text = body.text?.trim();
+  if (!text) {
+    return new Response(JSON.stringify({ ok: false, error: "text required" }), {
+      status: 400,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+  if (text.length > 500) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "text too long (max 500)" }),
+      { status: 400, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
+  const url = new URL("https://api.callmebot.com/start.php");
+  url.searchParams.set("user", env.CALLMEBOT_PHONE);
+  url.searchParams.set("text", text);
+  url.searchParams.set("lang", "ro-RO-Standard-A");
+  url.searchParams.set("rpt", "2");
+  url.searchParams.set("apikey", env.CALLMEBOT_API_KEY);
+  try {
+    const resp = await fetch(url.toString(), { method: "GET" });
+    return new Response(JSON.stringify({ ok: resp.ok, status: resp.status }), {
+      status: resp.ok ? 200 : 502,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error(
+      "[notify] CallMeBot fetch failed:",
+      err instanceof Error ? err.message : String(err),
+    );
+    return new Response(
+      JSON.stringify({ ok: false, error: "CallMeBot unreachable" }),
+      { status: 502, headers: { ...cors, "Content-Type": "application/json" } },
+    );
+  }
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const origin = request.headers.get("Origin") ?? "";
+    const allowed = env.ALLOWED_ORIGIN ?? "";
+    const corsOrigin = allowed ? (origin === allowed ? allowed : "") : origin;
+    const cors: Record<string, string> = {
+      "Access-Control-Allow-Origin": corsOrigin,
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      Vary: "Origin",
+    };
+
+    if (request.method === "OPTIONS")
+      return new Response(null, { status: 204, headers: cors });
+
+    const { pathname } = new URL(request.url);
+
+    if (pathname === "/notify" && request.method === "POST") {
+      if (allowed && origin !== allowed) {
+        return new Response(JSON.stringify({ ok: false, error: "Forbidden" }), {
+          status: 403,
+          headers: { ...cors, "Content-Type": "application/json" },
+        });
+      }
+      return handleNotify(request, env, cors);
+    }
+
+    return new Response(
+      "mami-docs-keepalive — Worker is alive (scheduled cron + POST /notify).",
       {
         status: 200,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
+        headers: { ...cors, "Content-Type": "text/plain; charset=utf-8" },
       },
     );
   },

@@ -9,10 +9,8 @@
 // localStorage pentru ultima notificare (anti-spam la refresh).
 
 const NTFY_URL = import.meta.env.VITE_NTFY_URL as string | undefined;
-const CALLMEBOT_API_KEY = import.meta.env.VITE_CALLMEBOT_API_KEY as
-  | string
-  | undefined;
-const PHONE_NUMBER = import.meta.env.VITE_PHONE_NUMBER as string | undefined;
+// T6.2 — CallMeBot key NU mai e în client. Worker keepalive expune POST /notify.
+const KEEPALIVE_URL = import.meta.env.VITE_KEEPALIVE_URL as string | undefined;
 
 const HYDRATION_INTERVAL_MS = 2 * 60 * 60 * 1_000; // 2 ore
 const HYDRATION_LAST_KEY = "mami:hydration-last-reminder";
@@ -88,18 +86,16 @@ export async function sendNtfyNotification(
 }
 
 export async function makeVoiceCall(text: string): Promise<boolean> {
-  if (!CALLMEBOT_API_KEY || !PHONE_NUMBER) return false;
+  if (!KEEPALIVE_URL) return false;
   try {
-    const url = new URL("https://api.callmebot.com/start.php");
-    url.searchParams.set("user", PHONE_NUMBER);
-    url.searchParams.set("text", text);
-    url.searchParams.set("lang", "ro-RO-Standard-A");
-    url.searchParams.set("rpt", "2");
-    url.searchParams.set("apikey", CALLMEBOT_API_KEY);
-    const resp = await fetch(url.toString(), { method: "GET" });
+    const resp = await fetch(`${KEEPALIVE_URL.replace(/\/$/, "")}/notify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
     return resp.ok;
   } catch (err) {
-    console.error("[notify] CallMeBot failed:", err);
+    console.error("[notify] keepalive /notify failed:", err);
     return false;
   }
 }
