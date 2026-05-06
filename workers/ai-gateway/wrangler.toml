@@ -11,10 +11,10 @@ ALLOWED_ORIGIN = "https://mami-docs.pages.dev"
 # DO NOT add secret values to this file
 
 # T6.4 — Rate limiting per IP (30 req/min via KV counter, TTL 60s).
-# Namespace creat 2026-05-06 cu `wrangler kv namespace create RATE_LIMIT_KV` (id 8e9b7ed77f1247398c8d22571238d4d0).
-# COMENTAT TEMPORAR: tokenul CF actual nu are KV write perm la deploy → activăm prin GH Actions
-# sau după ce admin regenerează tokenul cu scope „Workers KV Storage:Edit". Worker continuă fără
-# rate limit până atunci (graceful fallback în code: KV unbound = no rate limiting).
-# [[kv_namespaces]]
-# binding = "RATE_LIMIT_KV"
-# id = "8e9b7ed77f1247398c8d22571238d4d0"
+# Namespace creat 2026-05-06 cu `wrangler kv namespace create RATE_LIMIT_KV`.
+# Deploy se face din GitHub Actions (vezi .github/workflows/deploy.yml step "Deploy AI Gateway worker")
+# fiindcă tokenul local CF n-are scope „Workers KV Storage:Edit". Codul are graceful fallback:
+# KV unbound = no rate limiting, deci dev local (`wrangler dev`) funcționează tot fără KV.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "8e9b7ed77f1247398c8d22571238d4d0"

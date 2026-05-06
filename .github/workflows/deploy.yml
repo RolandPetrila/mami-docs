@@ -49,3 +49,16 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=mami-docs --branch=main --commit-dirty=true
+
+      # T6.4 — Worker AI Gateway deploy cu KV binding pentru rate limit.
+      # Tokenul GH secret CLOUDFLARE_API_TOKEN trebuie să aibă scope:
+      #   - Account: Workers Scripts:Edit
+      #   - Account: Workers KV Storage:Edit
+      # Dacă lipsește KV scope, jobul eșuează aici cu cod 10023 — admin upgradează tokenul.
+      - name: Deploy AI Gateway worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: workers/ai-gateway
+          command: deploy
