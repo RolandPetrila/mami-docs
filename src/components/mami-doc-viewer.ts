@@ -458,7 +458,7 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
       return DOMPurify.sanitize(html);
     }
     if (this._type === "xlsx") {
-      const XLSX = await import("xlsx");
+      const XLSX = await import("@e965/xlsx");
       const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
       const sections: string[] = [];
       for (const sheetName of wb.SheetNames) {
@@ -513,7 +513,9 @@ Dacă te întreabă ceva legat de sănătate sau tratament medical, include obli
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const ctx = canvas.getContext("2d");
-      if (ctx) await page.render({ canvasContext: ctx, viewport }).promise;
+      // pdfjs 5: RenderParameters cere acum și `canvas` pe lângă `canvasContext`.
+      if (ctx)
+        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
     };
 
     const observer = new IntersectionObserver(

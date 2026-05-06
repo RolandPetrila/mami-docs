@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { cosineSim, generateEmbedding } from "../ai/embeddings";
 
 // Transformers.js face fetch-uri interne la loading model — mock complet pentru a evita consumarea mock-urilor fetch
-vi.mock("@xenova/transformers", () => ({
+vi.mock("@huggingface/transformers", () => ({
   pipeline: vi.fn().mockRejectedValue(new Error("No model in test env")),
 }));
 

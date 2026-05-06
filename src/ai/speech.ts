@@ -4,31 +4,10 @@ import { transcribeAudio } from "./client";
 // STT: Chrome Android necesită pachetul vocal Google Romanian instalat.
 // Dacă lipsește → `isSttSupported()` returnează true DAR `ro-RO` fallback la EN → se afișează tooltip.
 
-// Web Speech API — tipuri lipsă din lib.dom.d.ts în TypeScript 5.x
+// Web Speech API — TS 6 include SpeechRecognitionEvent / SpeechRecognitionErrorEvent
+// în lib.dom.d.ts dar nu și interfața SpeechRecognition + constructorii pe Window
+// (Web Speech rămâne non-standard pe iOS/Firefox).
 declare global {
-  interface SpeechRecognitionAlternative {
-    readonly transcript: string;
-    readonly confidence: number;
-  }
-  interface SpeechRecognitionResult {
-    readonly length: number;
-    item(index: number): SpeechRecognitionAlternative;
-    [index: number]: SpeechRecognitionAlternative | undefined;
-    readonly isFinal: boolean;
-  }
-  interface SpeechRecognitionResultList {
-    readonly length: number;
-    item(index: number): SpeechRecognitionResult;
-    [index: number]: SpeechRecognitionResult | undefined;
-  }
-  interface SpeechRecognitionEvent extends Event {
-    readonly resultIndex: number;
-    readonly results: SpeechRecognitionResultList;
-  }
-  interface SpeechRecognitionErrorEvent extends Event {
-    readonly error: string;
-    readonly message: string;
-  }
   interface SpeechRecognition extends EventTarget {
     lang: string;
     interimResults: boolean;

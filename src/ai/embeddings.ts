@@ -1,10 +1,12 @@
 // Embeddings cu lanț de fallback:
 //   1. Gemini gemini-embedding-001 (server-side via AI Gateway — necesită cheie)
-//   2. transformers.js Xenova/multilingual-e5-small (client offline, ~120MB descărcare la prima rulare)
+//   2. @huggingface/transformers Xenova/multilingual-e5-small (client offline, ~120MB descărcare la prima rulare)
 //   3. Cohere embed-multilingual-v3.0 (server-side — necesită cheie)
 //
 // Faza 1.5: doar transformers.js e funcțional fără credentiale.
 // Faza 3: Gemini + Cohere se activează când AI Gateway expune /embed cu chei.
+// T8.4 — migrat @xenova/transformers (abandoned 18+ luni) → @huggingface/transformers v4
+// (WebGPU support + bundle -53%; API pipeline() compatibil v2→v3→v4).
 
 export interface EmbeddingResult {
   vector: number[];
@@ -24,7 +26,9 @@ async function getTransformersPipeline(): Promise<
 > {
   if (!_pipelinePromise) {
     _pipelinePromise = (async () => {
-      const mod = (await import(/* @vite-ignore */ "@xenova/transformers")) as {
+      const mod = (await import(
+        /* @vite-ignore */ "@huggingface/transformers"
+      )) as {
         pipeline: (
           task: string,
           model: string,
@@ -33,8 +37,9 @@ async function getTransformersPipeline(): Promise<
           (text: string, opts?: unknown) => Promise<{ data: Float32Array }>
         >;
       };
+      // v4: `quantized` redenumit ca `dtype: "q8"` în noul API. Fallback safe.
       return mod.pipeline("feature-extraction", TRANSFORMERS_MODEL, {
-        quantized: true,
+        dtype: "q8",
       });
     })();
   }

@@ -21,6 +21,8 @@ Object.defineProperty(mockNotification, "permission", {
   configurable: true,
 });
 
+// T6.2 — VITE_KEEPALIVE_URL e setat în vitest.config.ts (env block).
+
 beforeEach(() => {
   vi.restoreAllMocks();
   mockNotification.mockClear();
@@ -134,13 +136,18 @@ describe("makeVoiceCall", () => {
     expect(ok).toBe(false);
   });
 
-  it("URL conține textul encodat", async () => {
+  it("face POST la keepalive /notify cu textul în body JSON", async () => {
     const spy = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(new Response("", { status: 200 }));
     await makeVoiceCall("Ia medicamentele");
     const url = spy.mock.calls[0]![0] as string;
-    expect(url).toContain("Ia+medicamentele");
+    const init = spy.mock.calls[0]![1] as RequestInit;
+    expect(url).toMatch(/\/notify$/);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      text: "Ia medicamentele",
+    });
   });
 });
 
