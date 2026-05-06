@@ -36,6 +36,7 @@ ric(
     void import("./components/mami-gallery");
     void import("./components/mami-menu");
     void import("./components/mami-drug-checker");
+    void import("./components/mami-voice-memo");
   },
   { timeout: 4000 },
 );
@@ -96,3 +97,43 @@ document.addEventListener("mami-open-settings", () => {
   const settings = document.querySelector("mami-settings");
   settings?.setAttribute("open", "");
 });
+
+// T7.D.1 — Handle PWA Share Target receipt
+async function handleShareTarget(): Promise<void> {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("share-target") !== "ready") return;
+  try {
+    const cache = await caches.open("share-target-temp");
+    const fileResp = await cache.match("/__shared-file__");
+    const textResp = await cache.match("/__shared-text__");
+    let file: File | null = null;
+    if (fileResp) {
+      const buf = await fileResp.arrayBuffer();
+      const filename = decodeURIComponent(
+        fileResp.headers.get("X-Mami-Filename") ?? "shared",
+      );
+      const type =
+        fileResp.headers.get("Content-Type") ?? "application/octet-stream";
+      file = new File([buf], filename, { type });
+      await cache.delete("/__shared-file__");
+    }
+    let text = "";
+    if (textResp) {
+      text = await textResp.text();
+      await cache.delete("/__shared-text__");
+    }
+    if (file || text) {
+      document.dispatchEvent(
+        new CustomEvent("mami-share-received", {
+          detail: { file, text },
+          bubbles: true,
+        }),
+      );
+    }
+    // Curăță URL-ul
+    window.history.replaceState({}, "", "/");
+  } catch (err) {
+    console.warn("[share-target] failed:", err);
+  }
+}
+void handleShareTarget();

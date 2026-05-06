@@ -16,6 +16,7 @@ export const TABS: ReadonlyArray<TabDef> = [
   { id: "wellness", label: "Sănătate", icon: "❤️" },
   { id: "tratament", label: "Tratament", icon: "💊" },
   { id: "notite", label: "Notițe", icon: "📝" },
+  { id: "voce", label: "Memo Voce", icon: "🎙️" },
   { id: "gallery", label: "Galerie", icon: "🖼️" },
   { id: "menu", label: "Meniu", icon: "🍽️" },
   { id: "medicamente", label: "Interacțiuni", icon: "⚕️" },

@@ -252,6 +252,7 @@ tmpl.innerHTML = `
   <div class="actions">
     <button class="btn btn-primary" id="generate-btn">✨ Generează meniu AI</button>
     <button class="btn btn-outline print-btn" id="print-btn">🖨️ Printează</button>
+    <button class="btn btn-outline print-btn" id="shopping-btn">🛒 Listă cumpărături</button>
   </div>
   <button class="prefs-toggle" type="button" id="prefs-toggle" aria-expanded="false">⚙️ Preferințele mele (atinge pentru a deschide)</button>
   <div class="prefs-panel" id="prefs-panel">
@@ -306,6 +307,9 @@ export class MamiMenu extends HTMLElement {
     });
     this._sr.querySelector("#print-btn")?.addEventListener("click", () => {
       this._printMenu();
+    });
+    this._sr.querySelector("#shopping-btn")?.addEventListener("click", () => {
+      void this._generateShoppingList();
     });
     this._sr.querySelector("#prev-btn")?.addEventListener("click", () => {
       const d = new Date(this._currentWeek);
@@ -622,6 +626,119 @@ ${DAYS.map((day) => {
       w.document.close();
       w.print();
     }
+  }
+
+  // T7.D.2 — Listă cumpărături generată din meniu
+  private async _generateShoppingList(): Promise<void> {
+    const entry = getMenu(this._currentWeek);
+    if (!entry) {
+      alert(
+        'Nu există meniu pentru săptămâna asta. Apasă "Generează meniu AI" întâi.',
+      );
+      return;
+    }
+    const meals: string[] = [];
+    for (const day of DAYS) {
+      const m = entry.menu[day];
+      if (m) {
+        meals.push(m.breakfast, m.lunch, m.dinner);
+        if (m.snack) meals.push(m.snack);
+      }
+    }
+    const content = this._sr.querySelector("#menu-content");
+    if (content)
+      content.innerHTML = `<div class="generating"><div class="spinner"></div><p>Generez lista de cumpărături...</p></div>`;
+
+    const systemPrompt = `Ești asistent culinar român. Extragi ingredientele necesare dintr-un meniu săptămânal.
+Răspunde STRICT JSON valid (fără text extra), cu structura:
+{
+  "legume_fructe": ["..."],
+  "carne_peste": ["..."],
+  "lactate_oua": ["..."],
+  "panificatie_paste": ["..."],
+  "conserve_condimente": ["..."],
+  "altele": ["..."]
+}
+Cantitățile aproximative pentru 1 persoană pentru o săptămână (ex: "2kg roșii", "10 ouă"). Limba română.`;
+
+    const userMsg = `Meniu săptămânal:\n${meals.map((m) => `- ${m}`).join("\n")}\n\nGenerează lista grupată pe categorii.`;
+
+    try {
+      const response = await sendChat(
+        [{ role: "user", content: userMsg }],
+        systemPrompt,
+      );
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("AI nu a returnat JSON valid");
+      const list = JSON.parse(jsonMatch[0]) as Record<string, string[]>;
+      this._showShoppingList(list);
+    } catch (err) {
+      if (content) {
+        content.innerHTML = "";
+        const p = document.createElement("p");
+        p.textContent =
+          "Nu am putut genera lista. " +
+          (err instanceof Error ? err.message : String(err));
+        content.appendChild(p);
+      }
+    }
+  }
+
+  private _showShoppingList(list: Record<string, string[]>): void {
+    const content = this._sr.querySelector("#menu-content");
+    if (!content) return;
+    content.replaceChildren();
+    const card = document.createElement("div");
+    card.className = "day-card";
+    const h = document.createElement("h3");
+    h.textContent = "🛒 Lista de cumpărături";
+    card.appendChild(h);
+
+    const labels: Record<string, string> = {
+      legume_fructe: "🥬 Legume & Fructe",
+      carne_peste: "🍖 Carne & Pește",
+      lactate_oua: "🥛 Lactate & Ouă",
+      panificatie_paste: "🍞 Panificație & Paste",
+      conserve_condimente: "🧂 Conserve & Condimente",
+      altele: "📦 Altele",
+    };
+    for (const [cat, items] of Object.entries(list)) {
+      if (!Array.isArray(items) || items.length === 0) continue;
+      const section = document.createElement("div");
+      section.style.marginTop = "0.75rem";
+      const title = document.createElement("strong");
+      title.textContent = labels[cat] ?? cat;
+      title.style.display = "block";
+      title.style.marginBottom = "0.3rem";
+      section.appendChild(title);
+      const ul = document.createElement("ul");
+      ul.style.listStyle = "none";
+      ul.style.padding = "0";
+      ul.style.margin = "0";
+      for (const item of items) {
+        const li = document.createElement("li");
+        li.style.padding = "0.3rem 0";
+        li.style.display = "flex";
+        li.style.alignItems = "center";
+        li.style.gap = "0.5rem";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.style.minWidth = "24px";
+        cb.style.minHeight = "24px";
+        cb.addEventListener("change", () => {
+          li.style.textDecoration = cb.checked ? "line-through" : "none";
+          li.style.opacity = cb.checked ? "0.5" : "1";
+        });
+        const text = document.createElement("span");
+        text.textContent = item;
+        li.appendChild(cb);
+        li.appendChild(text);
+        ul.appendChild(li);
+      }
+      section.appendChild(ul);
+      card.appendChild(section);
+    }
+    content.appendChild(card);
   }
 }
 
