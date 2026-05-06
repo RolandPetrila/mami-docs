@@ -120,6 +120,19 @@ Admin a confirmat: "am facut-o constient ca asa am vrut eu". Decizia de rotire e
 - `plans/PLAN_initiere_proiect_2026-05-01.md` → bifează task-urile completate
 - `docs/` → actualizează fișierele relevante când spec-ul se modifică
 
+### Auto-routing AI providers (2026-05-07, autorizat admin)
+
+**REGULĂ CRITICĂ:** ÎNAINTE de orice apel AI (chat/embed/search/STT/TTS/image/video/OCR/translation/plant ID), CONSULT obligatoriu `~/.claude/projects/C--Proiecte-Mami-Docs/memory/routing_decision_trees.md` și aleg primary-ul disponibil pentru tipul cererii. Nu folosesc niciodată provider arbitrar — întotdeauna respect ordinea decision tree.
+
+**Auto-update tree obligatoriu:**
+
+- **La adăugare cheie nouă** (după `proceseaza inbox` în `.api-keys/` SAU detecție env var nou): identific categoria, adaug în secțiunea corespunzătoare la poziția logică (primary dacă best-in-class, fallback altfel), marchez ce înlocuiește
+- **La eliminare cheie expirată/invalidă** (test 401/402/429 quota epuizată): elimin din tree, promovez următorul fallback la poziția vacantă, notez echivalentul prin altă cheie dacă există
+- **La modificare GHID_CREDENTIALE_LIPSA.md** (add/remove serviciu propus): actualizez tree-ul să reflecte noua propunere
+- **Audit format obligatoriu** în comentariu inline: `<!-- AUDIT: YYYY-MM-DD | <change> | <impact> -->`
+
+**Regulă admin:** chei cu free tier doar trial fix (30 zile, $5/$10/$50 one-shot fără tier permanent post-trial) **NU se acceptă** — admin a impus criteriu lunar/permanent. Dacă identific o cheie nouă propusă cu doar trial → o exclud automat și raportez.
+
 ---
 
 ## Stack Tehnic (scurt)
