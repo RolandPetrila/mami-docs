@@ -252,9 +252,36 @@ tmpl.innerHTML = `
     outline-offset: 2px;
   }
   .messages { position: relative; }
+
+  /* T7.C.5 — Export buttons (apar lângă clear) */
+  .export-btn {
+    position: absolute;
+    top: 0.5rem;
+    z-index: 5;
+    background: var(--color-surface, #fff);
+    color: var(--color-text-muted, #666);
+    border: 1px solid #e0e7ef;
+    border-radius: 18px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    min-height: 36px;
+    display: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+  .export-btn.visible { display: inline-flex; align-items: center; gap: 0.25rem; }
+  .export-btn:hover { background: #f4f6f8; }
+  .export-btn:focus-visible {
+    outline: 2px solid var(--color-primary, #2e5c8a);
+    outline-offset: 2px;
+  }
+  #copy-btn { right: 6.5rem; }
+  #download-btn { right: 11rem; }
 </style>
 
 <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Conversație cu AI" aria-relevant="additions">
+  <button class="export-btn" type="button" id="download-btn" aria-label="Descarcă conversația ca fișier text">💾 Descarcă</button>
+  <button class="export-btn" type="button" id="copy-btn" aria-label="Copiază conversația în clipboard">📋 Copiază</button>
   <button class="clear-btn" type="button" id="clear-btn" aria-label="Șterge conversația">🗑️ Curăță</button>
   <div class="empty-state" id="empty-state" role="button" tabindex="0" aria-label="Apasă pentru a scrie un mesaj">
     <span class="hint-icon">💬</span>
@@ -390,6 +417,72 @@ export class MamiChat extends HTMLElement {
         this._saveHistory();
       }
     });
+
+    // T7.C.5 — Export conversație
+    const copyBtn = this._sr.querySelector(
+      "#copy-btn",
+    ) as HTMLButtonElement | null;
+    copyBtn?.addEventListener("click", () => {
+      void this._copyConversation();
+    });
+    const downloadBtn = this._sr.querySelector(
+      "#download-btn",
+    ) as HTMLButtonElement | null;
+    downloadBtn?.addEventListener("click", () => {
+      this._downloadConversation();
+    });
+  }
+
+  private _formatConversation(): string {
+    const lines = [
+      `Conversație Mami AI — ${new Date().toLocaleString("ro-RO")}`,
+    ];
+    lines.push("");
+    for (const m of this._messages) {
+      const role = m.role === "user" ? "TU" : "AI";
+      const time = formatTime(m.time);
+      lines.push(`[${time}] ${role}: ${m.text}`);
+      lines.push("");
+    }
+    return lines.join("\n");
+  }
+
+  private async _copyConversation(): Promise<void> {
+    const text = this._formatConversation();
+    try {
+      await navigator.clipboard.writeText(text);
+      this._showSttToast("Conversația a fost copiată în clipboard.");
+    } catch {
+      // fallback execCommand
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        this._showSttToast("Conversația a fost copiată.");
+      } catch {
+        this._showSttToast('Nu am putut copia. Încearcă "Descarcă" în loc.');
+      }
+      document.body.removeChild(ta);
+    }
+  }
+
+  private _downloadConversation(): void {
+    const text = this._formatConversation();
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `conversatie-mami-ai-${today}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this._showSttToast("Fișier descărcat.");
   }
 
   private _loadHistory(): void {
@@ -598,8 +691,10 @@ export class MamiChat extends HTMLElement {
   private _updateEmptyState(): void {
     const empty = this._sr.querySelector("#empty-state") as HTMLElement | null;
     empty?.classList.toggle("hidden", this._messages.length > 0);
-    const clearBtn = this._sr.querySelector("#clear-btn") as HTMLElement | null;
-    clearBtn?.classList.toggle("visible", this._messages.length > 0);
+    const has = this._messages.length > 0;
+    this._sr.querySelector("#clear-btn")?.classList.toggle("visible", has);
+    this._sr.querySelector("#copy-btn")?.classList.toggle("visible", has);
+    this._sr.querySelector("#download-btn")?.classList.toggle("visible", has);
   }
 
   // T17 — STT toggle (start/stop recording)

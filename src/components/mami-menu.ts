@@ -11,6 +11,57 @@ import {
   type MenuEntry,
 } from "../data/local-store";
 
+// T7.C.4 — Preferințe culinare (persistate localStorage)
+interface MenuPrefs {
+  vegetarian: boolean;
+  noPork: boolean;
+  noGluten: boolean;
+  noLactose: boolean;
+  diabetic: boolean;
+  lowSodium: boolean;
+  avoid: string;
+  style: "mixt" | "mediteranean" | "simplu";
+}
+
+const PREFS_KEY = "mami:menu-prefs";
+
+function readMenuPrefs(): MenuPrefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw)
+      return {
+        vegetarian: false,
+        noPork: false,
+        noGluten: false,
+        noLactose: false,
+        diabetic: false,
+        lowSodium: false,
+        avoid: "",
+        style: "mixt",
+      };
+    return JSON.parse(raw) as MenuPrefs;
+  } catch {
+    return {
+      vegetarian: false,
+      noPork: false,
+      noGluten: false,
+      noLactose: false,
+      diabetic: false,
+      lowSodium: false,
+      avoid: "",
+      style: "mixt",
+    };
+  }
+}
+
+function writeMenuPrefs(prefs: MenuPrefs): void {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* ignore */
+  }
+}
+
 const DAYS = [
   "Luni",
   "Marți",
@@ -129,6 +180,63 @@ tmpl.innerHTML = `
   }
   .history-item:hover { background: #e8f0f8; }
   .print-btn { background: #fff; color: var(--color-primary); border: 1.5px solid var(--color-primary); }
+
+  /* T7.C.4 — Preferințe culinare expandabil */
+  .prefs-toggle {
+    background: var(--color-accent-light, #f5e6d8);
+    color: var(--color-text, #1a1a2e);
+    border: 1px solid var(--color-accent, #a05c2a);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    min-height: 44px;
+    font-size: 0.9rem;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    text-align: left;
+  }
+  .prefs-panel {
+    background: var(--color-surface, #fff);
+    border: 1px solid #e0e7ef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+  .prefs-panel.open { display: block; }
+  .prefs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.75rem;
+    margin-bottom: 0.6rem;
+  }
+  .prefs-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .prefs-grid input[type="checkbox"] {
+    min-width: 22px;
+    min-height: 22px;
+  }
+  .prefs-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .prefs-row label { font-size: 0.85rem; color: var(--color-text-muted, #666); }
+  .prefs-row input[type="text"], .prefs-row select {
+    padding: 0.45rem 0.6rem;
+    border: 1.5px solid var(--color-primary, #2e5c8a);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    min-height: 44px;
+    font-family: inherit;
+  }
 </style>
 
 <div class="header-bar">
@@ -144,6 +252,29 @@ tmpl.innerHTML = `
   <div class="actions">
     <button class="btn btn-primary" id="generate-btn">✨ Generează meniu AI</button>
     <button class="btn btn-outline print-btn" id="print-btn">🖨️ Printează</button>
+  </div>
+  <button class="prefs-toggle" type="button" id="prefs-toggle" aria-expanded="false">⚙️ Preferințele mele (atinge pentru a deschide)</button>
+  <div class="prefs-panel" id="prefs-panel">
+    <div class="prefs-grid">
+      <label><input type="checkbox" id="pf-vegetarian"> Vegetarian</label>
+      <label><input type="checkbox" id="pf-noPork"> Fără porc</label>
+      <label><input type="checkbox" id="pf-noGluten"> Fără gluten</label>
+      <label><input type="checkbox" id="pf-noLactose"> Fără lactate</label>
+      <label><input type="checkbox" id="pf-diabetic"> Diabetic</label>
+      <label><input type="checkbox" id="pf-lowSodium"> Hiposodat</label>
+    </div>
+    <div class="prefs-row">
+      <label for="pf-avoid">Ingrediente de evitat</label>
+      <input type="text" id="pf-avoid" placeholder="ex: nuci, ardei iute, fructe de mare">
+    </div>
+    <div class="prefs-row">
+      <label for="pf-style">Stil culinar</label>
+      <select id="pf-style">
+        <option value="mixt">Tradițional românesc + mediteranean</option>
+        <option value="mediteranean">Mediteranean</option>
+        <option value="simplu">Simplu și rapid</option>
+      </select>
+    </div>
   </div>
   <div id="menu-content"></div>
   <div class="history-title" id="history-label" style="display:none">Meniuri anterioare</div>
@@ -187,6 +318,78 @@ export class MamiMenu extends HTMLElement {
       d.setDate(d.getDate() + 7);
       this._currentWeek = d.toISOString().slice(0, 10);
       this._renderWeek();
+    });
+
+    // T7.C.4 — Preferințe culinare
+    this._loadPrefsUi();
+    const toggle = this._sr.querySelector(
+      "#prefs-toggle",
+    ) as HTMLButtonElement | null;
+    const panel = this._sr.querySelector("#prefs-panel") as HTMLElement | null;
+    toggle?.addEventListener("click", () => {
+      if (!panel) return;
+      const open = panel.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", String(open));
+    });
+    const inputs = [
+      "pf-vegetarian",
+      "pf-noPork",
+      "pf-noGluten",
+      "pf-noLactose",
+      "pf-diabetic",
+      "pf-lowSodium",
+      "pf-avoid",
+      "pf-style",
+    ];
+    for (const id of inputs) {
+      const el = this._sr.querySelector(`#${id}`) as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | null;
+      el?.addEventListener("change", () => this._savePrefsUi());
+    }
+  }
+
+  private _loadPrefsUi(): void {
+    const p = readMenuPrefs();
+    const set = (id: string, value: boolean | string): void => {
+      const el = this._sr.querySelector(`#${id}`) as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | null;
+      if (!el) return;
+      if (typeof value === "boolean") (el as HTMLInputElement).checked = value;
+      else el.value = value;
+    };
+    set("pf-vegetarian", p.vegetarian);
+    set("pf-noPork", p.noPork);
+    set("pf-noGluten", p.noGluten);
+    set("pf-noLactose", p.noLactose);
+    set("pf-diabetic", p.diabetic);
+    set("pf-lowSodium", p.lowSodium);
+    set("pf-avoid", p.avoid);
+    set("pf-style", p.style);
+  }
+
+  private _savePrefsUi(): void {
+    const get = (id: string): HTMLInputElement | HTMLSelectElement | null =>
+      this._sr.querySelector(`#${id}`) as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | null;
+    const styleVal = (get("pf-style") as HTMLSelectElement | null)?.value;
+    writeMenuPrefs({
+      vegetarian: !!(get("pf-vegetarian") as HTMLInputElement | null)?.checked,
+      noPork: !!(get("pf-noPork") as HTMLInputElement | null)?.checked,
+      noGluten: !!(get("pf-noGluten") as HTMLInputElement | null)?.checked,
+      noLactose: !!(get("pf-noLactose") as HTMLInputElement | null)?.checked,
+      diabetic: !!(get("pf-diabetic") as HTMLInputElement | null)?.checked,
+      lowSodium: !!(get("pf-lowSodium") as HTMLInputElement | null)?.checked,
+      avoid: (get("pf-avoid") as HTMLInputElement | null)?.value ?? "",
+      style:
+        styleVal === "mediteranean" || styleVal === "simplu"
+          ? styleVal
+          : "mixt",
     });
   }
 
@@ -295,9 +498,30 @@ export class MamiMenu extends HTMLElement {
     if (content)
       content.innerHTML = `<div class="generating"><div class="spinner"></div><p>Generez meniu... câteva secunde</p></div>`;
 
+    const prefs = readMenuPrefs();
+    const constraints: string[] = [];
+    if (prefs.vegetarian) constraints.push("- VEGETARIAN (fără carne)");
+    if (prefs.noPork) constraints.push("- FĂRĂ carne de porc");
+    if (prefs.noGluten)
+      constraints.push("- FĂRĂ gluten (fără pâine, paste de grâu)");
+    if (prefs.noLactose) constraints.push("- FĂRĂ lactate");
+    if (prefs.diabetic)
+      constraints.push(
+        "- DIABETIC (fără zahăr adăugat, carbohidrați limitați)",
+      );
+    if (prefs.lowSodium) constraints.push("- HIPOSODAT (sare minimă)");
+    if (prefs.avoid?.trim()) constraints.push(`- EVITĂ: ${prefs.avoid.trim()}`);
+    const styleNote =
+      prefs.style === "mediteranean"
+        ? "Stil mediteranean dominant."
+        : prefs.style === "simplu"
+          ? "Mese simple și rapide (sub 20 min)."
+          : "Mese tradiționale românești și mediteraneene mixte.";
+
     const systemPrompt = `Ești asistent nutrițional în limba română. Generezi meniuri săptămânale echilibrate.
-Constrângeri:
-- Mese tradiționale românești și mediteraneene
+Constrângeri obligatorii:
+${constraints.length > 0 ? constraints.join("\n") : "- (fără restricții speciale)"}
+Stil: ${styleNote}
 - Echilibrate nutritiv (proteină, legume, carbohidrați complecși)
 - Maxim 30 minute de preparare per masă
 - Ușor digerabile, nu foarte picante

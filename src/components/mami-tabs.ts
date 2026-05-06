@@ -302,6 +302,10 @@ export class MamiTabs extends HTMLElement {
         div.innerHTML = `<mami-menu></mami-menu>`;
       } else if (id === "medicamente") {
         div.innerHTML = `<mami-drug-checker></mami-drug-checker>`;
+      } else if (id === "tratament") {
+        div.innerHTML = `<mami-medication></mami-medication>`;
+      } else if (id === "notite") {
+        div.innerHTML = `<mami-notes></mami-notes>`;
       } else {
         div.textContent = `${label} — în pregătire…`;
       }

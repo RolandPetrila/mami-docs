@@ -108,6 +108,13 @@ export function listHydration(): HydrationEntry[] {
   return readArr<HydrationEntry>(KEY_HYDRATION);
 }
 
+export function deleteHydration(id: string): void {
+  writeArr(
+    KEY_HYDRATION,
+    readArr<HydrationEntry>(KEY_HYDRATION).filter((e) => e.id !== id),
+  );
+}
+
 export function getHydrationToday(): number {
   const today = new Date().toISOString().slice(0, 10);
   return listHydration()
@@ -140,6 +147,13 @@ export function listVitals(limit = 30): VitalsEntry[] {
   return readArr<VitalsEntry>(KEY_VITALS).slice(-limit);
 }
 
+export function deleteVitals(id: string): void {
+  writeArr(
+    KEY_VITALS,
+    readArr<VitalsEntry>(KEY_VITALS).filter((e) => e.id !== id),
+  );
+}
+
 // ---- Emotion ----
 
 export async function addEmotion(
@@ -161,6 +175,13 @@ export async function addEmotion(
 
 export function listEmotion(limit = 30): EmotionEntry[] {
   return readArr<EmotionEntry>(KEY_EMOTION).slice(-limit);
+}
+
+export function deleteEmotion(id: string): void {
+  writeArr(
+    KEY_EMOTION,
+    readArr<EmotionEntry>(KEY_EMOTION).filter((e) => e.id !== id),
+  );
 }
 
 // ---- Sleep ----
@@ -185,6 +206,13 @@ export async function addSleep(
 
 export function listSleep(limit = 30): SleepEntry[] {
   return readArr<SleepEntry>(KEY_SLEEP).slice(-limit);
+}
+
+export function deleteSleep(id: string): void {
+  writeArr(
+    KEY_SLEEP,
+    readArr<SleepEntry>(KEY_SLEEP).filter((e) => e.id !== id),
+  );
 }
 
 // ---- Photos (metadata only — blob-urile sunt în IndexedDB) ----
@@ -239,6 +267,14 @@ export function deletePhotoMeta(id: string): void {
     KEY_PHOTOS,
     readArr<PhotoEntry>(KEY_PHOTOS).filter((p) => p.id !== id),
   );
+}
+
+// T7.C.3 — Editare caption galerie
+export function updatePhotoCaption(id: string, caption: string): void {
+  const all = readArr<PhotoEntry>(KEY_PHOTOS).map((p) =>
+    p.id === id ? { ...p, caption } : p,
+  );
+  writeArr(KEY_PHOTOS, all);
 }
 
 // ---- Bookmarks ----

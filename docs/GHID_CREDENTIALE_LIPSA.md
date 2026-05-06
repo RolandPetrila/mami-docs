@@ -1369,3 +1369,138 @@ groq-8b → sambanova-70b → cerebras-70b → xai-grok-mini → mistral-large
 | **Long-context (>200K)** | OpenRouter rotation                                              | + **AI21 Jamba 1.5** (256K nativ)                                  |
 
 > Pentru blueprint universal de obținere credențiale (orice serviciu, nu doar AI), vezi `~/.claude/blueprints/CREDENTIALS_ACQUISITION_GUIDE.md`.
+
+
+---
+---
+
+## 🎨 v4 — Multimedia Generation APIs (#21-36)
+
+> 16 servicii cu API real pentru auto-generare prin terminal Claude (workflow: *"fă logo"* → AI cheamă API → fișier salvat în folder).
+
+## 21. Leonardo.AI ⭐⭐⭐ — image gen (1500+ imagini/lună)
+- 150 tokens/zi (~1500-2250 imagini/lună). Phoenix/Lucid Origin/Flux Dev models.
+- [Signup](https://app.leonardo.ai/auth/signup) → [API Keys](https://app.leonardo.ai/settings/api-keys) → Create
+- INBOX env: `LEONARDO_API_KEY` | Base: `https://cloud.leonardo.ai/api/rest/v1`
+- Docs: https://docs.leonardo.ai/
+
+## 22. Ideogram ⭐⭐⭐ — text-in-image (1200 imagini/lună)
+- 10 prompts/zi × 4 = ~1200/lună. CEL MAI BUN la text rendering în imagini (logo cu cuvinte).
+- [Signup](https://ideogram.ai/login) → [API Manage](https://ideogram.ai/manage-api) → Create
+- INBOX env: `IDEOGRAM_API_KEY` | Base: `https://api.ideogram.ai`
+- Docs: https://developer.ideogram.ai/
+
+## 23. Recraft V4 ⭐ — vector + brand (50 credits/lună)
+- 50 credits/lună. SVG nativ, brand kits. Perfect pentru iconițe Mami_Docs PWA.
+- [Signup](https://www.recraft.ai/) → [Profile API](https://www.recraft.ai/profile/api) → Generate
+- INBOX env: `RECRAFT_API_KEY` | Base: `https://external.api.recraft.ai/v1`
+- Docs: https://www.recraft.ai/docs
+
+## 24. Stability AI ⭐ — image edit (25 credits/lună)
+- 25 credits/lună. SD3.5/SDXL + bg remove + upscale 4×/8× + relighting.
+- [Signup](https://platform.stability.ai/) → [API Keys](https://platform.stability.ai/account/keys)
+- INBOX env: `STABILITY_API_KEY` | Base: `https://api.stability.ai`
+- Docs: https://platform.stability.ai/docs/api-reference
+
+## 25. ModelsLab ⭐⭐ — multi-model hub (3000 calls/lună)
+- 100 calls/zi (3000/lună). 10.000+ modele image/video/voice/3D unified.
+- [Signup](https://modelslab.com/register) → [Dashboard](https://modelslab.com/dashboard/api)
+- INBOX env: `MODELSLAB_API_KEY` | Base: `https://modelslab.com/api/v6`
+- Docs: https://docs.modelslab.com/
+
+## 26. Adobe Firefly ⭐ — commercial-safe (25 credite/lună, SEPARATE de ADOBE_API_KEY existent pentru PDF)
+- 25 generative credits/lună. Commercial-safe (Adobe Stock + public domain).
+- [Firefly](https://firefly.adobe.com/) login → [Developer Console](https://developer.adobe.com/console/projects) → Create Project → Add Firefly API → JWT
+- INBOX env: `FIREFLY_CLIENT_ID` + `FIREFLY_CLIENT_SECRET` | Base: `https://firefly-api.adobe.io`
+- Note: SEPARATE de `ADOBE_API_KEY` (PDF) existent
+- Docs: https://developer.adobe.com/firefly-services/docs/firefly-api/
+
+## 27. Luma Dream Machine ⭐ — video gen (30 generations/lună)
+- 30 video gens/lună 720p (5-10 sec). Best image-to-video. Camera motion control.
+- [Signup](https://lumalabs.ai/dream-machine/api) → [API Keys](https://lumalabs.ai/api/keys)
+- INBOX env: `LUMA_API_KEY` | Base: `https://api.lumalabs.ai`
+- Docs: https://docs.lumalabs.ai/
+
+## 28. Hailuo MiniMax ⭐⭐ — video + audio + LLM (free credits generos)
+- Free credits signup ($5-30 variabil + bonus phone verify). Hailuo T2V/I2V + voice clone + LLM.
+- [International signup](https://www.minimax.io/login) → [API Keys](https://www.minimax.io/user-center/basic-information/interface-key)
+- INBOX env: `MINIMAX_API_KEY` + `MINIMAX_GROUP_ID` | Base: `https://api.minimaxi.chat/v1`
+- Docs: https://www.minimax.io/document
+
+## 29. Fish Audio ⭐⭐ — TTS multi-voice (free permanent + 2M voci)
+- Free permanent + 2M+ voci community în 8 limbi (RO inclus). Voice cloning din 10s.
+- [Signup](https://fish.audio/auth/sign-up) → [API Keys](https://fish.audio/go-api/api-keys)
+- INBOX env: `FISHAUDIO_API_KEY` | Base: `https://api.fish.audio/v1`
+- Docs: https://docs.fish.audio/
+
+## 30. D-ID ⭐⭐ — talking head video (5 min/lună)
+- 5 min video/lună. Image+audio → talking head cu lip sync RO.
+- Use-case Mami_Docs: poză Roland + voce ElevenLabs → mesaj video pentru mama
+- [Studio signup](https://studio.d-id.com/) → [API Page](https://studio.d-id.com/api)
+- INBOX env: `DID_API_KEY` | Base: `https://api.d-id.com`
+- Docs: https://docs.d-id.com/
+
+## 31. Sync.so ⭐ — lip sync arbitrary video (free tier)
+- Free tier credits signup. Aplică lip sync pe ORICE video (vs D-ID = talking head din imagine).
+- [Signup](https://sync.so/login) → [Dashboard API Keys](https://sync.so/dashboard)
+- INBOX env: `SYNC_API_KEY` | Base: `https://api.sync.so/v2`
+- Docs: https://docs.sync.so/
+
+## 32. Tripo AI ⭐⭐ — 3D modeling (2000 + 600/zi)
+- 2000 credits signup + ~600/zi. Image/Text → 3D mesh (.glb/.obj/.fbx). Auto-rigging.
+- [Signup](https://www.tripo3d.ai/) → [API Keys](https://platform.tripo3d.ai/api-keys)
+- INBOX env: `TRIPO_API_KEY` | Base: `https://api.tripo3d.ai/v2/openapi`
+- Docs: https://platform.tripo3d.ai/docs
+
+## 33. Meshy AI ⭐⭐ — 3D + texturing (200 credits/lună permanent)
+- 200 credits/lună permanent. Text/Image → 3D + retexturizare.
+- [Signup](https://www.meshy.ai/auth/sign-up) → [API Settings](https://www.meshy.ai/api)
+- INBOX env: `MESHY_API_KEY` | Base: `https://api.meshy.ai/openapi/v2`
+- Docs: https://docs.meshy.ai/
+
+## 34. TensorPix ⭐ — video upscale (free signup credits)
+- Free credits signup. 4× upscale + denoise + colorize + slow-mo.
+- [Signup](https://tensorpix.ai/) → [Account API](https://tensorpix.ai/account/api)
+- INBOX env: `TENSORPIX_API_KEY` | Base: `https://tensorpix.ai/api/v1`
+
+## 35. Cutout Pro ⭐ — image+video edit (free trial)
+- BG remove photo+video, upscale 4×/8×, restaurare poze vechi, colorize old photos.
+- [Signup](https://www.cutout.pro/sign-up) → [API](https://www.cutout.pro/api)
+- INBOX env: `CUTOUTPRO_API_KEY` | Base: `https://www.cutout.pro/api`
+- Docs: https://www.cutout.pro/api-page/document/general-info
+
+## 36. LALAL.AI ⭐ — vocal isolation (10 min/lună)
+- 10 min audio/lună. Separă voce/instrumental/drums/bass.
+- Use-case Mami_Docs: izolare voce mama din înregistrări zgomotoase
+- [Signup](https://www.lalal.ai/) → [API page](https://www.lalal.ai/api/)
+- INBOX env: `LALALAI_API_KEY` | Base: `https://www.lalal.ai/api/`
+- Docs: https://www.lalal.ai/api/help/
+
+---
+
+## 📋 Sumar v4 — 16 noi (max 60 min total)
+
+| # | Provider | Timp | Link tap-direct |
+|---|----------|------|-----------------|
+| 21 | Leonardo.AI | 3 min | [API Keys](https://app.leonardo.ai/settings/api-keys) |
+| 22 | Ideogram | 3 min | [API](https://ideogram.ai/manage-api) |
+| 23 | Recraft V4 | 3 min | [API](https://www.recraft.ai/profile/api) |
+| 24 | Stability AI | 3 min | [API Keys](https://platform.stability.ai/account/keys) |
+| 25 | ModelsLab | 3 min | [Dashboard](https://modelslab.com/dashboard/api) |
+| 26 | Adobe Firefly | 5 min | [Console](https://developer.adobe.com/console/projects) |
+| 27 | Luma Dream Machine | 3 min | [API Keys](https://lumalabs.ai/api/keys) |
+| 28 | Hailuo MiniMax | 5 min | [API Keys](https://www.minimax.io/user-center/basic-information/interface-key) |
+| 29 | Fish Audio | 3 min | [API Keys](https://fish.audio/go-api/api-keys) |
+| 30 | D-ID | 3 min | [API Page](https://studio.d-id.com/api) |
+| 31 | Sync.so | 3 min | [Dashboard](https://sync.so/dashboard) |
+| 32 | Tripo AI | 3 min | [API Keys](https://platform.tripo3d.ai/api-keys) |
+| 33 | Meshy AI | 3 min | [API](https://www.meshy.ai/api) |
+| 34 | TensorPix | 3 min | [API](https://tensorpix.ai/account/api) |
+| 35 | Cutout Pro | 3 min | [API](https://www.cutout.pro/api) |
+| 36 | LALAL.AI | 3 min | [API](https://www.lalal.ai/api/) |
+
+---
+
+**Versiune ghid:** 4.0 | **Data:** 2026-05-06 | **Sursă:** v3 (20) + 16 multimedia (#21-36 cu API real pentru auto-execution prin terminal Claude)
+
+> **Pentru servicii FĂRĂ cheie (Pollinations) sau UI-only (NotebookLM/Suno/etc.) → vezi memorie sistem `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`**

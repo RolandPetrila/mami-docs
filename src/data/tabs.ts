@@ -14,9 +14,11 @@ export interface TabDef {
 export const TABS: ReadonlyArray<TabDef> = [
   { id: "chat", label: "Chat AI", icon: "💬" },
   { id: "wellness", label: "Sănătate", icon: "❤️" },
+  { id: "tratament", label: "Tratament", icon: "💊" },
+  { id: "notite", label: "Notițe", icon: "📝" },
   { id: "gallery", label: "Galerie", icon: "🖼️" },
   { id: "menu", label: "Meniu", icon: "🍽️" },
-  { id: "medicamente", label: "Medicamente", icon: "💊" },
+  { id: "medicamente", label: "Interacțiuni", icon: "⚕️" },
 ];
 
 export const DEFAULT_TAB_ID: TabId = TABS[0]?.id ?? "chat";

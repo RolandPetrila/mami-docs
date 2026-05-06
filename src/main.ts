@@ -15,6 +15,8 @@ ric(
   () => {
     void import("./components/mami-wellness");
     void import("./components/mami-chat");
+    void import("./components/mami-notes");
+    void import("./components/mami-medication");
   },
   { timeout: 2000 },
 );

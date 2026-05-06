@@ -3,6 +3,7 @@ import {
   listPhotos,
   purgeDeletedPhotosMeta,
   softDeletePhotoMeta,
+  updatePhotoCaption,
   type PhotoEntry,
 } from "../data/local-store";
 import {
@@ -225,6 +226,30 @@ export class MamiGallery extends HTMLElement {
       img.loading = "lazy";
       card.appendChild(img);
       card.addEventListener("click", () => this._openLightbox(p.id, blob));
+      // T7.C.3 — Editare caption: dblclick + long-press
+      card.addEventListener("dblclick", (e) => {
+        e.stopPropagation();
+        void this._editCaption(p);
+      });
+      let pressTimer: ReturnType<typeof setTimeout> | null = null;
+      card.addEventListener("touchstart", () => {
+        pressTimer = setTimeout(() => {
+          void this._editCaption(p);
+          pressTimer = null;
+        }, 600);
+      });
+      card.addEventListener("touchend", () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      });
+      card.addEventListener("touchmove", () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      });
       // URL revoke după rendering — păstrăm cât trăiește cardul
       card.addEventListener("DOMNodeRemoved", () => URL.revokeObjectURL(url));
     } else {
@@ -279,6 +304,13 @@ export class MamiGallery extends HTMLElement {
     const id = this._activePhotoId;
     softDeletePhotoMeta(id);
     this._closeLightbox();
+    await this._renderGrid();
+  }
+
+  private async _editCaption(p: PhotoEntry): Promise<void> {
+    const next = prompt("Modifică descrierea fotografiei:", p.caption);
+    if (next === null) return;
+    updatePhotoCaption(p.id, next.trim());
     await this._renderGrid();
   }
 }
