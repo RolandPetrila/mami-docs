@@ -238,10 +238,10 @@ tmpl.innerHTML = `
     color: var(--color-text-muted, #666);
     border: 1px solid #e0e7ef;
     border-radius: 18px;
-    padding: 0.3rem 0.7rem;
+    padding: 0.5rem 0.8rem;
     font-size: 0.8rem;
     cursor: pointer;
-    min-height: 36px;
+    min-height: 44px;
     display: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
@@ -262,10 +262,10 @@ tmpl.innerHTML = `
     color: var(--color-text-muted, #666);
     border: 1px solid #e0e7ef;
     border-radius: 18px;
-    padding: 0.3rem 0.7rem;
+    padding: 0.5rem 0.8rem;
     font-size: 0.8rem;
     cursor: pointer;
-    min-height: 36px;
+    min-height: 44px;
     display: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }

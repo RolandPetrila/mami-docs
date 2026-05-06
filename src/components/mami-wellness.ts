@@ -179,8 +179,8 @@ tmpl.innerHTML = `
     color: var(--color-primary, #2e5c8a);
     font-size: 0.82rem;
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    min-height: 36px;
+    padding: 0.5rem 0.75rem;
+    min-height: 44px;
     border-radius: 4px;
   }
   .btn-link:hover { background: var(--color-bg, #eef4fa); }

@@ -140,11 +140,11 @@ tmpl.innerHTML = `
     background: transparent;
     border: 1px solid var(--color-primary, #2e5c8a);
     color: var(--color-primary, #2e5c8a);
-    padding: 0.3rem 0.7rem;
+    padding: 0.5rem 0.9rem;
     border-radius: 999px;
     cursor: pointer;
     font-size: 0.85rem;
-    min-height: 36px;
+    min-height: 44px;
   }
   .filter-btn[aria-pressed="true"] {
     background: var(--color-primary, #2e5c8a);
