@@ -21,6 +21,9 @@ interface GatewayResponse {
 const GATEWAY_URL =
   (import.meta.env.VITE_AI_GATEWAY_URL as string | undefined) ?? "";
 
+// Auto-retry dacă Retry-After <= acest prag (ms). > prag → throw cu mesaj UX.
+const MAX_AUTO_RETRY_WAIT_MS = 15_000;
+
 export class AiGatewayError extends Error {
   constructor(
     message: string,
@@ -31,13 +34,17 @@ export class AiGatewayError extends Error {
   }
 }
 
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 // T9.11 — DRY helper pentru toate endpoint-urile AI Gateway.
 // Body acceptă obiect (auto-JSON) sau FormData (multipart pentru /transcribe).
+// Pe 429: retry automat dacă Retry-After ≤ 15s (single-user, no thundering herd).
 // Pe non-ok → încearcă să citească { error } din JSON pentru detail.
 async function fetchJson<T>(
   path: string,
   body: unknown | FormData,
   signal?: AbortSignal,
+  _attempt = 0,
 ): Promise<T> {
   if (!GATEWAY_URL) {
     throw new AiGatewayError(
@@ -58,6 +65,21 @@ async function fetchJson<T>(
     if (err instanceof DOMException && err.name === "AbortError") throw err;
     throw new AiGatewayError(
       `Eroare rețea: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+
+  // 429 — rate limit propriu gateway. Worker setează Retry-After: 60 (RATE_LIMIT_WINDOW_SEC).
+  // Retry automat dacă Retry-After ≤ 15s (mic window). Altfel mesaj UX clar.
+  if (resp.status === 429 && _attempt === 0) {
+    const retryAfterSec = parseInt(resp.headers.get("Retry-After") ?? "60");
+    const waitMs = retryAfterSec * 1000;
+    if (waitMs <= MAX_AUTO_RETRY_WAIT_MS) {
+      await sleep(waitMs + Math.random() * 500);
+      return fetchJson<T>(path, body, signal, 1);
+    }
+    throw new AiGatewayError(
+      `Prea multe cereri — încearcă din nou în ${retryAfterSec} secunde`,
+      429,
     );
   }
 
@@ -182,7 +204,20 @@ export async function sendChatStream(
   }
 
   if (!resp.ok || !resp.body) {
-    // Fallback la non-stream
+    // 429 pe stream — avertizează sau retry cu Retry-After înainte de fallback non-stream
+    if (resp.status === 429) {
+      const retryAfterSec = parseInt(resp.headers.get("Retry-After") ?? "60");
+      const waitMs = retryAfterSec * 1000;
+      if (waitMs <= MAX_AUTO_RETRY_WAIT_MS) {
+        await sleep(waitMs + Math.random() * 500);
+        return sendChatStream(messages, systemPrompt, onChunk, signal);
+      }
+      throw new AiGatewayError(
+        `Prea multe cereri — încearcă din nou în ${retryAfterSec} secunde`,
+        429,
+      );
+    }
+    // Fallback la non-stream pentru orice alt non-ok
     const fallback = await sendChat(messages, systemPrompt, signal);
     onChunk(fallback);
     return fallback;
