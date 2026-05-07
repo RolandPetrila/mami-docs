@@ -27,6 +27,7 @@ export interface Env {
   SAMBANOVA_API_KEY?: string;
   CEREBRAS_API_KEY?: string;
   XAI_API_KEY?: string;
+  REKA_API_KEY?: string;
   OPENROUTER_API_KEY?: string;
   GEMINI_API_KEY?: string;
   COHERE_API_KEY?: string;
@@ -116,6 +117,7 @@ const GROQ_AUDIO_API = "https://api.groq.com/openai/v1/audio/transcriptions";
 const SAMBANOVA_API = "https://api.sambanova.ai/v1/chat/completions";
 const CEREBRAS_API = "https://api.cerebras.ai/v1/chat/completions";
 const XAI_API = "https://api.x.ai/v1/chat/completions";
+const REKA_API = "https://api.reka.ai/v1/chat";
 const GITHUB_MODELS_API = "https://models.github.ai/inference/chat/completions";
 const OPENROUTER_API = "https://openrouter.ai/api/v1/chat/completions";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
@@ -157,6 +159,12 @@ const CHAT_PROVIDERS = [
     id: "xai-grok-mini",
     model: "grok-3-mini",
     provider: "xai",
+    category: "frontier",
+  },
+  {
+    id: "reka-flash",
+    model: "reka-flash",
+    provider: "reka",
     category: "frontier",
   },
   {
@@ -362,6 +370,40 @@ async function callXAIChat(
   return content;
 }
 
+async function callRekaChat(
+  model: string,
+  messages: ChatMessage[],
+  apiKey: string,
+): Promise<string> {
+  // Reka native API: messages.content = Array<{type:"text", text}>, response.responses[0].message.content
+  const rekaMessages = messages.map((m) => ({
+    role: m.role,
+    content: [{ type: "text", text: m.content }],
+  }));
+  const resp = await withTimeout(
+    fetch(REKA_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": apiKey,
+      },
+      body: JSON.stringify({
+        model,
+        messages: rekaMessages,
+        max_tokens: MAX_TOKENS,
+      }),
+    }),
+    REQUEST_TIMEOUT_MS,
+  );
+  if (!resp.ok) throw new Error(`Reka HTTP ${resp.status}`);
+  const data = (await resp.json()) as {
+    responses: Array<{ message: { content: string } }>;
+  };
+  const content = data.responses[0]?.message.content;
+  if (typeof content !== "string") throw new Error("Reka: invalid response");
+  return content.trim();
+}
+
 async function callMistralChat(
   model: string,
   messages: ChatMessage[],
@@ -504,6 +546,9 @@ async function handleChat(
         } else if (provider === "xai") {
           if (!env.XAI_API_KEY) throw new Error("XAI_API_KEY missing");
           content = await callXAIChat(model, messages, env.XAI_API_KEY);
+        } else if (provider === "reka") {
+          if (!env.REKA_API_KEY) throw new Error("REKA_API_KEY missing");
+          content = await callRekaChat(model, messages, env.REKA_API_KEY);
         } else if (provider === "mistral") {
           if (!env.MISTRAL_API_KEY) throw new Error("MISTRAL_API_KEY missing");
           content = await callMistralChat(model, messages, env.MISTRAL_API_KEY);

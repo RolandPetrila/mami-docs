@@ -47,6 +47,15 @@
 - ✅ Commits: `2c7ec47` (GHID v5) → `ff6ed64` (GHID v6 + routing tree) → `cc2002a` (a11y)
 - ✅ **Wrangler secrets verificat**: keepalive 8 SET (Telegram + Supabase + ntfy + Groq), ai-gateway 17 SET (DEEPSEEK eliminat propagat)
 
+### Reka AI integrare (2026-05-07, autonomy run):
+
+- ✅ **REKA_API_KEY** procesat: master (Tier 1 Gratuit) + INBOX [PROCESAT] + Windows env var (length 64) + catalog regenerat + `wrangler secret put` ai-gateway
+- ✅ **Worker `callRekaChat`**: format native API (POST `/v1/chat`, header `X-Api-Key`, content array `[{type:"text", text}]`); response parse `responses[0].message.content`
+- ✅ **Provider entry chain**: `{id:"reka-flash", model:"reka-flash", provider:"reka", category:"frontier"}` poziție 2 după `xai-grok-mini`, înainte `mistral-large`
+- ✅ **routing_decision_trees.md**: Reka promovat de la #6 (pending) la #3 (activ) în secțiunea LLM Frontier
+- ✅ **GHID v7 → v8**: Reka eliminat din lista pending (rămân 14 servicii); secțiunea `## 1. Reka AI` complet ștearsă; tabel + Wave 1 + footer + GDPR sync
+- ✅ **Validare cheie**: HTTP 200 reka-flash răspunde (test admin manual + worker)
+
 ### NOU local (necomis — gata de commit):
 
 **Sesiunea 2026-05-01 (Opus/Sonnet):**

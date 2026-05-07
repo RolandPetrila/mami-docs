@@ -1,6 +1,6 @@
-# Ghid Pas-cu-Pas — Credențiale ce trebuie obținute manual (v7 — 2026-05-07)
+# Ghid Pas-cu-Pas — Credențiale ce trebuie obținute manual (v8 - 2026-05-07)
 
-> **Versiune 7** — curățat: fișierul conține DOAR cele **15 servicii pending signup manual**.
+> **Versiune 8** - Reka AI integrat 2026-05-07 (eliminat din lista). Fisierul contine **14 servicii pending signup manual**.
 > Status chei deja obținute → vezi `~/.api-keys/catalog.md` (rulează `verify.ps1` pentru status).
 > Servicii respinse / cu echivalent automat → mutate în `~/.claude/projects/C--Proiecte-Mami-Docs/memory/system_no_key_services.md`.
 >
@@ -12,12 +12,11 @@
 
 ---
 
-## 🆕 TOP 15 servicii — necesită signup manual + tier permanent
+## 🆕 TOP 14 servicii — necesită signup manual + tier permanent
 
 | Cat              | #  | Provider           | Free tier permanent             | Env var propus                      |
 | ---------------- | -- | ------------------ | ------------------------------- | ----------------------------------- |
-| **LLM**          | 1  | Reka AI            | $10 RECURRING LUNAR             | `REKA_API_KEY`                      |
-|                  | 2  | Perplexity         | Sonar gratis nelimitat + $5     | `PERPLEXITY_API_KEY`                |
+| **LLM**          | 2  | Perplexity         | Sonar gratis nelimitat + $5     | `PERPLEXITY_API_KEY`                |
 |                  | 3  | Voyage AI          | 200M tokens/lună embed          | `VOYAGE_API_KEY`                    |
 | **Speech**       | 4  | ElevenLabs         | 10k chars/lună permanent        | `ELEVENLABS_API_KEY`                |
 | **Multimodal**   | 5  | Hume AI            | 10k min/lună emotion analysis   | `HUME_API_KEY`                      |
@@ -43,50 +42,6 @@
 3. Lipești blocul în `C:\Users\ALIENWARE\.api-keys\INBOX.md`
 4. Deschizi Claude Code în `C:\Users\ALIENWARE\.api-keys\` și scrii `proceseaza inbox`
 5. **Eu fac restul automat** (master + Windows env var + catalog + worker secret + AI Gateway integration)
-
----
-
-## 1. Reka AI ⭐⭐ — $10 RECURRING LUNAR (UNIC)
-
-### Ce câștigi
-
-- **$10 RECURRING LUNAR (resetabil)** — singurul cu credit care se reîncarcă automat lunar
-- Modele Reka Core (frontier multimodal) + Reka Flash + Reka Edge
-- Multimodal real: text + imagine + video + audio understanding
-- API OpenAI-compatible
-
-### Pași (~4 min)
-
-1. [Reka platform signup](https://platform.reka.ai/) → Google/email
-2. Verifică email → click link activare
-3. **Settings → API Keys** ([direct](https://platform.reka.ai/apikeys)) → **Generate New Key**
-4. Name `claude-code-mami` → **Create** → **Copy** (`reka_...`)
-
-### Test
-
-```powershell
-$body = @{ model = "reka-flash"; messages = @(@{ role = "user"; content = @(@{ type = "text"; text = "Reply OK" }) }) } | ConvertTo-Json -Depth 5
-Invoke-RestMethod -Method POST -Uri "https://api.reka.ai/v1/chat" `
-    -Headers @{ "X-Api-Key" = $env:REKA_API_KEY; "Content-Type" = "application/json" } -Body $body
-```
-
-### Note
-
-- $10/lună ≈ ~5,000 mesaje pe Reka Flash sau ~1,000 pe Reka Core
-- Resetabil lunar → sustainable long-term ca fallback
-
-### 📥 TEMPLATE — completare credențiale
-
-```markdown
-### Reka AI
-
-- **Key:** <paste_reka_key_here>
-- **Env Var:** REKA_API_KEY
-- **Tip:** LLM Multimodal Frontier
-- **Limita:** $10 RECURRING LUNAR (reset automat)
-- **Base URL:** https://api.reka.ai/v1/chat
-- **Note:** Multimodal text+image+video+audio. Modele: reka-core, reka-flash, reka-edge.
-```
 
 ---
 
@@ -687,11 +642,10 @@ Invoke-RestMethod -Method POST -Uri "https://api.meshy.ai/openapi/v2/text-to-3d"
 
 ## 📋 Sumar prioritate semnare (recomandare)
 
-**Wave 1 — primele 3 (15 min, valoare maximă):**
+**Wave 1 - primele 2 (10 min, valoare maxima vizuala):**
 
-1. ⭐⭐ **Reka** — recurring lunar (singura cu reset)
-2. ⭐⭐⭐ **Ideogram** — text-in-image unic 1200/lună
-3. ⭐⭐⭐ **Leonardo.AI** — 1500-2250 imagini/lună PhotoReal
+1. ⭐⭐⭐ **Ideogram** — text-in-image unic 1200/lună
+2. ⭐⭐⭐ **Leonardo.AI** — 1500-2250 imagini/lună PhotoReal
 
 **Wave 2 — Wellness mama (10 min):**
 
@@ -736,7 +690,7 @@ Invoke-RestMethod -Method POST -Uri "https://api.meshy.ai/openapi/v2/text-to-3d"
 
 **✅ OK pentru date personale mama:**
 
-Reka (US), Voyage (US), ElevenLabs (US), Hume (US), Resend (US), Sentry (EU/US), Neon (EU Frankfurt), Leonardo, Ideogram, Firefly, Luma, D-ID, Meshy (US/EU)
+Voyage (US), ElevenLabs (US), Hume (US), Resend (US), Sentry (EU/US), Neon (EU Frankfurt), Leonardo, Ideogram, Firefly, Luma, D-ID, Meshy (US/EU)
 
 **⛔ NU pentru date personale mama:**
 
@@ -745,4 +699,4 @@ Reka (US), Voyage (US), ElevenLabs (US), Hume (US), Resend (US), Sentry (EU/US),
 
 ---
 
-**Versiune ghid:** 7.0 | **Data:** 2026-05-07 | **Sursă:** v6 (15 servicii) → v7 (curățat: secțiuni status & istoric eliminări mutate în memorie sistem; rămân doar cele 15 servicii pending signup)
+**Versiune ghid:** 8.0 | **Data:** 2026-05-07 | **Sursa:** v7 (15 servicii) -> v8 (Reka AI integrat in AI Gateway worker frontier chain -> eliminat din lista pending; raman 14 servicii)
